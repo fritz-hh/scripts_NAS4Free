@@ -67,34 +67,3 @@ generateSnapshotName() {
 	echo "$tsFormatted"_autosnap_"$tag"
 }
 
-####################################################################
-# Change Notes:
-#
-# 2010-08-21:
-#	- Creation of the change notes
-#	- Functions available: "convertTimestamp", "sortSnapshots", 
-#	  "getSnapTimestamp" and "getSnapTimestamp1970"
-# 2010-12-30:
-#	- Script adapted for FreeNAS 0.7.2 (was for open solaris before) 
-# 2011-01-01:
-#	- Bug fix in function "getSnapTimestamp1970" 
-# 2011-01-03:
-#	- Bug fix in function "getTimestampFormat" (format changed 
-#	  from "%G%m%d_%H%M" to "%Y%m%d_%H%M") 
-# 2012-12-17:
-#	- constants defining path to utilities (like date, rm...) moved to config.sh
-# 2012-12-25:
-#	- performance of function sortSnapshots improved
-# 2013-01-03:
-#       - new snapshot naming rules to be compatible with NAS4Free
-#         CIFS shadow copies function:
-#	  new function "generateSnapshotName"
-#	  function "sortSnapshots" modified 
-# 2013-01-06:
-#       - code of function sortSnapshots simplified
-#	- fcts "convertTimestamp", "getSnapTimestamp" and ""getTimestampFormat"" deleted
-# 2013-01-08:
-#       - minor changes in declaration of local variables
-# 2013-01-13:
-#       - few variables declared readonly
-####################################################################
