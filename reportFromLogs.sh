@@ -32,16 +32,4 @@ do
 	fi
 done
 
-##################################
-# Change Notes
-#
-# 2010-01-03:
-#	First issue of the script
-# 2012-12-17:
-#	- constants defining path to utilities (like date) moved to config.sh
-# 2012-12-22:
-#	- minor bugfix
-# 2013-01-13:
-#	- few variables declared readonly
-##################################
 
