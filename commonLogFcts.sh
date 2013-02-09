@@ -269,36 +269,3 @@ get_log_entries_ts() {
 	return 0
 }
 
-
-####################################################################
-# Change Notes:
-#
-# 2010-12-29:
-#	First issue of the script
-# 2011-01-02:
-#	Bug fix (Method to detect if data were provided by through the pipe
-#	or with an dedicated argument)
-# 2011-01-03:
-#	- Bug fix in timestamp generation (wrong year was provided in some cases)
-#	- New functions "ts_format" and "get_log_entries"
-#	- Bug fix in function "get_log_entries": one more line returned
-# 2011-10-21:
-#	- New function "get_log_entries_ts"
-# 2011-11-04:
-#	- Bug fix in function "get_log_entries"
-# 2012-08-21:
-#	- Minor typo corrected
-# 2012-09-10:
-#	- Bug fix, the lines to be returned were not computed accurately
-#	  (up to 2 lines more than expected were returned)
-# 2012-12-14:
-#	- New function (get_log_oldest_ts) returning the oldest timestamp in a log
-# 2012-12-17:
-#	- constants defining path to utilities (like date, rm...) moved to config.sh
-# 2013-01-08:
-#       - minor changes in declaration of local variables
-# 2013-01-13:
-#       - improvement of robusteness of fct "get_log_oldest_ts"
-#	  (handle case where the log does not have the right format)
-#       - few variables declared readonly
-####################################################################
