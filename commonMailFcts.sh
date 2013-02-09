@@ -34,17 +34,3 @@ sendMail() {
 	return 0
 }
 
-####################################################################
-# Change notes:
-#
-# 2010-12-30:
-# 	- First issue of the script
-# 2010-12-31:
-# 	- Minor bug fix
-# 2011-09-12:
-# 	- Recipient e-mail address changed
-# 2011-12-17:
-#	- constants that may be changed by the user moved to config.sh
-# 2013-01-08:
-#       - minor changes in declaration of local variables
-####################################################################
