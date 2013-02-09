@@ -246,23 +246,3 @@ run_main "$LOGFILE" "$SCRIPT_NAME"
 
 exit 0 
 
-##################################
-# Change Notes
-#
-# 2012-12-14:
-#	- 1st issue of the script
-# 2012-12-17:
-#	- constants defining path to utilities (like date, rm...) moved to config.sh
-#	- log why the script could not be started (differentiate the return codes)
-# 2012-12-24:
-#	- corrected text in log error
-# 2013-01-04:
-#	- do not send a error mail in case the NAS is about to shut down
-# 2013-01-08:
-#       - minor changes in declaration of local variables
-# 2013-01-12:
-#       - lock management moved to fct "run_main" 
-# 2013-01-13:
-#       - log when an issue occurs while reading "ACPI_STATE_LOGFILE" 
-#       - few variables declared readonly 
-##################################
