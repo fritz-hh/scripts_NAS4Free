@@ -233,37 +233,3 @@ run_main() {
 	fi
 }
 
-
-####################################################################
-# Change Notes:
-#
-# 2012-08-21:
-#	- First issue of the script
-# 2012-08-22:
-#	- New function: get_list_of_running_scripts()
-# 2012-09-10:
-#	- Slight robustness improvement in rge create_lock_folder()
-# 2012-12-14:
-#	- New functtion "reset_locks"
-#	- Function "allow_scripts_to_start" modified (now it only resets
-#	  the "CFG_FORBID_ANY_SCRIPT_START_FILE", instead of deleting all locks
-# 2012-12-15:
-#	- Minor changes in documentation in order to make clear, that
-#	  the lock file should not necessary use the script name as 
-#	  name of the lock 
-# 2012-12-17:
-#	- constants defining path to utilities (like date, rm...) moved to config.sh
-#	- bugfix: before: Function "get_list_of_running_scripts" returned the list 
-#	  of running script separated by a new line. Now: the items are separated 
-#	  by a semicolon (to void issues during data logging)
-#	- In fct "script_start": now different return codes for "script with same 
-#	  id already running" and "no script allowed to be executed" 
-# 2013-01-08:
-#       - minor changes in declaration of local variables
-#       - new function "run_main"
-# 2013-01-12:
-#       - mail not sent within the fct "run_main" anymore
-# 2013-01-13:
-#       - bug fix in "run_main". In case error occured in main, the lock was not
-#	  deleted at the end of the fct
-##################################
