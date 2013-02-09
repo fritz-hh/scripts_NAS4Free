@@ -104,20 +104,3 @@ run_main "$LOGFILE" "$SCRIPT_NAME"
 
 exit 0
 
-
-##################################
-# Change Notes
-#
-# 2013-02-05: (miGi)
-#	- First version of the script
-# 2013-02-06: (miGi)
-#	- CPU temperature check changed to core 0
-#	- A few changes to the logging
-# 2013-02-07: (fritz)
-#	- correction of "Bad number" error in case of portable memory stick
-#	- verification of the input parameters added
-#	- check temperature of all CPUs / CPU cores
-#	- log device model correctly even if it contains spaces (which is the case for me)
-#	- log device serial number correctly even if it contains spaces
-#	- temperature of disks moved to the end of the line (readability)
-##################################
