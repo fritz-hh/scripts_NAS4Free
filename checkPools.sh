@@ -56,31 +56,3 @@ run_main "$LOGFILE" "$SCRIPT_NAME"
 
 exit 0
 
-
-##################################
-# Change Notes
-#
-# 2011-01-16:
-#	- First version of the script
-# 2011-10-21:
-#	- Script modified in order to mail only the lines 
-#	  that have been written in the logfile during the current execution
-# 2011-10-22:
-#       - Minor changes to improve code quality
-# 2012-08-21:
-#       - Create lock file at when starting the execution
-#       - Delete lock file at the end of the execution
-#       - Prevent several instances of the script to run at the same time
-# 2012-12-17:
-#	- Variable TMPFILE renamed in LOGFILE
-#	- constants defining path to utilities (like date, rm...) moved to config.sh
-#       - log why the script could not be started (differentiate the return codes)
-# 2012-12-24:
-#       - corrected text in log error
-# 2013-01-04:
-#       - do not send a error mail in case the NAS is about to shut down
-# 2013-01-12:
-#       - lock management moved to fct "run_main" 
-# 2013-01-13:
-#       - few variables declared readonly 
-##################################
