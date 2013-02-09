@@ -27,10 +27,10 @@ readonly SCRIPT_PATH=`dirname $0`		# The path of the file
 
 # import the other required scripts
 . "$SCRIPT_PATH/config.sh"
-. "$SCRIPT_PATH/commonSnapFcts.sh"
-. "$SCRIPT_PATH/commonLogFcts.sh"
-. "$SCRIPT_PATH/commonMailFcts.sh"
-. "$SCRIPT_PATH/commonLockFcts.sh"
+. "$SCRIPT_PATH/common/commonSnapFcts.sh"
+. "$SCRIPT_PATH/common/commonLogFcts.sh"
+. "$SCRIPT_PATH/common/commonMailFcts.sh"
+. "$SCRIPT_PATH/common/commonLockFcts.sh"
 
 # Record the timestamp corresponding to the start of the script execution
 readonly START_TIMESTAMP=`$BIN_DATE +"%s"`
