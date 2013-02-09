@@ -52,14 +52,4 @@ BIN_PING="/sbin/ping"
 
 BIN_SMARTCTL="/usr/local/sbin/smartctl"
 
-####################################################################
-# Change Notes:
-#
-# 2012-12-17:
-#       - First issue of the script
-# 2013-01-12:
-#       - double quotes added around certain variables
-# 2013-02-07:
-#       - smartctl added
-####################################################################
 
