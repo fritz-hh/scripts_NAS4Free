@@ -1,4 +1,4 @@
-create_package.sh
+release_package.sh
 tmp/
 log/
 
