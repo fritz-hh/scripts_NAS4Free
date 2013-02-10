@@ -30,9 +30,9 @@ readonly START_TIMESTAMP=`$BIN_DATE +"%s"`
 ARGUMENTS="$@"
 
 # Initialization of the constants 
-FILESYSTEM="" 		# name of the filesystem to be monitored (default: all)
+FILESYSTEM="" 		# default name of the filesystem to be monitored (meaning: all fs)
 WARN_THRESHOLD="80"	# space warning threshold default value
-LOGFILE=""		# log file name (will be set in fct "parseOptionalInputParams")
+LOGFILE=""		# provisionary value of log file name (will be set in fct "parseOptionalInputParams")
 
 
 ################################## 
