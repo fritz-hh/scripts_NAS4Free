@@ -1,4 +1,6 @@
 create_package.sh
+tmp/
+log/
 
 #################
 ## Eclipse
