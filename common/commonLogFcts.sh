@@ -56,7 +56,9 @@ log_error() {
 #	read data from the pipe
 # Param 1: message criticality 
 # Param 2: path to the log file
-# Param 3: message to be logged
+# Param 3: message to be logged (optional)
+# return: 1 if no log file path was provided
+#	  0 otherwise
 ##################################
 log() {
 	local criticality logfile text line 
@@ -67,16 +69,25 @@ log() {
 	# If the text to be logged was provided through an argument pipe
 	if [ -n "$3" ]; then
 		text="$3"
-		format_log_txt "$criticality" "$text" >> $logfile
-		#echo "$criticality" "$text"
+		if [ -z "$logfile" ]; then
+			echo "INVALID LOG FILE: " `format_log_txt "$criticality" "$text"`
+			return 1
+		else
+			format_log_txt "$criticality" "$text" >> $logfile
+		fi
 	# If the text to be logged was provided through the pipe
 	else
 		line="" 
-		while read line
-		do
-			format_log_txt "$criticality" "$line" >> $logfile
-			#echo "$criticality" "$line"
-		done
+		if [ -z "$logfile" ]; then
+			while read line; do
+				echo "INVALID LOG FILE: " `format_log_txt "$criticality" "$text"`
+			done
+			return 1
+		else
+			while read line; do
+				format_log_txt "$criticality" "$line" >> $logfile
+			done
+		fi
 	fi
 
 	return 0 
