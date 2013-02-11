@@ -71,11 +71,11 @@ parseInputParams() {
 					return 1
 				fi ;;
 			\?)
-                                log_error "$LOGFILE" "Invalid option: -$OPTARG"
-                                return 1 ;;
-                        :)
-                                log_error "$LOGFILE" "Option -$OPTARG requires an argument"
-                                return 1 ;;
+				log_error "$LOGFILE" "Invalid option: -$OPTARG"
+				return 1 ;;
+			:)
+				log_error "$LOGFILE" "Option -$OPTARG requires an argument"
+				return 1 ;;
                 esac
         done
 

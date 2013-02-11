@@ -158,11 +158,11 @@ parseInputParams() {
 			v)	VERBOSE=1 ;;
 			m)	MAIL_ACPI_CHANGE=1 ;;
 			\?)
-                                log_error "$LOGFILE" "Invalid option: -$OPTARG"
-                                return 1 ;;
+				log_error "$LOGFILE" "Invalid option: -$OPTARG"
+				return 1 ;;
                         :)
-                                log_error "$LOGFILE" "Option -$OPTARG requires an argument"
-                                return 1 ;;
+				log_error "$LOGFILE" "Option -$OPTARG requires an argument"
+				return 1 ;;
                 esac
         done
 
@@ -227,8 +227,8 @@ nasSleep() {
                 
 		if [ $acpi_state -eq "5" ]; then	# Soft OFF
         
-	        	log_info "$LOGFILE" "$msg"
-                	log_info "$ACPI_STATE_LOGFILE" "S$acpi_state"
+			log_info "$LOGFILE" "$msg"
+			log_info "$ACPI_STATE_LOGFILE" "S$acpi_state"
         	
 			if [ $MAIL_ACPI_CHANGE -eq "1" ]; then	
 				get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "NAS going to sleep to save energy (ACPI state: S$acpi_state)"
@@ -240,7 +240,7 @@ nasSleep() {
 		elif [ $acpi_state -eq "3" ]; then	# Suspend to RAM
 	        	
 			log_info "$LOGFILE" "$msg"
-                	log_info "$ACPI_STATE_LOGFILE" "S$acpi_state"
+			log_info "$ACPI_STATE_LOGFILE" "S$acpi_state"
         
 			if [ $MAIL_ACPI_CHANGE -eq "1" ]; then	
 				get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "NAS going to sleep to save energy (ACPI state: S$acpi_state)"
@@ -249,14 +249,14 @@ nasSleep() {
 			awake="0"
 			$BIN_ACPICONF -s 3	
 		else
-                	log_error "$LOGFILE" "Shutdown not possible. ACPI state \"$acpi_state\" not supported"
+			log_error "$LOGFILE" "Shutdown not possible. ACPI state \"$acpi_state\" not supported"
 			return 1
 		fi	
 		return 0
-        else
-                log_info "$LOGFILE" "Shutdown not possible. The following scripts are running: `get_list_of_running_scripts`"
+	else
+		log_info "$LOGFILE" "Shutdown not possible. The following scripts are running: `get_list_of_running_scripts`"
 		return 1
-        fi
+	fi
 }
 
 
@@ -307,8 +307,7 @@ main() {
 
 
 	# Loop until the NAS is switched off
-	while true
-	do
+	while true; do
 		[ $VERBOSE -eq "1" ] && log_info "$LOGFILE" "-----------------"
 
 		# If the NAS just woke up

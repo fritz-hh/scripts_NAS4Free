@@ -52,13 +52,13 @@ parseOptionalInputParams() {
  				LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.$fs_without_slash.log" 	# value of the log file name
 				specific_fs="1"
  				$BIN_ZFS list "$OPTARG" 2>/dev/null 1>/dev/null			# Check if the zfs file system exists
-                                if [ "$?" -eq "0" ] ; then
-                                        FILESYSTEM="$OPTARG"
-                                else
-                                        log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -f. The ZFS filesystem does not exist."
-                                        return 1
-                                fi ;;
-                	t) 	# first check if a specific fs was set before, otherwise
+				if [ "$?" -eq "0" ] ; then
+					FILESYSTEM="$OPTARG"
+				else
+					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -f. The ZFS filesystem does not exist."
+					return 1
+				fi ;;
+			t) 	# first check if a specific fs was set before, otherwise
 				# set the log file name to its default value
 				if [ "$specific_fs" -eq "0" ]; then
 					LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
@@ -69,14 +69,14 @@ parseOptionalInputParams() {
 					WARN_THRESHOLD="$OPTARG" 
 				else
 					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -t. Should be an integer between 0 and 99."
-                        		return 1
+					return 1
 				fi ;;
-                	\?)
+			\?)
 				log_error "$LOGFILE" "Invalid option: -$OPTARG"
-                        	return 1 ;;
-                	:)
+				return 1 ;;
+			:)
 				log_error "$LOGFILE" "Option -$OPTARG requires an argument"
-                        	return 1 ;;
+				return 1 ;;
         	esac
 	done
 

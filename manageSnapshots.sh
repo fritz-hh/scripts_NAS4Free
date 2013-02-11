@@ -60,7 +60,7 @@ readonly MONTHLY_TAG="type04"	# Services|CIFS/SMB|Shares
 if [ $# -gt 0 ]; then
 	eval FILESYSTEM=\$$#				# Filesystem to snapshot
 else
-        echo "Name of the filesystem to snapshot not provided when calling \"$SCRIPT_NAME\"" | sendMail "Snapshot management issue"
+	echo "Name of the filesystem to snapshot not provided when calling \"$SCRIPT_NAME\"" | sendMail "Snapshot management issue"
 	exit 1
 fi
 
@@ -81,42 +81,42 @@ parseOptionalInputParams() {
 	# parse the optional parameters
 	while getopts ":nh:d:w:m:k" opt; do
         	case $opt in
-                	n) 	GENERATE_SNAPSHOT=0 ;;
-                	h) 	echo "$OPTARG" | grep '^[1-9-][0-9]*$' >/dev/null	# Check if positive or negative integer
+			n) 	GENERATE_SNAPSHOT=0 ;;
+			h) 	echo "$OPTARG" | grep '^[1-9-][0-9]*$' >/dev/null	# Check if positive or negative integer
 				if [ "$?" -eq "0" ] ; then 
 					MAX_NB_HOURLY="$OPTARG" 
 				else
 					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -h. Should be an integer."
-                        		return 1
+					return 1
 				fi ;;
-                	d) 	echo "$OPTARG" | grep '^[1-9-][0-9]*$' >/dev/null	# Check if positive or negative integer
+			d) 	echo "$OPTARG" | grep '^[1-9-][0-9]*$' >/dev/null	# Check if positive or negative integer
 				if [ "$?" -eq "0" ] ; then 
 					MAX_NB_DAILY="$OPTARG" 
 				else
 					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -h. Should be an integer."
-                        		return 1
+					return 1
 				fi ;;
-                	w) 	echo "$OPTARG" | grep '^[1-9-][0-9]*$' >/dev/null	# Check if positive or negative integer
+			w) 	echo "$OPTARG" | grep '^[1-9-][0-9]*$' >/dev/null	# Check if positive or negative integer
 				if [ "$?" -eq "0" ] ; then 
 					MAX_NB_WEEKLY="$OPTARG" 
 				else
 					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -h. Should be an integer."
-                        		return 1
+					return 1
 				fi ;;
-                	m) 	echo "$OPTARG" | grep '^[1-9-][0-9]*$' >/dev/null	# Check if positive or negative integer
+			m) 	echo "$OPTARG" | grep '^[1-9-][0-9]*$' >/dev/null	# Check if positive or negative integer
 				if [ "$?" -eq "0" ] ; then 
 					MAX_NB_MONTHLY="$OPTARG" 
 				else
 					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -h. Should be an integer."
-                        		return 1
+					return 1
 				fi ;;
-                	k) 	keep_all_snap="1" ;;
-                	\?)
+			k) 	keep_all_snap="1" ;;
+			\?)
 				log_error "$LOGFILE" "Invalid option: -$OPTARG"
-                        	return 1 ;;
-                	:)
+				return 1 ;;
+			:)
 				log_error "$LOGFILE" "Option -$OPTARG requires an argument"
-                        	return 1 ;;
+				return 1 ;;
         	esac
 	done
 
@@ -212,13 +212,13 @@ createSnapshot() {
 # Param 3: max number of snapshots to be kept (all are kept if value is negative)
 ##################################
 deleteOldSnapshots() {
-        local filesystem tag maxNb returnCode subfs
+	local filesystem tag maxNb returnCode subfs
         
 	filesystem="$1"
-        tag="$2"
-        maxNb="$3"
+	tag="$2"
+	maxNb="$3"
 
-        returnCode=0
+	returnCode=0
         
 	log_info "$LOGFILE" "Analyzing snapshots with tag \"$tag\""
 
@@ -228,23 +228,23 @@ deleteOldSnapshots() {
 		return 0
 	fi 
 
-        # Get the list of sub-filesystems from the requested filesystem
-        for subfs in `$BIN_ZFS list -H -r -o name $filesystem`; do
+	# Get the list of sub-filesystems from the requested filesystem
+	for subfs in `$BIN_ZFS list -H -r -o name $filesystem`; do
 
-                # Delete the snapshots that are too old in the current sub filesystem
-                for snapshot in `sortSnapshots $subfs $tag | tail -n +$((maxNb+1))`; do
+		# Delete the snapshots that are too old in the current sub filesystem
+		for snapshot in `sortSnapshots $subfs $tag | tail -n +$((maxNb+1))`; do
 
 			# Destroy the snapshots that are too old
 			if ! $BIN_ZFS destroy $snapshot; then
 			        log_error "$LOGFILE" "Problem while trying to delete snapshot \"$snapshot\""
 			        returnCode=1
 			else
-			        log_info "$LOGFILE" "Snapshot \"$snapshot\" DELETED"
+				log_info "$LOGFILE" "Snapshot \"$snapshot\" DELETED"
 			fi
 		done
-        done
+	done
 
-        return $returnCode
+	return $returnCode
 }
 
 ################################## 
@@ -261,11 +261,11 @@ main() {
 
 	log_info "$LOGFILE" "Keeping up to $MAX_NB_HOURLY hourly / $MAX_NB_DAILY daily / $MAX_NB_WEEKLY weekly / $MAX_NB_MONTHLY monthly snapshots (<0 = all)" 
 
-        # Check if the filesystem for which the snapshots shall be managed is available
-        if ! $BIN_ZFS list "$FILESYSTEM">/dev/null; then
-                log_error "$LOGFILE" "Unknown file system: \"$FILESYSTEM\""
-                return 1
-        fi
+	# Check if the filesystem for which the snapshots shall be managed is available
+	if ! $BIN_ZFS list "$FILESYSTEM">/dev/null; then
+		log_error "$LOGFILE" "Unknown file system: \"$FILESYSTEM\""
+		return 1
+	fi
 
 	# Make a snapshot of all file systems within the filesystem $FILESYSTEM
 	if [ "$GENERATE_SNAPSHOT" -eq "1" ]; then
