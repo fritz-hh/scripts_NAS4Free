@@ -52,7 +52,7 @@ ensureFsAvailability() {
 	fs="$1"
 
 	# Check if the fs already exists
-	if $BIN_ZFS list -H -o name | grep "^$fs$" >/dev/null; then
+	if ! $BIN_ZFS list $fs 2>/dev/null 1>/dev/null; then
 		return 0
 	fi
 
@@ -189,13 +189,27 @@ backup() {
 ##################################
 main() {
 	local src_fss2 returnCode current_fs currentSubSrcFs 
+
+	# Check if the destination pool exists
+	if ! $BIN_ZPOOL list $DEST_POOL 2>/dev/null 1>/dev/null; then
+		log_error "$LOGFILE" "destination pool \"$DEST_POOL\" does not exist."
+		return 1
+	fi
 	
 	returnCode=0
 
-	#Itterate through all source filesystems for which a backup should be done
+	# Itterate through all source filesystems for which a backup should be done
 	src_fss2=`echo $SRC_FSS | sed 's/,/ /g'` # replace commas by space as for loops on new line and space
 	for current_fs in $src_fss2 ; do	
-		
+
+		# check if the current fs exists, skip it otherwise
+		if ! $BIN_ZFS list $current_fs 2>/dev/null 1>/dev/null; then
+			log_error "$LOGFILE" "source filesystem \"$current_fs\" does not exist. Skipping it"
+			returnCode=1
+			continue
+		fi
+	
+		# for the current fs and all its sub-filesystems
 		for currentSubSrcFs in `$BIN_ZFS list -r -H -o name $current_fs`; do
 	
 			# create the dest filesystems (recursively) 
@@ -203,7 +217,7 @@ main() {
 			if ! ensureFsAvailability "$DEST_POOL/$currentSubSrcFs"; then
                         	returnCode=1
 			else
-			# Perform the backup
+				# Perform the backup
 				backup $currentSubSrcFs "$DEST_POOL/$currentSubSrcFs"
                 		if [ "$?" -ne "0" ]; then
                         		returnCode=1
