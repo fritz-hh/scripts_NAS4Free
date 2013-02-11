@@ -117,6 +117,7 @@ INSTALL
 - Create a tmp folder
 - Create a log folder
 - Update the config.sh file according to your needs (paths, email addresses...)
+- Configure Cron (https://github.com/fritz-hh/scripts_NAS4Free/wiki/Scheduling)
 
 Note 1: In case you use the embedded version, the folders mentionned above should be located on one of your data disks (you may create a dedicated ZFS filesystem for the scripts in your pool)
 
