@@ -51,7 +51,7 @@ parseOptionalInputParams() {
                         f)	fs_without_slash=`echo "$OPTARG" | sed 's!/!_!'`		# value of the fs without '/' that is not allowed in a file name
  				LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.$fs_without_slash.log" 	# value of the log file name
 				specific_fs="1"
- 				$BIN_ZFS list "$OPTARG" >/dev/null      			# Check if the zfs file system exists
+ 				$BIN_ZFS list "$OPTARG" 2>/dev/null 1>/dev/null			# Check if the zfs file system exists
                                 if [ "$?" -eq "0" ] ; then
                                         FILESYSTEM="$OPTARG"
                                 else
