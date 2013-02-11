@@ -3,8 +3,7 @@
 # Check the CPU and HDD temperatures, and send e-mail 
 # if desired limits are exceeded  
 #
-# Author: Original scripts from fritz
-#         This script from miGi - Nas4Free Forums
+# Author: miGi from NAS4Free Forum
 #
 # Param 1: Warning temperature threshold to the CPU (in deg celsius)
 # Param 2: Warning temperature threshold to the HDD (in deg celsius)

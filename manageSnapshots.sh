@@ -10,7 +10,7 @@
 #
 # Author: fritz from NAS4Free forum
 #
-# Usage: [-n] [-h num] [-d num] [-w num] [-m num] [-k] filesystem
+# Usage: manageSnapshots.sh [-n] [-h num] [-d num] [-w num] [-m num] [-k] filesystem
 #
 # 	-n : Do not create a new snapshot of the file system
 #	-h num : Keep 'num' hourly snapshots (by default: 24) (<0 for all) 
@@ -80,7 +80,7 @@ parseOptionalInputParams() {
 
 	# parse the optional parameters
 	while getopts ":nh:d:w:m:k" opt; do
-        	case $opt in
+		case $opt in
 			n) 	GENERATE_SNAPSHOT=0 ;;
 			h) 	echo "$OPTARG" | grep '^[1-9-][0-9]*$' >/dev/null	# Check if positive or negative integer
 				if [ "$?" -eq "0" ] ; then 
@@ -117,7 +117,7 @@ parseOptionalInputParams() {
 			:)
 				log_error "$LOGFILE" "Option -$OPTARG requires an argument"
 				return 1 ;;
-        	esac
+		esac
 	done
 
 	# If the keep all snapshots was selected

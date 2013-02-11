@@ -4,7 +4,7 @@
 #
 # Author: fritz from NAS4Free forum
 #
-# Usage: [-f filesystem] [-t threshold]
+# Usage: checkSpace.sh [-f filesystem] [-t threshold]
 #
 #	-f filesystem : the ZFS filesystem (incl. sub-fs) to be checked
 #			default: all ZFS filesystems

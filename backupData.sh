@@ -215,13 +215,13 @@ main() {
 			# create the dest filesystems (recursively) 
 			# if they do not yet exist and exit if it fails
 			if ! ensureFsAvailability "$DEST_POOL/$currentSubSrcFs"; then
-                        	returnCode=1
+				returnCode=1
 			else
 				# Perform the backup
 				backup $currentSubSrcFs "$DEST_POOL/$currentSubSrcFs"
-                		if [ "$?" -ne "0" ]; then
-                        		returnCode=1
-                		fi
+				if [ "$?" -ne "0" ]; then
+					returnCode=1
+				fi
 			fi
 		done
 	done	
