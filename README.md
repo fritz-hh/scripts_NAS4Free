@@ -130,8 +130,7 @@ DISCLAIMER
 Of course, the scripts are provided without any warranty!
 (I am nor a freeBSD expert nor a SW developper, but a simple user)
 
-Do not hesitate to make me aware of any bug!
-(I will try to post regurlarly the updates that I will do in the scripts)
+Any contribution (new functions, fixes, problem reports) is welcome!
 
 Feel free to use the scripts on your own NAS!
 
