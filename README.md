@@ -80,8 +80,8 @@ manageAcpi.sh:
 --------------
 
 - Controls shutdown (S5) or sleep (S3) of the NAS based on various parameters
--- If no computer that may access the NAS is online during a certain time (based on the IP address)
--- If the curfew is reached!
+    - If no computer that may access the NAS is online during a certain time (based on the IP address)
+    - If the curfew is reached!
 - Prevent a shutdown / sleep during a configurable timeslot
 - Prevent a shutdown / sleep to be issued when one of the above administrative tasks are running
 - Report the results in a log file.
