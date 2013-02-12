@@ -4,7 +4,8 @@ I am a happy Freenas7/Nas4Free user since more than 2 years.
 Time to give something back to the community!!!
 
 During the last 2 years I developped various scripts to complement missing functions of Freenas7/Nas4free (The scripts can probably be used on other FreeBSD distributions like FreeNAS8, but it was not tested)
-Those scripts will probably be usefull for many users having the same usage profile as myself:
+
+These scripts will probably be usefull for many users having the same usage profile as myself:
 - NAS access from several computers in a home network
 - NAS containing 2 ZFS pools (one for data shared with CIFS and one containing the backup of the data)
 - NAS should only consume power when it is required (electricity is expensive here) (makes use of acpiconf)
