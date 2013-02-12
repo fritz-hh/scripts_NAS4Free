@@ -3,7 +3,7 @@ Hi all,
 I am a happy Freenas7/Nas4Free user since more than 2 years.
 Time to give something back to the community!!!
 
-During the last 2 years I developped various scripts to complement missing functions of Freenas7/Nas4free.
+During the last 2 years I developped various scripts to complement missing functions of Freenas7/Nas4free (The scripts can probably be used on other FreeBSD distributions like FreeNAS8, but it was not tested)
 Those scripts will probably be usefull for many users having the same usage profile as myself:
 - NAS access from several computers in a home network
 - NAS containing 2 ZFS pools (one for data shared with CIFS and one containing the backup of the data)
@@ -117,7 +117,7 @@ INSTALL
 - Create a tmp folder
 - Create a log folder
 - Update the config.sh file according to your needs (paths, email addresses...)
-- Configure Cron (https://github.com/fritz-hh/scripts_NAS4Free/wiki/Scheduling)
+- Configure Cron to run the scripts periodically (https://github.com/fritz-hh/scripts_NAS4Free/wiki/Scheduling)
 
 Note 1: In case you use the embedded version, the folders mentionned above should be located on one of your data disks (you may create a dedicated ZFS filesystem for the scripts in your pool)
 
