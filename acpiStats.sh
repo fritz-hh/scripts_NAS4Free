@@ -241,7 +241,7 @@ log_info "$LOGFILE" "Starting computation of ACPI statistics"
 
 # run script if possible (lock not existing)
 run_main "$LOGFILE" "$SCRIPT_NAME" 
-# in case of error, send mail with extract of log in case of error
+# in case of error, send mail with extract of log file
 [ "$?" -eq "2" ] && `get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "ACPI statistics computation issue"`
 
 exit 0 

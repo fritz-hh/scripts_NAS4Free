@@ -51,7 +51,7 @@ log_info "$LOGFILE" "Starting checking of pools"
 
 # run script if possible (lock not existing)
 run_main "$LOGFILE" "$SCRIPT_NAME"
-# in case of error, send mail with extract of log in case of error
+# in case of error, send mail with extract of log file
 [ "$?" -eq "2" ] && `get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "Problem detected in a pool"`
 
 exit 0

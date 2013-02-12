@@ -163,7 +163,7 @@ main() {
 # run script if possible (lock not existing)
 fs_without_slash=`echo "$FILESYSTEM" | sed 's!/!_!'`    	# value of the fs without '/' that is not allowed in a file name
 run_main "$LOGFILE" "$SCRIPT_NAME.$fs_without_slash"
-# in case of error, send mail with extract of log in case of error
+# in case of error, send mail with extract of log file
 [ "$?" -eq "2" ] && `get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "Checkspace issue"`
 
 exit 0
