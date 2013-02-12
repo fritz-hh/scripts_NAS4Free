@@ -211,7 +211,6 @@ isInTimeSlot() {
 # Request NAS to sleep if no script is running currently
 #
 # Param 1: ACPI state (one of 3,5)
-#    - 1: Sleeping (CPU clock stopped)
 #    - 3: Sleeping (Suspend to RAM)
 #    - 5: Soft off
 # Return: 0 if the the NAS could be shutdown 
