@@ -40,7 +40,7 @@ checkPools.sh:
 - Send a mail if an error is detected
 - Typical scheduling: every hour
 
-checkTemps.sh: (Script provided by miGi and updated by fritz)
+checkTemps.sh: (Thanks to miGi from NAS4Free forum)
 --------------
 
 - Checks the temperature of each respective CPU / CPU core and of each respective drive and report the results in a log file.
