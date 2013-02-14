@@ -91,7 +91,7 @@ Note 1: Depending on your motherboard and on your BIOS settings, the script may 
 
 Note 2: This script requires static IP addresses (of course static DHCP is OK too) on your NAS and other any other computer.
 
-Note 3: I use Wake on LAN to wake the NAS. The WOL paket is sent by my DD-WRT router automatically when one of my computers is online.
+Note 3: I use Wake on LAN to wake the NAS. The WOL paket is sent by my DD-WRT router automatically when one of my computers is online (see script here: https://github.com/fritz-hh/autowake_NAS)
 
 acpiStats.sh:
 -------------
