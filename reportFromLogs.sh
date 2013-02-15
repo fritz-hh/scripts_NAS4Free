@@ -44,9 +44,10 @@ for f in $LOG_FILES; do
 			echo "- $f :	No new log entry available"
 		else
 			# if the log contains any new entry
-			num_warn=`get_log_entries "$f" "$DURATION" | grep -c "WARN"`
-			num_err=`get_log_entries "$f" "$DURATION" | grep -c "ERROR"`	
-			echo "- $f :	WARN:	$num_warn	ERROR: $num_err"
+			num_warn=`get_log_entries "$f" "$DURATION" | grep -c "$LOG_WARNING"`
+			num_err=`get_log_entries "$f" "$DURATION" | grep -c "$LOG_ERROR"`
+			
+			echo "- $f :	WARNING: $num_warn	ERROR: $num_err"
 		fi
 	fi
 done
