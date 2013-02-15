@@ -174,6 +174,10 @@ get_log_oldest_ts() {
 #
 # Param 1: file path
 # Param 2: duration (in seconds)
+# Return : 0 if no error occurs
+#	   1 if the log file does not exist
+#	   2 if the log file does not contain any entry that is newer than
+#		the given timestamp
 ##################################
 get_log_entries() {
 	local f t
@@ -197,6 +201,8 @@ get_log_entries() {
 # Param 2: timestamp (in seconds since 1970) 
 # Return : 0 if no error occurs
 #	   1 if the log file does not exist
+#	   2 if the log file does not contain any entry that is newer than
+#		the given timestamp
 ##################################
 get_log_entries_ts() {
 	local f targetTimestamp1970 tsFormat nbLinesInFile firstLine lastLine diffLines \
@@ -274,7 +280,8 @@ get_log_entries_ts() {
 		tail -$(($nbLinesInFile-$lastLine+1)) "$f"
 	# Even the last line in the log is too old
 	else
-		echo "The data available in the log are to old" 
+		echo "The data available in the log are to old"
+		return 2
 	fi
 
 	return 0
