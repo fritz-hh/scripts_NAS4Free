@@ -222,6 +222,12 @@ get_log_entries_ts() {
 
 	nbLinesInFile=`wc -l "$f" | awk ' { print $1 } '`	# find number of lines	
 
+	# if the file does not contain at least 1 line
+	if [ "$nbLinesInFile" -lt "1" ]; then
+		echo "The data available in the log are to old"
+		return 2	
+	fi
+	
  	firstLine=1
 	lastLine=$nbLinesInFile
 	diffLines=$(($lastLine-$firstLine))
