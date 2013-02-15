@@ -120,7 +120,7 @@ is_any_script_running() {
 
 	# check if any script is running
 	if [ "`$BIN_LS -A $CFG_RUNNING_SCRIPTS_FOLDER`" != "" ]; then
-     		return 0
+		return 0
 	else
 		return 1
 	fi
@@ -142,7 +142,7 @@ get_list_of_running_scripts() {
 # script_start() function will always return 1
 ##################################
 prevent_scripts_to_start() {
-        echo "No script allowed to start since: `$BIN_DATE`" > "$CFG_FORBID_ANY_SCRIPT_START_FILE"
+	echo "No script allowed to start since: `$BIN_DATE`" > "$CFG_FORBID_ANY_SCRIPT_START_FILE"
 }
 
 ##################################
@@ -213,12 +213,12 @@ run_main() {
 		! main && err_in_main=1
 		if ! script_end $lock_id; then
 			log_error "$log_file" "Could not delete lock file at end of execution"
-	       		return 2
+			return 2
 		fi
 	elif [ "$ret_code" -eq "1" ]; then
 		log_error "$log_file" "Could not start script (Another instance is running)"
 		return 2
-       	elif [ "$ret_code" -eq "2" ]; then
+	elif [ "$ret_code" -eq "2" ]; then
 		log_warning "$log_file" "Could not start script (The system is about to shutdown)"
 		return 1
 	else
