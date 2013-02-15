@@ -176,12 +176,12 @@ get_log_oldest_ts() {
 # Param 2: duration (in seconds)
 ##################################
 get_log_entries() {
-        local f t
+	local f t
 
-        f="$1"
-        t="$2"
+	f="$1"
+	t="$2"
 
-        targetTimestamp1970=`$BIN_DATE -j -v-"$t"S +"%s"`
+	targetTimestamp1970=`$BIN_DATE -j -v-"$t"S +"%s"`
 
 	get_log_entries_ts "$f" "$targetTimestamp1970"
 
@@ -256,22 +256,22 @@ get_log_entries_ts() {
 
 	currentLine=`sed "$firstLine"!d "$f"`
 	timestamp=`echo "$currentLine" | awk '{ print $1 }'`
-        firstLineTimestamp1970=`$BIN_DATE -j -f "$tsFormat" "$timestamp" +"%s" 2>/dev/null`
+	firstLineTimestamp1970=`$BIN_DATE -j -f "$tsFormat" "$timestamp" +"%s" 2>/dev/null`
 	diffFirstLineTimestamp=$(($targetTimestamp1970-$firstLineTimestamp1970))
 	
 	currentLine=`sed "$lastLine"!d "$f"`
 	timestamp=`echo "$currentLine" | awk '{ print $1 }'`
-        lastLineTimestamp1970=`$BIN_DATE -j -f "$tsFormat" "$timestamp" +"%s" 2>/dev/null`
+	lastLineTimestamp1970=`$BIN_DATE -j -f "$tsFormat" "$timestamp" +"%s" 2>/dev/null`
 	diffLastLineTimestamp=$(($targetTimestamp1970-$lastLineTimestamp1970))
 
 
 	# refine the part of the log should be returned
 	# If firstLine is new enough
 	if [ "$diffFirstLineTimestamp" -le "0" ]; then
-        	tail -$(($nbLinesInFile-$firstLine+1)) "$f"
+		tail -$(($nbLinesInFile-$firstLine+1)) "$f"
 	# If lastLine is new enough 
 	elif [ "$diffLastLineTimestamp" -le "0" ]; then
-                tail -$(($nbLinesInFile-$lastLine+1)) "$f"
+		tail -$(($nbLinesInFile-$lastLine+1)) "$f"
 	# Even the last line in the log is too old
 	else
 		echo "The data available in the log are to old" 
