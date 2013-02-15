@@ -33,15 +33,15 @@ script_start() {
  		return 3
 	fi 
 
+	# If an instance is already running
+	if is_script_running "$script_id"; then
+		return 1
+	fi	
+	
 	# If no script is allowed to start
         if [ -f "$CFG_FORBID_ANY_SCRIPT_START_FILE" ]; then
                 return 2
         fi
-
-	# If an instance is already running
-	if is_script_running "$script_id"; then
-		return 1
-	fi
 
 	# record that script is now running
 	# (i.e. create the lock file)
