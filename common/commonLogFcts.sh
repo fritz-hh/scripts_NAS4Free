@@ -6,9 +6,9 @@
 #############################################################################
 
 # Log message type 
-readonly LOG_INFO=1
-readonly LOG_WARNING=2
-readonly LOG_ERROR=3
+readonly LOG_INFO="INFO"
+readonly LOG_WARNING="WARN"
+readonly LOG_ERROR="ERROR"
 
 ##################################
 # Format of the timestamp used in the log files
@@ -108,21 +108,8 @@ format_log_txt() {
 	tsFormat=`ts_format`
 
 	timestamp=`$BIN_DATE +$tsFormat` 
-	
-	if [ $criticality -eq $LOG_INFO ] 
-	then 
-		criticality_txt="INFO"
-	elif [ $criticality -eq $LOG_WARNING ]  
-	then
-		criticality_txt="WARN"
-	elif [ $criticality -eq $LOG_ERROR ]  
-	then
-		criticality_txt="ERROR"
-	else 
-		criticality_txt="UNKNOWN"
-	fi
-	
-	echo "$timestamp	$criticality_txt	$text" 
+		
+	echo "$timestamp	$criticality	$text" 
 
 	return 0	
 }
@@ -224,7 +211,7 @@ get_log_entries_ts() {
 
 	# if the file does not contain at least 1 line
 	if [ "$nbLinesInFile" -lt "1" ]; then
-		echo "The data available in the log are to old"
+		echo "No data available in the log file"
 		return 2	
 	fi
 	
@@ -286,7 +273,7 @@ get_log_entries_ts() {
 		tail -$(($nbLinesInFile-$lastLine+1)) "$f"
 	# Even the last line in the log is too old
 	else
-		echo "The data available in the log are to old"
+		echo "The data available in the log file are to old"
 		return 2
 	fi
 
