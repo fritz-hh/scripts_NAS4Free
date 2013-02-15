@@ -196,7 +196,7 @@ get_lock_file_name_and_path() {
 # Param 1: log file name
 # Param 2: lock id (should be a valid file name without path) 
 # Return : 0 : no error
-#          1 : could not start script because system is about to shutdown
+#          1 : could not start script because system is (probably) about to shutdown
 #	   2 : any other error 
 ##################################
 run_main() {
@@ -219,7 +219,7 @@ run_main() {
 		log_error "$log_file" "Could not start script (Another instance is running)"
 		return 2
 	elif [ "$ret_code" -eq "2" ]; then
-		log_warning "$log_file" "Could not start script (The system is about to shutdown)"
+		log_info "$log_file" "Could not start script (The system is probably about to shutdown)"
 		return 1
 	else
 		log_error "$log_file" "Could not start script (Unexpected issue)"
