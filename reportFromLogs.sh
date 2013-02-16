@@ -47,7 +47,7 @@ for f in $LOG_FILES; do
 			num_warn=`get_log_entries "$f" "$DURATION" | grep -c "$LOG_WARNING"`
 			num_err=`get_log_entries "$f" "$DURATION" | grep -c "$LOG_ERROR"`
 			
-			echo "- $f :	WARNING: $num_warn	ERROR: $num_err"
+			echo "WARNING: $num_warn	ERROR: $num_err	: $f"
 		fi
 	fi
 done
