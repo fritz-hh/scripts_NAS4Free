@@ -145,6 +145,10 @@ main() {
 
 	log_info "$LOGFILE" "-------------------------------------"
 	log_info "$LOGFILE" "Configured warning threshold: $WARN_THRESHOLD percent"
+
+	printf '%-27s %-13s %-13s %s\n' "Used" "Available" "Quota" "Filesystem" \
+		| log_info "$LOGFILE"
+
 	
 	# Check the space for the filesystem (and for all sub-fs recursively)
 	for subfilesystem in `$BIN_ZFS list -H -r -o name $FILESYSTEM`; do
@@ -154,7 +158,7 @@ main() {
 		avail=`getAvailable $subfilesystem`
 		percent=$(($used*100/($used+$avail)))
 	
-		printf '%-33s %-20s %-20s %s\n' "used: $percent percent, $((used/mib)) MiB" "avail: $((avail/mib)) MiB" "quota: $((quota/mib)) MiB" "$subfilesystem" \
+		printf '%-27s %-13s %-13s %s\n' "$percent percent, $((used/mib)) MiB" "$((avail/mib)) MiB" "$((quota/mib)) MiB" "$subfilesystem" \
 			| log_info "$LOGFILE"
 		
 		# Check if the warning limit is reached		

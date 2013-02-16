@@ -22,7 +22,6 @@ readonly SCRIPT_PATH=`dirname $0`		# The path to the current script
 # Initialization of the constants 
 readonly START_TIMESTAMP=`$BIN_DATE +"%s"`
 readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
-readonly DEG_SYMB="C"	# the deg celsius symbol
 
 # Set variables corresponding to the input parameters
 readonly WARN_THRESHOLD_CPU="$1"
@@ -61,14 +60,14 @@ check_threshold_def() {
 main() {
 	! check_threshold_def && return 1
 
-	log_info "$LOGFILE" "Configured warning thresholds: CPU: $((WARN_THRESHOLD_CPU))$DEG_SYMB, HDD: $((WARN_THRESHOLD_HDD))$DEG_SYMB" 
-
 	returnCode=0
 
-	log_info "$LOGFILE" "CPUs:"
+	log_info "$LOGFILE" "CPUs (warning threshold: $((WARN_THRESHOLD_CPU))C):"
+	printf '%-8s %s\n' "Temp C" "CPU" | log_info "$LOGFILE"
 	for cpu in `sysctl -a | grep -E "cpu\.[0-9]+\.temp" | cut -f1 -d:`; do 
 		cpuTemp=`sysctl -a | grep $cpu | awk '{gsub(/[[.][0-9]C]*/,"");print $2}'` 
-		log_info "$LOGFILE" "$cpu: $((cpuTemp))$DEG_SYMB"
+		
+		printf '%+-8d %s\n' "$((cpuTemp))" "$cpu" | log_info "$LOGFILE"
 		
 		if [ "$((cpuTemp))" -ge "$WARN_THRESHOLD_CPU" ] ; then
 			log_warning "$LOGFILE" "CPU notification threshold reached !"
@@ -76,13 +75,16 @@ main() {
 		fi
 	done
 
-	log_info "$LOGFILE" "HDDs:"
+	log_info "$LOGFILE" "HDDs (warning threshold: $((WARN_THRESHOLD_HDD))C):"
+	printf '%-8s %-6s %-25s %s\n' "Temp C" "dev" "P/N" "S/N" | log_info "$LOGFILE"
 	for hdd in $(sysctl -n kern.disks); do
 		devTemp=`$BIN_SMARTCTL -a /dev/$hdd | grep "Temperature_Celsius" | awk '{print $10}'`
 		devSerNum=`$BIN_SMARTCTL -a /dev/$hdd | grep "^Serial Number:" | sed 's/^Serial Number:[ \t]*\(.*\)[ \t]*$/\1/g'`
 		devName=`$BIN_SMARTCTL -a /dev/$hdd | grep "^Device Model:" | sed 's/^Device Model:[ \t]*\(.*\)[ \t]*$/\1/g'`
-		log_info "$LOGFILE" "$hdd, $devName, $devSerNum: $((devTemp))$DEG_SYMB"
-
+		
+		printf '%+-8d %-6s %-25s %s\n' "$((devTemp))" "$hdd" "$devName" "$devSerNum" \
+			| log_info "$LOGFILE"
+			
 		if [ "$((devTemp))" -ge "$WARN_THRESHOLD_HDD" ] ; then
 			log_warning "$LOGFILE" "HDD notification threshold reached !"
 			returnCode=1
