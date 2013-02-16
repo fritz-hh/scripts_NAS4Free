@@ -61,7 +61,7 @@ log_error() {
 #	  0 otherwise
 ##################################
 log() {
-	local criticality logfile text line 
+	local criticality logfile text line local_ifs
 
 	criticality="$1"
 	logfile="$2"
@@ -77,6 +77,10 @@ log() {
 		fi
 	# If the text to be logged was provided through the pipe
 	else
+		# IFS need to be changed so that the read cmd does not remove leading spaces
+		local_ifs="$IFS"
+		IFS=""
+	
 		line="" 
 		if [ -z "$logfile" ]; then
 			while read line; do
@@ -88,8 +92,11 @@ log() {
 				format_log_txt "$criticality" "$line" >> $logfile
 			done
 		fi
+		
+		# setting IFS back to its initial value
+		IFS="$local_ifs"
 	fi
-
+	
 	return 0 
 }
 
