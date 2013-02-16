@@ -46,8 +46,8 @@ for f in $LOG_FILES; do
 			# if the log contains any new entry
 			num_warn=`get_log_entries "$f" "$DURATION" | grep -c "$LOG_WARNING"`
 			num_err=`get_log_entries "$f" "$DURATION" | grep -c "$LOG_ERROR"`
-			
-			echo "WARNING: $num_warn	ERROR: $num_err	: $f"
+
+			printf '%-13s %-11s %s\n' "WARNING: $num_warn" "ERROR: $num_err" "$f"
 		fi
 	fi
 done

@@ -154,8 +154,9 @@ main() {
 		avail=`getAvailable $subfilesystem`
 		percent=$(($used*100/($used+$avail)))
 	
-		log_info "$LOGFILE" "$subfilesystem: avail: $((avail/mib)) MiB , used: $((used/mib)) MiB [$percent percent] , quota: $((quota/mib)) MiB"
-
+		printf '%-33s %-20s %-20s %s\n' "used: $percent percent, $((used/mib)) MiB" "avail: $((avail/mib)) MiB" "quota: $((quota/mib)) MiB" "$subfilesystem" \
+			| log_info "$LOGFILE"
+		
 		# Check if the warning limit is reached		
 		if [ $percent -gt $WARN_THRESHOLD ] ; then
 			log_warning "$LOGFILE" "Notification threshold reached !"	
