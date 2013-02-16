@@ -80,6 +80,13 @@ parseOptionalInputParams() {
         	esac
 	done
 
+	# check if a specific fs was set before, otherwise
+	# set the log file name to its default value
+	# (required in case none of -f and -t are used)
+	if [ "$specific_fs" -eq "0" ]; then
+		LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
+	fi
+	
 	return 0
 }
 
