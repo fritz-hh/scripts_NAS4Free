@@ -63,11 +63,11 @@ main() {
 	returnCode=0
 
 	log_info "$LOGFILE" "CPUs (warning threshold: $((WARN_THRESHOLD_CPU))C):"
-	printf '%-8s %s\n' "Temp C" "CPU" | log_info "$LOGFILE"
+	printf '%8s %s\n' "Temp(C)" "CPU" | log_info "$LOGFILE"
 	for cpu in `sysctl -a | grep -E "cpu\.[0-9]+\.temp" | cut -f1 -d:`; do 
 		cpuTemp=`sysctl -a | grep $cpu | awk '{gsub(/[[.][0-9]C]*/,"");print $2}'` 
 		
-		printf '%+-8d %s\n' "$((cpuTemp))" "$cpu" | log_info "$LOGFILE"
+		printf '%+8d %s\n' "$((cpuTemp))" "$cpu" | log_info "$LOGFILE"
 		
 		if [ "$((cpuTemp))" -ge "$WARN_THRESHOLD_CPU" ] ; then
 			log_warning "$LOGFILE" "CPU notification threshold reached !"
@@ -76,13 +76,13 @@ main() {
 	done
 
 	log_info "$LOGFILE" "HDDs (warning threshold: $((WARN_THRESHOLD_HDD))C):"
-	printf '%-8s %-6s %-25s %s\n' "Temp C" "dev" "P/N" "S/N" | log_info "$LOGFILE"
+	printf '%8s %-6s %-25s %s\n' "Temp(C)" "dev" "P/N" "S/N" | log_info "$LOGFILE"
 	for hdd in $(sysctl -n kern.disks); do
 		devTemp=`$BIN_SMARTCTL -a /dev/$hdd | grep "Temperature_Celsius" | awk '{print $10}'`
 		devSerNum=`$BIN_SMARTCTL -a /dev/$hdd | grep "^Serial Number:" | sed 's/^Serial Number:[ \t]*\(.*\)[ \t]*$/\1/g'`
 		devName=`$BIN_SMARTCTL -a /dev/$hdd | grep "^Device Model:" | sed 's/^Device Model:[ \t]*\(.*\)[ \t]*$/\1/g'`
 		
-		printf '%+-8d %-6s %-25s %s\n' "$((devTemp))" "$hdd" "$devName" "$devSerNum" \
+		printf '%+8d %-6s %-25s %s\n' "$((devTemp))" "$hdd" "$devName" "$devSerNum" \
 			| log_info "$LOGFILE"
 			
 		if [ "$((devTemp))" -ge "$WARN_THRESHOLD_HDD" ] ; then

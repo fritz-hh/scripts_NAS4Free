@@ -146,7 +146,7 @@ main() {
 	log_info "$LOGFILE" "-------------------------------------"
 	log_info "$LOGFILE" "Configured warning threshold: $WARN_THRESHOLD percent"
 
-	printf '%-27s %-13s %-13s %s\n' "Used" "Available" "Quota" "Filesystem" \
+	printf '%14s %15s %13s %13s %s\n' "Used (percent)" "Used (MiB)" "Available" "Quota" "Filesystem" \
 		| log_info "$LOGFILE"
 
 	
@@ -157,9 +157,9 @@ main() {
 		used=`getUsed $subfilesystem`
 		avail=`getAvailable $subfilesystem`
 		percent=$(($used*100/($used+$avail)))
-	
-		printf '%-27s %-13s %-13s %s\n' "$percent percent, $((used/mib)) MiB" "$((avail/mib)) MiB" "$((quota/mib)) MiB" "$subfilesystem" \
-			| log_info "$LOGFILE"
+
+		printf '%14s %15s %13s %13s %s\n' "$percent percent" "$((used/mib)) MiB" "$((avail/mib)) MiB" "$((quota/mib)) MiB" "$subfilesystem" \
+			| log_info "$LOGFILE"		
 		
 		# Check if the warning limit is reached		
 		if [ $percent -gt $WARN_THRESHOLD ] ; then
