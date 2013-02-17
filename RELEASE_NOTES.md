@@ -10,7 +10,7 @@ New features
 ------------
 
 - reportFromLogs.sh: Generate a summary for each log file (number warnings/errors)
-- improved readability of data logged (display in columns table data) 
+- improved readability of data logged (display in columns table data)
 
 Changes
 -------
@@ -25,6 +25,7 @@ Fixes
 -----
 
 - all scripts: improved validation of mandatory and optional arguments
+- commonLogFcts.sh: leading spaces of message now also logged if data are provided through a pipe
 - commonLogFcts.sh: When logging, if no log file path is provided, echo text on std out instead
 - commonLogFcts.sh: When returning a log file extract: Handle case of empty file 
 
