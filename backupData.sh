@@ -5,8 +5,12 @@
 #
 # Author: fritz from NAS4Free forum
 #
-# Usage: backupData.sh fsSource poolDest maxRollback
+# Usage: backupData.sh [-b maxRollbck] fsSource poolDest
 #
+#	-b maxRollbck :	Biggest allowed rollback (in days) on the destination fs.
+#			A rollback is necessary if the snapshots available on the 
+#			destination fs are not available anymore on the source fs
+#			Default value: 10 days
 #	fsSource : 	zfs filesystems to be backed-up (source).
 #	   		Several file systems can be provided (They shall be separated by a comma ",")
 #	   		Note 1: These fs (as well as the sub-fs) shall have a default mountpoint
@@ -14,9 +18,6 @@
 # 	poolDest : 	zfs pool in which the data should be backed-up (destination)
 #			Note: This pool must already exist before to launch the script 
 #			backup.
-#	maxRollback :	Biggest allowed rollback (in days) on the destination fs.
-#			A rollback is necessary if the snapshots available on the 
-#			destination fs are not available anymore on the source fs
 #############################################################################
 
 # Initialization of the script name and path constants
@@ -30,17 +31,14 @@ readonly SCRIPT_PATH=`dirname $0`		# The path of the file
 . "$SCRIPT_PATH/common/commonMailFcts.sh"
 . "$SCRIPT_PATH/common/commonLockFcts.sh"
 
-# Set variables corresponding to the input parameters
-SRC_FSS=""			# Default value of the source filesystems (i.e. the filesystems to be backed-up)
-DEST_POOL="" 			# Default value of the destination pool (i.e. the pool in 
-				# which the backup data shall be saved)
-readonly S_IN_DAY=86400		# Number of seconds in a day
-MAX_ROLLBACK_S="0" 		# Default of value of the biggest allowed rollback (in seconds) on the destination fs
-
 # Initialization of constants 
 readonly START_TIMESTAMP=`$BIN_DATE +"%s"` 
 readonly COMPRESSION="gzip"			# Type of compression to be used for the fs of the backup pool
 readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
+readonly S_IN_DAY=86400		# Number of seconds in a day
+
+# Initialization of the inputs corresponding to args of the script
+MAX_ROLLBACK_S=$((10*$S_IN_DAY))	# Bedault value of max rollback
 
 # Set variables corresponding to the input parameters
 ARGUMENTS="$@"
@@ -56,10 +54,20 @@ parseInputParams() {
 
 	# parse the optional parameters
 	# (there should be none)
-	while getopts ":" opt; do
+	while getopts ":b:" opt; do
         	case $opt in
+			b)	echo "$OPTARG" | grep -E "^([0-9]+)$" >/dev/null 
+				if [ "$?" -eq "0" ] ; then
+					MAX_ROLLBACK_S=$(($OPTARG*$S_IN_DAY))
+				else
+					log_error "$LOGFILE" "Wrong maximum rollback value, should be a positive integer or zero (unit: days) !"
+					return 1
+				fi ;;
 			\?)
 				log_error "$LOGFILE" "Invalid option: -$OPTARG"
+				return 1 ;;
+                        :)
+				log_error "$LOGFILE" "Option -$OPTARG requires an argument"
 				return 1 ;;
         	esac
 	done
@@ -69,8 +77,8 @@ parseInputParams() {
 	
 	# Check if the number of mandatory parameters 
 	# provided is as expected 
-	if [ "$#" -ne "3" ]; then
-		log_error "$LOGFILE" "Exactly three mandatory argument shall be provided"
+	if [ "$#" -ne "2" ]; then
+		log_error "$LOGFILE" "Exactly 2 mandatory argument shall be provided"
 		return 1
 	fi
 
@@ -90,16 +98,6 @@ parseInputParams() {
 		log_error "$LOGFILE" "destination pool \"$DEST_POOL\" does not exist."
 		return 1
 	fi
-	
-	# Max if the max rollback value is valid
-	max_rollback_days="$3"
-        regex_rollback="([0-9]+)"
-        echo "$max_rollback_days" | grep -E "^$regex_rollback$" >/dev/null
-        if [ "$?" -ne "0" ]; then
-                log_warning "$LOGFILE" "Wrong maximum rollback value, should be a positive integer or zero (unit: days) !"
-                return 1
-        fi
-	MAX_ROLLBACK_S=$(($max_rollback_days*$S_IN_DAY))
 	
 	return 0
 }
@@ -272,17 +270,19 @@ main() {
 		# for the current fs and all its sub-filesystems
 		for currentSubSrcFs in `$BIN_ZFS list -r -H -o name $current_fs`; do
 
+			echo $currentSubSrcFs
+		
 			# create the dest filesystems (recursively) 
 			# if they do not yet exist and exit if it fails
-			if ! ensureFsAvailability "$DEST_POOL/$currentSubSrcFs"; then
-				returnCode=1
-			else
-				# Perform the backup
-				backup $currentSubSrcFs "$DEST_POOL/$currentSubSrcFs"
-				if [ "$?" -ne "0" ]; then
-					returnCode=1
-				fi
-			fi
+#			if ! ensureFsAvailability "$DEST_POOL/$currentSubSrcFs"; then
+#				returnCode=1
+#			else
+#				# Perform the backup
+#				backup $currentSubSrcFs "$DEST_POOL/$currentSubSrcFs"
+#				if [ "$?" -ne "0" ]; then
+#					returnCode=1
+#				fi
+#			fi
 		done
 	done	
 
