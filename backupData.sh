@@ -38,7 +38,7 @@ readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
 readonly S_IN_DAY=86400		# Number of seconds in a day
 
 # Initialization of the inputs corresponding to args of the script
-MAX_ROLLBACK_S=$((10*$S_IN_DAY))	# Bedault value of max rollback
+I_MAX_ROLLBACK_S=$((10*$S_IN_DAY))	# Bedault value of max rollback
 
 # Set variables corresponding to the input parameters
 ARGUMENTS="$@"
@@ -58,7 +58,7 @@ parseInputParams() {
         	case $opt in
 			b)	echo "$OPTARG" | grep -E "^([0-9]+)$" >/dev/null 
 				if [ "$?" -eq "0" ] ; then
-					MAX_ROLLBACK_S=$(($OPTARG*$S_IN_DAY))
+					I_MAX_ROLLBACK_S=$(($OPTARG*$S_IN_DAY))
 				else
 					log_error "$LOGFILE" "Wrong maximum rollback value, should be a positive integer or zero (unit: days) !"
 					return 1
@@ -84,8 +84,8 @@ parseInputParams() {
 
 	# Itterate through all source filesystems for which a backup should be done
 	# and check if the current fs exists	
-	SRC_FSS=`echo "$1" | sed 's/,/ /g'` # replace commas by space as for loops on new line and space
-	for current_fs in $SRC_FSS ; do	
+	I_SRC_FSS=`echo "$1" | sed 's/,/ /g'` # replace commas by space as for loops on new line and space
+	for current_fs in $I_SRC_FSS ; do	
 		if ! $BIN_ZFS list $current_fs 2>/dev/null 1>/dev/null; then
 			log_error "$LOGFILE" "source filesystem \"$current_fs\" does not exist. Skipping it"
 			return 1
@@ -93,9 +93,9 @@ parseInputParams() {
 	done	
 	
 	# Check if the destination pool exists
-	DEST_POOL="$2"
-	if ! $BIN_ZPOOL list $DEST_POOL 2>/dev/null 1>/dev/null; then
-		log_error "$LOGFILE" "destination pool \"$DEST_POOL\" does not exist."
+	I_DEST_POOL="$2"
+	if ! $BIN_ZPOOL list $I_DEST_POOL 2>/dev/null 1>/dev/null; then
+		log_error "$LOGFILE" "destination pool \"$I_DEST_POOL\" does not exist."
 		return 1
 	fi
 	
@@ -123,7 +123,7 @@ ensureFsAvailability() {
 
 	# Ensures that the destination pool is NOT readonly
 	# So that the filesystems can be created if required
-	if ! $BIN_ZFS set readonly=off $DEST_POOL >/dev/null; then
+	if ! $BIN_ZFS set readonly=off $I_DEST_POOL >/dev/null; then
 		log_error "$LOGFILE" "Destination pool could not be set to READONLY=off. Filesystem creation not possible "
 		return 1
 	fi
@@ -133,7 +133,7 @@ ensureFsAvailability() {
 		log_error "$LOGFILE" "The filesystem could NOT be created"
 
 		# Set the destination pool to readonly
-		if ! $BIN_ZFS set readonly=on $DEST_POOL >/dev/null; then
+		if ! $BIN_ZFS set readonly=on $I_DEST_POOL >/dev/null; then
 			log_error "$LOGFILE" "The destination pool could not be set to \"readonly=on\""
 		fi
 
@@ -142,7 +142,7 @@ ensureFsAvailability() {
 		log_info "$LOGFILE" "Filesystem created successfully"
 
 		# Set the destination pool to readonly
-		if ! $BIN_ZFS set readonly=on $DEST_POOL >/dev/null; then
+		if ! $BIN_ZFS set readonly=on $I_DEST_POOL >/dev/null; then
 			log_warning "$LOGFILE" "The destination pool could not be set to \"readonly=on\""
 		fi
 
@@ -207,7 +207,7 @@ backup() {
 	for snapDestFs in `sortSnapshots "$dest_fs" ""`; do
 
 		# Compute the src fs snapshot name corresponding to the current dest fs snapshot
-		removeDestPoolInName="s!$DEST_POOL/!!g"
+		removeDestPoolInName="s!$I_DEST_POOL/!!g"
 		snapSrcFs=`echo "$snapDestFs" | sed -e "$removeDestPoolInName"`
 
 		if [ $snapSrcFs = $newestSnapSrcFs ]; then
@@ -222,7 +222,7 @@ backup() {
 			snapSrcFsTimestamp1970=`getSnapTimestamp1970 "$snapSrcFs"`
 			newestSnapDestFsCreation1970=`getSnapTimestamp1970 "$newestSnapDestFs"`		
 			snapsAgeDiff=$(($newestSnapDestFsCreation1970-$snapSrcFsTimestamp1970))
-			if [ $snapsAgeDiff -gt $MAX_ROLLBACK_S ]; then
+			if [ $snapsAgeDiff -gt $I_MAX_ROLLBACK_S ]; then
 				log_warning "$LOGFILE" "$logPrefix: A rollback of $(($snapsAgeDiff/$S_IN_DAY)) days would be required to perform the incremental backup !"
 				log_warning "$LOGFILE" "$logPrefix: Skipping backup of the filesystem"
 				log_warning "$LOGFILE" "$logPrefix: Please increase the allowed rollback duration is required"
@@ -262,10 +262,10 @@ main() {
 		return 1
 	fi
 	
-	log_info "$LOGFILE" "Starting backup of \"$SRC_FSS\""
+	log_info "$LOGFILE" "Starting backup of \"$I_SRC_FSS\""
 
 	# Itterate through all source filesystems for which a backup should be done
-	for current_fs in $SRC_FSS ; do
+	for current_fs in $I_SRC_FSS ; do
 	
 		# for the current fs and all its sub-filesystems
 		for currentSubSrcFs in `$BIN_ZFS list -r -H -o name $current_fs`; do
@@ -274,15 +274,15 @@ main() {
 		
 			# create the dest filesystems (recursively) 
 			# if they do not yet exist and exit if it fails
-#			if ! ensureFsAvailability "$DEST_POOL/$currentSubSrcFs"; then
-#				returnCode=1
-#			else
-#				# Perform the backup
-#				backup $currentSubSrcFs "$DEST_POOL/$currentSubSrcFs"
-#				if [ "$?" -ne "0" ]; then
-#					returnCode=1
-#				fi
-#			fi
+			if ! ensureFsAvailability "$I_DEST_POOL/$currentSubSrcFs"; then
+				returnCode=1
+			else
+				# Perform the backup
+				backup $currentSubSrcFs "$I_DEST_POOL/$currentSubSrcFs"
+				if [ "$?" -ne "0" ]; then
+					returnCode=1
+				fi
+			fi
 		done
 	done	
 

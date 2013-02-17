@@ -58,18 +58,18 @@ parseInputParams() {
 	fi
 
 	# Set variables corresponding to the input parameters
-	WARN_THRESHOLD_CPU="$1"
-	WARN_THRESHOLD_HDD="$2"
+	I_WARN_THRESHOLD_CPU="$1"
+	I_WARN_THRESHOLD_HDD="$2"
 
         regex_temp="([0-9]+)"
 
-        echo "$WARN_THRESHOLD_CPU" | grep -E "^$regex_temp$" >/dev/null
+        echo "$I_WARN_THRESHOLD_CPU" | grep -E "^$regex_temp$" >/dev/null
         if [ "$?" -ne "0" ]; then
                 log_warning "$LOGFILE" "Wrong CPU temperature notification threshold definition !"
                 return 1
         fi
 
-        echo "$WARN_THRESHOLD_HDD" | grep -E "^$regex_temp$" >/dev/null
+        echo "$I_WARN_THRESHOLD_HDD" | grep -E "^$regex_temp$" >/dev/null
         if [ "$?" -ne "0" ]; then
                 log_warning "$LOGFILE" "Wrong HDD temperature notification threshold definition !"
                 return 1
@@ -94,20 +94,20 @@ main() {
 		return 1
 	fi
 	
-	log_info "$LOGFILE" "CPUs (warning threshold: $((WARN_THRESHOLD_CPU))C):"
+	log_info "$LOGFILE" "CPUs (warning threshold: $((I_WARN_THRESHOLD_CPU))C):"
 	printf '%8s %s\n' "Temp(C)" "CPU" | log_info "$LOGFILE"
 	for cpu in `sysctl -a | grep -E "cpu\.[0-9]+\.temp" | cut -f1 -d:`; do 
 		cpuTemp=`sysctl -a | grep $cpu | awk '{gsub(/[[.][0-9]C]*/,"");print $2}'` 
 		
 		printf '%+8d %s\n' "$((cpuTemp))" "$cpu" | log_info "$LOGFILE"
 		
-		if [ "$((cpuTemp))" -ge "$WARN_THRESHOLD_CPU" ] ; then
+		if [ "$((cpuTemp))" -ge "$I_WARN_THRESHOLD_CPU" ] ; then
 			log_warning "$LOGFILE" "CPU notification threshold reached !"
 			returnCode=1
 		fi
 	done
 
-	log_info "$LOGFILE" "HDDs (warning threshold: $((WARN_THRESHOLD_HDD))C):"
+	log_info "$LOGFILE" "HDDs (warning threshold: $((I_WARN_THRESHOLD_HDD))C):"
 	printf '%8s %-6s %-25s %s\n' "Temp(C)" "dev" "P/N" "S/N" | log_info "$LOGFILE"
 	for hdd in $(sysctl -n kern.disks); do
 		devTemp=`$BIN_SMARTCTL -a /dev/$hdd | grep "Temperature_Celsius" | awk '{print $10}'`
@@ -117,7 +117,7 @@ main() {
 		printf '%+8d %-6s %-25s %s\n' "$((devTemp))" "$hdd" "$devName" "$devSerNum" \
 			| log_info "$LOGFILE"
 			
-		if [ "$((devTemp))" -ge "$WARN_THRESHOLD_HDD" ] ; then
+		if [ "$((devTemp))" -ge "$I_WARN_THRESHOLD_HDD" ] ; then
 			log_warning "$LOGFILE" "HDD notification threshold reached !"
 			returnCode=1
 		fi

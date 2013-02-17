@@ -29,9 +29,10 @@ readonly START_TIMESTAMP=`$BIN_DATE +"%s"`
 # Set variables corresponding to the input parameters
 ARGUMENTS="$@"
 
-# Initialization of the constants 
-FILESYSTEM="" 		# default name of the filesystem to be monitored (meaning: all fs)
-WARN_THRESHOLD="80"	# space warning threshold default value
+# Initialization of the optional input variables 
+I_FILESYSTEM="" 		# default name of the filesystem to be monitored (meaning: all fs)
+I_WARN_THRESHOLD="80"	# space warning threshold default value
+
 LOGFILE=""		# provisionary value of log file name (will be set in fct "parseInputParams")
 
 
@@ -53,7 +54,7 @@ parseInputParams() {
 				specific_fs="1"
  				$BIN_ZFS list "$OPTARG" 2>/dev/null 1>/dev/null			# Check if the zfs file system exists
 				if [ "$?" -eq "0" ] ; then
-					FILESYSTEM="$OPTARG"
+					I_FILESYSTEM="$OPTARG"
 				else
 					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -f. The ZFS filesystem does not exist."
 					return 1
@@ -66,7 +67,7 @@ parseInputParams() {
 				# check if the threshold value is valid
 				echo "$OPTARG" | grep -E '^[0-9]{1,2}$' >/dev/null
 				if [ "$?" -eq "0" ] ; then 
-					WARN_THRESHOLD="$OPTARG" 
+					I_WARN_THRESHOLD="$OPTARG" 
 				else
 					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -t. Should be an integer between 0 and 99."
 					return 1
@@ -154,14 +155,14 @@ main() {
 	fi
 
 	log_info "$LOGFILE" "-------------------------------------"
-	log_info "$LOGFILE" "Configured warning threshold: $WARN_THRESHOLD percent"
+	log_info "$LOGFILE" "Configured warning threshold: $I_WARN_THRESHOLD percent"
 
 	printf '%14s %13s %13s %13s %s\n' "Used (percent)" "Used (MiB)" "Available" "Quota" "Filesystem" \
 		| log_info "$LOGFILE"
 
 	
 	# Check the space for the filesystem (and for all sub-fs recursively)
-	for subfilesystem in `$BIN_ZFS list -H -r -o name $FILESYSTEM`; do
+	for subfilesystem in `$BIN_ZFS list -H -r -o name $I_FILESYSTEM`; do
 
 		quota=`getQuota $subfilesystem`
 		used=`getUsed $subfilesystem`
@@ -172,7 +173,7 @@ main() {
 			| log_info "$LOGFILE"		
 		
 		# Check if the warning limit is reached		
-		if [ $percent -gt $WARN_THRESHOLD ] ; then
+		if [ $percent -gt $I_WARN_THRESHOLD ] ; then
 			log_warning "$LOGFILE" "Notification threshold reached !"	
 			log_warning "$LOGFILE" "Consider increasing quota or adding disk space"	
 			returnCode=1
@@ -183,7 +184,7 @@ main() {
 }
         
 # run script if possible (lock not existing)
-fs_without_slash=`echo "$FILESYSTEM" | sed 's!/!_!'`    	# value of the fs without '/' that is not allowed in a file name
+fs_without_slash=`echo "$I_FILESYSTEM" | sed 's!/!_!'`    	# value of the fs without '/' that is not allowed in a file name
 run_main "$LOGFILE" "$SCRIPT_NAME.$fs_without_slash"
 # in case of error, send mail with extract of log file
 [ "$?" -eq "2" ] && `get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "Checkspace issue"`

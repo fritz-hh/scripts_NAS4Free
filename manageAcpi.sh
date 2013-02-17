@@ -55,31 +55,31 @@ readonly ACPI_STATE_LOGFILE="$CFG_LOG_FOLDER/acpi.log"
 ARGUMENTS="$@"
 
 # Log verbosity (1: verbose, 0: less verbose)
-VERBOSE=0
+I_VERBOSE=0
 
 # 1: mail to be sent on ACPI state change, 0: otherwise 
-MAIL_ACPI_CHANGE=0
+I_MAIL_ACPI_CHANGE=0
 
 # Initialisation of the default values for the arguments of the script
-POLL_INTERVAL=120			# number of seconds to wait between to cycles
+I_POLL_INTERVAL=120			# number of seconds to wait between to cycles
 
-DELAY_PREVENT_SLEEP_AFTER_WAKE="600"	# Amount of time during which the NAS will never go to sleep after waking up
+I_DELAY_PREVENT_SLEEP_AFTER_WAKE="600"	# Amount of time during which the NAS will never go to sleep after waking up
 
-CHECK_ALWAYS_ON="0"			# 1 if the check shall be performed, 0 otherwise
-BEG_ALWAYS_ON="00:00"			# time when the NAS shall never sleep (because of management tasks like backup may start)
-END_ALWAYS_ON="00:00"			# If end = beg => 24 hours
+I_CHECK_ALWAYS_ON="0"			# 1 if the check shall be performed, 0 otherwise
+I_BEG_ALWAYS_ON="00:00"			# time when the NAS shall never sleep (because of management tasks like backup may start)
+I_END_ALWAYS_ON="00:00"			# If end = beg => 24 hours
 
-CHECK_CURFEW_ACTIVE="0"			# 1 if the check shall be performed, 0 otherwise
-BEG_POLL_CURFEW="00:00"			# time when the script enters the sleep state (except if tasks like backup are running)
-END_POLL_CURFEW="00:00"			# If end = beg => 24 hours
-ACPI_STATE_CURFEW="0"			# ACPI state 
+I_CHECK_CURFEW_ACTIVE="0"			# 1 if the check shall be performed, 0 otherwise
+I_BEG_POLL_CURFEW="00:00"			# time when the script enters the sleep state (except if tasks like backup are running)
+I_END_POLL_CURFEW="00:00"			# If end = beg => 24 hours
+I_ACPI_STATE_CURFEW="0"			# ACPI state 
 
-CHECK_NOONLINE_ACTIVE="0"		# 1 if the check shall be performed, 0 otherwise
-BEG_POLL_NOONLINE="0:00"		# time when the script starts to check wether there is no other device is online
-END_POLL_NOONLINE="00:00"		# If end = beg => 24 hours 
-ACPI_STATE_NOONLINE="0"			# ACPI state if no other device is online 
-DELAY_NOONLINE="0"			# Delay in seconds between the moment where no devices are online anymore and the moment where the NAS shall sleep
-IP_ADDRS="" 				# IP addresses of the devices to be polled, separated by a space character)
+I_CHECK_NOONLINE_ACTIVE="0"		# 1 if the check shall be performed, 0 otherwise
+I_BEG_POLL_NOONLINE="0:00"		# time when the script starts to check wether there is no other device is online
+I_END_POLL_NOONLINE="00:00"		# If end = beg => 24 hours 
+I_ACPI_STATE_NOONLINE="0"			# ACPI state if no other device is online 
+I_DELAY_NOONLINE="0"			# Delay in seconds between the moment where no devices are online anymore and the moment where the NAS shall sleep
+I_IP_ADDRS="" 				# IP addresses of the devices to be polled, separated by a space character)
 
 # Initialization the global variables
 awake="0"				# 1=NAS is awake, 0=NAS is about to sleep (resp. just woke up)
@@ -112,51 +112,51 @@ parseInputParams() {
 		case $opt in
 			p)	echo "$OPTARG" | grep -E "^$regex_dur$" >/dev/null 
 				if [ "$?" -eq "0" ] ; then
-					POLL_INTERVAL="$OPTARG"
+					I_POLL_INTERVAL="$OPTARG"
 				else
 					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -p. Should be a positive integer"
 					return 1
 				fi ;;
 			w)	echo "$OPTARG" | grep -E "^$regex_dur$" >/dev/null 
 				if [ "$?" -eq "0" ] ; then
-					DELAY_PREVENT_SLEEP_AFTER_WAKE="$OPTARG"
+					I_DELAY_PREVENT_SLEEP_AFTER_WAKE="$OPTARG"
 				else
 					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -w. Should be a positive integer"
 					return 1
 				fi ;;
 			a)	echo "$OPTARG" | grep -E "$regex_a" >/dev/null
 				if [ "$?" -eq "0" ] ; then
-					CHECK_ALWAYS_ON="1"	
-					BEG_ALWAYS_ON=`echo "$OPTARG" | cut -f1 -d,`			
-					END_ALWAYS_ON=`echo "$OPTARG" | cut -f2 -d,`			
+					I_CHECK_ALWAYS_ON="1"	
+					I_BEG_ALWAYS_ON=`echo "$OPTARG" | cut -f1 -d,`			
+					I_END_ALWAYS_ON=`echo "$OPTARG" | cut -f2 -d,`			
 				else
 					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -a. Should be \"hh:mm,hh:mm\""
 					return 1
 				fi ;;
 			c)	echo "$OPTARG" | grep -E "$regex_c" >/dev/null
 				if [ "$?" -eq "0" ] ; then
-					CHECK_CURFEW_ACTIVE="1"	
-					BEG_POLL_CURFEW=`echo "$OPTARG" | cut -f1 -d,`			
-					END_POLL_CURFEW=`echo "$OPTARG" | cut -f2 -d,`			
-					ACPI_STATE_CURFEW=`echo "$OPTARG" | cut -f3 -d,`			
+					I_CHECK_CURFEW_ACTIVE="1"	
+					I_BEG_POLL_CURFEW=`echo "$OPTARG" | cut -f1 -d,`			
+					I_END_POLL_CURFEW=`echo "$OPTARG" | cut -f2 -d,`			
+					I_ACPI_STATE_CURFEW=`echo "$OPTARG" | cut -f3 -d,`			
 				else
 					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -c. Should be \"hh:mm,hh:mm,acpi_state\""
 					return 1
 				fi ;;
 			n)	echo "$OPTARG" | grep -E "$regex_n" >/dev/null
 				if [ "$?" -eq "0" ] ; then
-					CHECK_NOONLINE_ACTIVE="1"	
-					BEG_POLL_NOONLINE=`echo "$OPTARG" | cut -f1 -d,`			
-					END_POLL_NOONLINE=`echo "$OPTARG" | cut -f2 -d,`			
-					ACPI_STATE_NOONLINE=`echo "$OPTARG" | cut -f3 -d,`			
-					DELAY_NOONLINE=`echo "$OPTARG" | cut -f4 -d,`			
-					IP_ADDRS=`echo "$OPTARG" | cut -f5 -d, | sed 's/+/ /g'`
+					I_CHECK_NOONLINE_ACTIVE="1"	
+					I_BEG_POLL_NOONLINE=`echo "$OPTARG" | cut -f1 -d,`			
+					I_END_POLL_NOONLINE=`echo "$OPTARG" | cut -f2 -d,`			
+					I_ACPI_STATE_NOONLINE=`echo "$OPTARG" | cut -f3 -d,`			
+					I_DELAY_NOONLINE=`echo "$OPTARG" | cut -f4 -d,`			
+					I_IP_ADDRS=`echo "$OPTARG" | cut -f5 -d, | sed 's/+/ /g'`
 				else
 					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -n. Should be \"hh:mm,hh:mm,acpi_state,delay,ips\""
 					return 1
 				fi ;;
-			v)	VERBOSE=1 ;;
-			m)	MAIL_ACPI_CHANGE=1 ;;
+			v)	I_VERBOSE=1 ;;
+			m)	I_MAIL_ACPI_CHANGE=1 ;;
 			\?)
 				log_error "$LOGFILE" "Invalid option: -$OPTARG"
 				return 1 ;;
@@ -239,7 +239,7 @@ nasSleep() {
 			log_info "$LOGFILE" "$msg"
 			log_info "$ACPI_STATE_LOGFILE" "S$acpi_state"
         	
-			if [ $MAIL_ACPI_CHANGE -eq "1" ]; then	
+			if [ $I_MAIL_ACPI_CHANGE -eq "1" ]; then	
 				get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "NAS going to sleep to save energy (ACPI state: S$acpi_state)"
 			fi
 
@@ -251,7 +251,7 @@ nasSleep() {
 			log_info "$LOGFILE" "$msg"
 			log_info "$ACPI_STATE_LOGFILE" "S$acpi_state"
         
-			if [ $MAIL_ACPI_CHANGE -eq "1" ]; then	
+			if [ $I_MAIL_ACPI_CHANGE -eq "1" ]; then	
 				get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "NAS going to sleep to save energy (ACPI state: S$acpi_state)"
 			fi		
 
@@ -296,28 +296,28 @@ main() {
 	# log the selected configuration
 	log_info "$LOGFILE" "-------------------------------------"
 	log_info "$LOGFILE" "Selected settings for \"$SCRIPT_NAME\":"
-	log_info "$LOGFILE" " - VERBOSE: 			$VERBOSE"
-	log_info "$LOGFILE" " - MAIL ACPI STATE CHANGES:	$MAIL_ACPI_CHANGE"
-	log_info "$LOGFILE" " - POLL_INTERVAL: 			$POLL_INTERVAL"
-	log_info "$LOGFILE" " - DELAY_PREVENT_SLEEP_AFTER_WAKE:	$DELAY_PREVENT_SLEEP_AFTER_WAKE"
-	log_info "$LOGFILE" " - CHECK_ALWAYS_ON: 		$CHECK_ALWAYS_ON"
-	log_info "$LOGFILE" " - BEG_ALWAYS_ON:	 		$BEG_ALWAYS_ON"
-	log_info "$LOGFILE" " - END_ALWAYS_ON: 			$END_ALWAYS_ON"
-	log_info "$LOGFILE" " - CHECK_CURFEW_ACTIVE: 		$CHECK_CURFEW_ACTIVE"
-	log_info "$LOGFILE" " - BEG_POLL_CURFEW: 		$BEG_POLL_CURFEW"
-	log_info "$LOGFILE" " - END_POLL_CURFEW: 		$END_POLL_CURFEW"
-	log_info "$LOGFILE" " - ACPI_STATE_CURFEW: 		$ACPI_STATE_CURFEW"
-	log_info "$LOGFILE" " - CHECK_NOONLINE_ACTIVE: 		$CHECK_NOONLINE_ACTIVE"
-	log_info "$LOGFILE" " - BEG_POLL_NOONLINE: 		$BEG_POLL_NOONLINE"
-	log_info "$LOGFILE" " - END_POLL_NOONLINE: 		$END_POLL_NOONLINE"
-	log_info "$LOGFILE" " - ACPI_STATE_NOONLINE: 		$ACPI_STATE_NOONLINE"
-	log_info "$LOGFILE" " - DELAY_NOONLINE: 		$DELAY_NOONLINE"
-	log_info "$LOGFILE" " - IP_ADDRS: 			$IP_ADDRS"
+	log_info "$LOGFILE" " - VERBOSE: 			$I_VERBOSE"
+	log_info "$LOGFILE" " - MAIL ACPI STATE CHANGES:	$I_MAIL_ACPI_CHANGE"
+	log_info "$LOGFILE" " - POLL_INTERVAL: 			$I_POLL_INTERVAL"
+	log_info "$LOGFILE" " - DELAY_PREVENT_SLEEP_AFTER_WAKE:	$I_DELAY_PREVENT_SLEEP_AFTER_WAKE"
+	log_info "$LOGFILE" " - CHECK_ALWAYS_ON: 		$I_CHECK_ALWAYS_ON"
+	log_info "$LOGFILE" " - BEG_ALWAYS_ON:	 		$I_BEG_ALWAYS_ON"
+	log_info "$LOGFILE" " - END_ALWAYS_ON: 			$I_END_ALWAYS_ON"
+	log_info "$LOGFILE" " - CHECK_CURFEW_ACTIVE: 		$I_CHECK_CURFEW_ACTIVE"
+	log_info "$LOGFILE" " - BEG_POLL_CURFEW: 		$I_BEG_POLL_CURFEW"
+	log_info "$LOGFILE" " - END_POLL_CURFEW: 		$I_END_POLL_CURFEW"
+	log_info "$LOGFILE" " - ACPI_STATE_CURFEW: 		$I_ACPI_STATE_CURFEW"
+	log_info "$LOGFILE" " - CHECK_NOONLINE_ACTIVE: 		$I_CHECK_NOONLINE_ACTIVE"
+	log_info "$LOGFILE" " - BEG_POLL_NOONLINE: 		$I_BEG_POLL_NOONLINE"
+	log_info "$LOGFILE" " - END_POLL_NOONLINE: 		$I_END_POLL_NOONLINE"
+	log_info "$LOGFILE" " - ACPI_STATE_NOONLINE: 		$I_ACPI_STATE_NOONLINE"
+	log_info "$LOGFILE" " - DELAY_NOONLINE: 		$I_DELAY_NOONLINE"
+	log_info "$LOGFILE" " - IP_ADDRS: 			$I_IP_ADDRS"
 
 
 	# Loop until the NAS is switched off
 	while true; do
-		[ $VERBOSE -eq "1" ] && log_info "$LOGFILE" "-----------------"
+		[ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "-----------------"
 
 		# If the NAS just woke up
 		if [ $awake -eq "0" ]; then
@@ -326,44 +326,44 @@ main() {
 			ts_last_online_device=`$BIN_DATE +%s`
 
 			log_info "$ACPI_STATE_LOGFILE" "S0"
-			log_info "$LOGFILE" "NAS just woke up (S0). Preventing sleep during the next $DELAY_PREVENT_SLEEP_AFTER_WAKE s"
+			log_info "$LOGFILE" "NAS just woke up (S0). Preventing sleep during the next $I_DELAY_PREVENT_SLEEP_AFTER_WAKE s"
         
-			if [ $MAIL_ACPI_CHANGE -eq "1" ]; then	
+			if [ $I_MAIL_ACPI_CHANGE -eq "1" ]; then	
 				get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "NAS just woke up (S0)"
 			fi	
 		fi
 
 		# Check if in always_on timeslot 
 		in_always_on_timeslot="0"
-		if [ $CHECK_ALWAYS_ON -eq "1" ]; then
-			if isInTimeSlot "$BEG_ALWAYS_ON" "$END_ALWAYS_ON"; then
-				[ $VERBOSE -eq "1" ] && log_info "$LOGFILE" "In always_on timeslot: [ $BEG_ALWAYS_ON ; $END_ALWAYS_ON ]"
+		if [ $I_CHECK_ALWAYS_ON -eq "1" ]; then
+			if isInTimeSlot "$I_BEG_ALWAYS_ON" "$I_END_ALWAYS_ON"; then
+				[ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "In always_on timeslot: [ $I_BEG_ALWAYS_ON ; $I_END_ALWAYS_ON ]"
 				in_always_on_timeslot="1"
 			fi
 		fi
 
 		# Check if curfew is reached
 		curfew_sleep_request="0"
-		if [ $CHECK_CURFEW_ACTIVE -eq "1" ]; then
-			if isInTimeSlot "$BEG_POLL_CURFEW" "$END_POLL_CURFEW"; then
-				[ $VERBOSE -eq "1" ] && log_info "$LOGFILE" "In curfew timeslot: [ $BEG_POLL_CURFEW ; $END_POLL_CURFEW ]"
+		if [ $I_CHECK_CURFEW_ACTIVE -eq "1" ]; then
+			if isInTimeSlot "$I_BEG_POLL_CURFEW" "$I_END_POLL_CURFEW"; then
+				[ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "In curfew timeslot: [ $I_BEG_POLL_CURFEW ; $I_END_POLL_CURFEW ]"
 				curfew_sleep_request="1"
 			fi
 		fi
 
 		# Check if no other devices are online for a certain duration
 		noonline_sleep_request="0"	
-		if [ $CHECK_NOONLINE_ACTIVE -eq "1" ]; then
+		if [ $I_CHECK_NOONLINE_ACTIVE -eq "1" ]; then
 		
-			if isInTimeSlot "$BEG_POLL_NOONLINE" "$END_POLL_NOONLINE"; then
+			if isInTimeSlot "$I_BEG_POLL_NOONLINE" "$I_END_POLL_NOONLINE"; then
 
-				[ $VERBOSE -eq "1" ] && log_info "$LOGFILE" "In timeslot for monitoring other devices [ $BEG_POLL_NOONLINE ; $END_POLL_NOONLINE ]"
+				[ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "In timeslot for monitoring other devices [ $I_BEG_POLL_NOONLINE ; $I_END_POLL_NOONLINE ]"
 
 				any_device_online="0"
-				for ip_addr in $IP_ADDRS; do 	
+				for ip_addr in $I_IP_ADDRS; do 	
 					if $BIN_PING -c 1 -t 1 $ip_addr > /dev/null ; then
 						any_device_online="1"
-						[ $VERBOSE -eq "1" ] && log_info "$LOGFILE" "Online device detected: $ip_addr (skipping any other device)"
+						[ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "Online device detected: $ip_addr (skipping any other device)"
 						break
 					fi
 				done
@@ -372,8 +372,8 @@ main() {
 					ts_last_online_device=`$BIN_DATE +%s`
 				else
 					delta_t=$((`$BIN_DATE +%s`-$ts_last_online_device))
-					[ $VERBOSE -eq "1" ] && log_info "$LOGFILE" "No devices online for $delta_t s"
-					if [ "$delta_t" -gt "$DELAY_NOONLINE" ]; then
+					[ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "No devices online for $delta_t s"
+					if [ "$delta_t" -gt "$I_DELAY_NOONLINE" ]; then
 						noonline_sleep_request="1"	
 					fi
 				fi
@@ -384,15 +384,15 @@ main() {
 		# - We are in the always on timeslot
 		# - If the NAS woke-up shortly 
 		awakefor=$((`$BIN_DATE +"%s"`-$ts_wakeup))
-		if [ $in_always_on_timeslot -eq "0" -a $awakefor -gt $DELAY_PREVENT_SLEEP_AFTER_WAKE ]; then
+		if [ $in_always_on_timeslot -eq "0" -a $awakefor -gt $I_DELAY_PREVENT_SLEEP_AFTER_WAKE ]; then
 			if [ $curfew_sleep_request -eq "1" ]; then
 				log_info "$LOGFILE" "Curfew: Sleep requested"
 				prevent_scripts_to_start
-				nasSleep $ACPI_STATE_CURFEW
+				nasSleep $I_ACPI_STATE_CURFEW
  			elif [ $noonline_sleep_request -eq "1" ]; then
 				log_info "$LOGFILE" "No other device online: sleep requested"
 				prevent_scripts_to_start
-				nasSleep $ACPI_STATE_NOONLINE
+				nasSleep $I_ACPI_STATE_NOONLINE
 			else
 				allow_scripts_to_start
 			fi
@@ -401,7 +401,7 @@ main() {
 		fi
 
 		# wait until next poll	
-		sleep $POLL_INTERVAL
+		sleep $I_POLL_INTERVAL
 	done
 }
 
