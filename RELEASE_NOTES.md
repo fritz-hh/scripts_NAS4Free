@@ -3,6 +3,8 @@ RELEASE NOTES
 
 Please read always this file before installing the package
 
+Download software here: https://github.com/fritz-hh/scripts_NAS4Free/tags
+
 v1.0-rc1: (1st version managed on github)
 =======
 
