@@ -11,7 +11,7 @@
 # Version of the package
 ################################################
 
-VERSION="draft"
+VERSION="v1.0-rc1"
 
 
 
