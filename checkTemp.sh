@@ -5,8 +5,10 @@
 #
 # Author: miGi from NAS4Free Forum
 #
-# Param 1: Warning temperature threshold to the CPU (in deg celsius)
-# Param 2: Warning temperature threshold to the HDD (in deg celsius)
+# Usage: checkTemp.sh thresholdCPU thresholdHDD
+#
+#	thresholdCPU : Warning temperature threshold to the CPU (in deg celsius)
+# 	thresholdHDD : Warning temperature threshold to the HDD (in deg celsius)
 #############################################################################
 
 # Initialization of the script name and path constants
@@ -24,17 +26,44 @@ readonly START_TIMESTAMP=`$BIN_DATE +"%s"`
 readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
 
 # Set variables corresponding to the input parameters
-readonly WARN_THRESHOLD_CPU="$1"
-readonly WARN_THRESHOLD_HDD="$2"
+ARGUMENTS="$@"
+
+# Initialize variables corresponding to the input parameters
+WARN_THRESHOLD_CPU="0"	# default value
+WARN_THRESHOLD_HDD="0"	# default value
 
 
-##################################
-# Check threshold definition
+
+################################## 
+# Check script input parameters
 #
-# Return: 1 if wrong defintion detected
-#	  0 otherwise 
+# Params: all parameters of the shell script
 ##################################
-check_threshold_def() {
+parseInputParams() {
+
+	# parse the optional parameters
+	# (there should be none)
+	while getopts ":" opt; do
+        	case $opt in
+			\?)
+				log_error "$LOGFILE" "Invalid option: -$OPTARG"
+				return 1 ;;
+        	esac
+	done
+
+	# Remove the optional arguments parsed above.
+	shift $((OPTIND-1))
+	
+	# Check if the number of mandatory parameters 
+	# provided is as expected 
+	if [ "$#" -ne "2" ]; then
+		log_error "$LOGFILE" "Exactly two mandatory argument shall be provided"
+		return 1
+	fi
+
+	# Set variables corresponding to the input parameters
+	WARN_THRESHOLD_CPU="$1"
+	WARN_THRESHOLD_HDD="$2"
 
         regex_temp="([0-9]+)"
 
@@ -58,10 +87,17 @@ check_threshold_def() {
 # Main
 ##################################
 main() {
-	! check_threshold_def && return 1
 
 	returnCode=0
 
+	log_info "$LOGFILE" "-------------------------------------"
+	log_info "$LOGFILE" "Starting checking temperatures..."
+	
+	# Parse the input parameters
+	if ! parseInputParams $ARGUMENTS; then
+		return 1
+	fi
+	
 	log_info "$LOGFILE" "CPUs (warning threshold: $((WARN_THRESHOLD_CPU))C):"
 	printf '%8s %s\n' "Temp(C)" "CPU" | log_info "$LOGFILE"
 	for cpu in `sysctl -a | grep -E "cpu\.[0-9]+\.temp" | cut -f1 -d:`; do 
@@ -94,8 +130,7 @@ main() {
 	return $returnCode
 }
 
-log_info "$LOGFILE" "-------------------------------------"
-log_info "$LOGFILE" "Starting checking temperatures..."
+
 
 # run script if possible (lock not existing)
 run_main "$LOGFILE" "$SCRIPT_NAME"

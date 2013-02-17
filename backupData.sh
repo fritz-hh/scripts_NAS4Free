@@ -5,16 +5,18 @@
 #
 # Author: fritz from NAS4Free forum
 #
-# Param 1: zfs filesystems to be backed-up (source).
-#	   Several file systems can be provided (They shall be separated by a comma ",")
-#	   Note 1: These fs (as well as the sub-fs) shall have a default mountpoint
-#	   Note 2: The filesystem provided as parameter shall not contain any space character
-# Param 2: zfs pool in which the data should be backed-up (destination)
-#	   Note: This pool must already exist before to launch the script 
-#	   backup.
-# Param 3: Biggest allowed rollback (in days) on the destination fs.
-#	   A rollback is necessary if the snapshots available on the 
-#	   destination fs are not available anymore on the source fs
+# Usage: backupData.sh fsSource poolDest maxRollback
+#
+#	fsSource : 	zfs filesystems to be backed-up (source).
+#	   		Several file systems can be provided (They shall be separated by a comma ",")
+#	   		Note 1: These fs (as well as the sub-fs) shall have a default mountpoint
+#	   		Note 2: The filesystem provided as parameter shall not contain any space character
+# 	poolDest : 	zfs pool in which the data should be backed-up (destination)
+#			Note: This pool must already exist before to launch the script 
+#			backup.
+#	maxRollback :	Biggest allowed rollback (in days) on the destination fs.
+#			A rollback is necessary if the snapshots available on the 
+#			destination fs are not available anymore on the source fs
 #############################################################################
 
 # Initialization of the script name and path constants
@@ -29,16 +31,79 @@ readonly SCRIPT_PATH=`dirname $0`		# The path of the file
 . "$SCRIPT_PATH/common/commonLockFcts.sh"
 
 # Set variables corresponding to the input parameters
-readonly SRC_FSS="$1"				# The source filesystems (i.e. the filesystems to be backed-up)
-readonly DEST_POOL="$2" 			# The destination pool (i.e. the pool in 
-						# which the backup data shall be saved)
-readonly S_IN_DAY=86400				# Number of seconds in a day
-readonly MAX_ROLLBACK_S=$(($3*$S_IN_DAY)) 	# Biggest allowed rollback (in seconds) on the destination fs
+SRC_FSS=""			# Default value of the source filesystems (i.e. the filesystems to be backed-up)
+DEST_POOL="" 			# Default value of the destination pool (i.e. the pool in 
+				# which the backup data shall be saved)
+readonly S_IN_DAY=86400		# Number of seconds in a day
+MAX_ROLLBACK_S="0" 		# Default of value of the biggest allowed rollback (in seconds) on the destination fs
 
 # Initialization of constants 
 readonly START_TIMESTAMP=`$BIN_DATE +"%s"` 
 readonly COMPRESSION="gzip"			# Type of compression to be used for the fs of the backup pool
 readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
+
+# Set variables corresponding to the input parameters
+ARGUMENTS="$@"
+
+
+################################## 
+# Check script input parameters
+#
+# Params: all parameters of the shell script
+##################################
+parseInputParams() {
+	local opt current_fs regex_rollback
+
+	# parse the optional parameters
+	# (there should be none)
+	while getopts ":" opt; do
+        	case $opt in
+			\?)
+				log_error "$LOGFILE" "Invalid option: -$OPTARG"
+				return 1 ;;
+        	esac
+	done
+
+	# Remove the optional arguments parsed above.
+	shift $((OPTIND-1))
+	
+	# Check if the number of mandatory parameters 
+	# provided is as expected 
+	if [ "$#" -ne "3" ]; then
+		log_error "$LOGFILE" "Exactly three mandatory argument shall be provided"
+		return 1
+	fi
+
+	# Itterate through all source filesystems for which a backup should be done
+	# and check if the current fs exists	
+	SRC_FSS=`echo "$1" | sed 's/,/ /g'` # replace commas by space as for loops on new line and space
+	for current_fs in $SRC_FSS ; do	
+		if ! $BIN_ZFS list $current_fs 2>/dev/null 1>/dev/null; then
+			log_error "$LOGFILE" "source filesystem \"$current_fs\" does not exist. Skipping it"
+			return 1
+		fi
+	done	
+	
+	# Check if the destination pool exists
+	DEST_POOL="$2"
+	if ! $BIN_ZPOOL list $DEST_POOL 2>/dev/null 1>/dev/null; then
+		log_error "$LOGFILE" "destination pool \"$DEST_POOL\" does not exist."
+		return 1
+	fi
+	
+	# Max if the max rollback value is valid
+	max_rollback_days="$3"
+        regex_rollback="([0-9]+)"
+        echo "$max_rollback_days" | grep -E "^$regex_rollback$" >/dev/null
+        if [ "$?" -ne "0" ]; then
+                log_warning "$LOGFILE" "Wrong maximum rollback value, should be a positive integer or zero (unit: days) !"
+                return 1
+        fi
+	MAX_ROLLBACK_S=$(($max_rollback_days*$S_IN_DAY))
+	
+	return 0
+}
+
 
 ##################################
 # Ensures the availability of the filesystem given as parameter
@@ -188,30 +253,25 @@ backup() {
 # Main 
 ##################################
 main() {
-	local src_fss2 returnCode current_fs currentSubSrcFs 
+	local returnCode current_fs currentSubSrcFs 
 
-	# Check if the destination pool exists
-	if ! $BIN_ZPOOL list $DEST_POOL 2>/dev/null 1>/dev/null; then
-		log_error "$LOGFILE" "destination pool \"$DEST_POOL\" does not exist."
+	returnCode=0	
+
+	log_info "$LOGFILE" "-------------------------------------"	
+
+	# Parse the input parameters
+	if ! parseInputParams $ARGUMENTS; then
 		return 1
 	fi
 	
-	returnCode=0
+	log_info "$LOGFILE" "Starting backup of \"$SRC_FSS\""
 
 	# Itterate through all source filesystems for which a backup should be done
-	src_fss2=`echo $SRC_FSS | sed 's/,/ /g'` # replace commas by space as for loops on new line and space
-	for current_fs in $src_fss2 ; do	
-
-		# check if the current fs exists, skip it otherwise
-		if ! $BIN_ZFS list $current_fs 2>/dev/null 1>/dev/null; then
-			log_error "$LOGFILE" "source filesystem \"$current_fs\" does not exist. Skipping it"
-			returnCode=1
-			continue
-		fi
+	for current_fs in $SRC_FSS ; do
 	
 		# for the current fs and all its sub-filesystems
 		for currentSubSrcFs in `$BIN_ZFS list -r -H -o name $current_fs`; do
-	
+
 			# create the dest filesystems (recursively) 
 			# if they do not yet exist and exit if it fails
 			if ! ensureFsAvailability "$DEST_POOL/$currentSubSrcFs"; then
@@ -230,9 +290,6 @@ main() {
 }
 
 
-
-log_info "$LOGFILE" "-------------------------------------"
-log_info "$LOGFILE" "Starting backup of \"$SRC_FSS\""
 
 # run script if possible (lock not existing)
 run_main "$LOGFILE" "$SCRIPT_NAME"

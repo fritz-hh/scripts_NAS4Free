@@ -29,6 +29,9 @@ readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
 main() {
 	local pool
 
+	log_info "$LOGFILE" "-------------------------------------"
+	log_info "$LOGFILE" "Starting checking of pools" 
+	
 	$BIN_ZPOOL list -H -o name | while read pool; do
 		if $BIN_ZPOOL status -x $pool | grep "is healthy">/dev/null; then
 			$BIN_ZPOOL status -x $pool | log_info "$LOGFILE"
@@ -46,8 +49,6 @@ main() {
 }
 
 
-log_info "$LOGFILE" "-------------------------------------"
-log_info "$LOGFILE" "Starting checking of pools" 
 
 # run script if possible (lock not existing)
 run_main "$LOGFILE" "$SCRIPT_NAME"

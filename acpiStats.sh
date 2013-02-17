@@ -55,7 +55,7 @@ parseInputParams() {
 	regex_pow="([1-9][0-9]*)"
 	regex_pows="$regex_pow[,]$regex_pow[,]$regex_pow"
 
-	# parse the parameters
+	# parse the optional arguments
 	while getopts ":p:" opt; do
 	
 		case $opt in
@@ -79,6 +79,16 @@ parseInputParams() {
                 esac
         done
 
+	# Remove the optional arguments parsed above.
+	shift $((OPTIND-1))
+	
+	# Check if the number of mandatory parameters 
+	# provided is as expected 
+	if [ "$#" -ne "0" ]; then
+		log_error "$LOGFILE" "No mandatory arguments should be provided"
+		return 1
+	fi
+	
         return 0
 }
 
@@ -195,6 +205,9 @@ log_stats() {
 ##################################
 main() {
 	local oldest_acpi_ts 
+
+	log_info "$LOGFILE" "-------------------------------------"
+	log_info "$LOGFILE" "Starting computation of ACPI statistics"
 	
 	# Parse the input parameters
 	if ! parseInputParams $ARGUMENTS; then
@@ -236,8 +249,6 @@ main() {
 }
 
 
-log_info "$LOGFILE" "-------------------------------------"
-log_info "$LOGFILE" "Starting computation of ACPI statistics"
 
 # run script if possible (lock not existing)
 run_main "$LOGFILE" "$SCRIPT_NAME" 

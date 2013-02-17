@@ -56,28 +56,37 @@ readonly DAILY_TAG="type02"	# in order to be able to show all tags in the window
 readonly WEEKLY_TAG="type03"	# Shadow copy should be enable in the NAS4Free GUI under
 readonly MONTHLY_TAG="type04"	# Services|CIFS/SMB|Shares
 
-# get the mandatory script parameter (Filesystem for which a snapshot shall be created) 	
-if [ $# -gt 0 ]; then
-	eval FILESYSTEM=\$$#				# Filesystem to snapshot
-else
-	echo "Name of the filesystem to snapshot not provided when calling \"$SCRIPT_NAME\"" | sendMail "Snapshot management issue"
-	exit 1
-fi
 
-# Initialization of the log file path
-readonly FS_WITHOUT_SLASH=`echo "$FILESYSTEM" | sed 's!/!_!'`	# The fs without '/' that is not allowed in a file name
-readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.$FS_WITHOUT_SLASH.log"
 
 ################################## 
 # Check script input parameters
 #
 # Params: all parameters of the shell script
 ##################################
-parseOptionalInputParams() {
+parseInputParams() {
 	local keep_all_snap opt
 	
 	keep_all_snap="0"
 
+	# get the mandatory script parameter (Filesystem for which a snapshot shall be created)
+	# this argument is parsed at first because it is required to compute the log file name
+	if [ $# -gt 0 ]; then
+		eval FILESYSTEM=\$$#				# Filesystem to snapshot
+	else
+		echo "Name of the filesystem to snapshot not provided when calling \"$SCRIPT_NAME\"" | sendMail "Snapshot management issue"
+		exit 1
+	fi
+
+	# Initialization of the log file path
+	FS_WITHOUT_SLASH=`echo "$FILESYSTEM" | sed 's!/!_!'`	# The fs without '/' that is not allowed in a file name
+	LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.$FS_WITHOUT_SLASH.log"
+	
+	# Check if the filesystem for which the snapshots shall be managed is available
+	if ! $BIN_ZFS list "$FILESYSTEM" 1>/dev/null 2>/dev/null; then
+		log_error "$LOGFILE" "Unknown file system: \"$FILESYSTEM\""
+		return 1
+	fi	
+	
 	# parse the optional parameters
 	while getopts ":nh:d:w:m:k" opt; do
 		case $opt in
@@ -120,7 +129,7 @@ parseOptionalInputParams() {
 		esac
 	done
 
-	# If the keep all snapshots was selected
+	# If "keep all snapshots" was selected
 	if [ $keep_all_snap -eq "1" ]; then
 		MAX_NB_HOURLY="-1"
 		MAX_NB_DAILY="-1"
@@ -128,6 +137,16 @@ parseOptionalInputParams() {
 		MAX_NB_MONTHLY="-1"
 	fi
 
+	# Remove the optional arguments parsed above.
+	shift $((OPTIND-1))
+	
+	# Check if the number of mandatory parameters 
+	# provided is as expected 
+	if [ "$#" -ne "1" ]; then
+		log_error "$LOGFILE" "Exactly one mandatory argument shall be provided"
+		return 1
+	fi	
+	
 	return 0
 }
 
@@ -255,21 +274,17 @@ main() {
 	returnCode=0
 	
 	# Parse the input parameters
-	if ! parseOptionalInputParams $ARGUMENTS; then
+	if ! parseInputParams $ARGUMENTS; then
 		return 1
 	fi
 
+	log_info "$LOGFILE" "-------------------------------------"
+	log_info "$LOGFILE" "Starting snapshot script for dataset \"$FILESYSTEM\""
 	log_info "$LOGFILE" "Keeping up to $MAX_NB_HOURLY hourly / $MAX_NB_DAILY daily / $MAX_NB_WEEKLY weekly / $MAX_NB_MONTHLY monthly snapshots (<0 = all)" 
-
-	# Check if the filesystem for which the snapshots shall be managed is available
-	if ! $BIN_ZFS list "$FILESYSTEM">/dev/null; then
-		log_error "$LOGFILE" "Unknown file system: \"$FILESYSTEM\""
-		return 1
-	fi
 
 	# Make a snapshot of all file systems within the filesystem $FILESYSTEM
 	if [ "$GENERATE_SNAPSHOT" -eq "1" ]; then
-		for subfilesystem in `$BIN_ZFS list -H -r -o name $FILESYSTEM`; do 
+		for subfilesystem in `$BIN_ZFS list -H -r -o name $FILESYSTEM`; do
 			if ! createSnapshot $subfilesystem; then
 				returnCode=1	
 			fi 
@@ -297,10 +312,6 @@ main() {
 }
 
 
-
-
-log_info "$LOGFILE" "-------------------------------------"
-log_info "$LOGFILE" "Starting snapshot script for dataset \"$FILESYSTEM\""
 
 # run script if possible (lock not existing)
 run_main "$LOGFILE" "$SCRIPT_NAME.$FS_WITHOUT_SLASH"

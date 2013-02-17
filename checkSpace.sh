@@ -32,7 +32,7 @@ ARGUMENTS="$@"
 # Initialization of the constants 
 FILESYSTEM="" 		# default name of the filesystem to be monitored (meaning: all fs)
 WARN_THRESHOLD="80"	# space warning threshold default value
-LOGFILE=""		# provisionary value of log file name (will be set in fct "parseOptionalInputParams")
+LOGFILE=""		# provisionary value of log file name (will be set in fct "parseInputParams")
 
 
 ################################## 
@@ -40,7 +40,7 @@ LOGFILE=""		# provisionary value of log file name (will be set in fct "parseOpti
 #
 # Params: all parameters of the shell script
 ##################################
-parseOptionalInputParams() {
+parseInputParams() {
 
 	local fs_without_slash specific_fs
 	specific_fs="0"
@@ -48,7 +48,7 @@ parseOptionalInputParams() {
 	# parse the parameters
 	while getopts ":f:t:" opt; do
         	case $opt in
-                        f)	fs_without_slash=`echo "$OPTARG" | sed 's!/!_!'`		# value of the fs without '/' that is not allowed in a file name
+			f)	fs_without_slash=`echo "$OPTARG" | sed 's!/!_!'`		# value of the fs without '/' that is not allowed in a file name
  				LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.$fs_without_slash.log" 	# value of the log file name
 				specific_fs="1"
  				$BIN_ZFS list "$OPTARG" 2>/dev/null 1>/dev/null			# Check if the zfs file system exists
@@ -85,6 +85,16 @@ parseOptionalInputParams() {
 	# (required in case none of -f and -t are used)
 	if [ "$specific_fs" -eq "0" ]; then
 		LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
+	fi
+
+	# Remove the optional arguments parsed above.
+	shift $((OPTIND-1))
+	
+	# Check if the number of mandatory parameters 
+	# provided is as expected 
+	if [ "$#" -ne "0" ]; then
+		log_error "$LOGFILE" "No mandatory arguments should be provided"
+		return 1
 	fi
 	
 	return 0
@@ -139,14 +149,14 @@ main() {
 	mib=$((1024*1024))
 
 	# Parse the input parameters
-	if ! parseOptionalInputParams $ARGUMENTS; then
+	if ! parseInputParams $ARGUMENTS; then
 		return 1
 	fi
 
 	log_info "$LOGFILE" "-------------------------------------"
 	log_info "$LOGFILE" "Configured warning threshold: $WARN_THRESHOLD percent"
 
-	printf '%14s %15s %13s %13s %s\n' "Used (percent)" "Used (MiB)" "Available" "Quota" "Filesystem" \
+	printf '%14s %13s %13s %13s %s\n' "Used (percent)" "Used (MiB)" "Available" "Quota" "Filesystem" \
 		| log_info "$LOGFILE"
 
 	
@@ -158,7 +168,7 @@ main() {
 		avail=`getAvailable $subfilesystem`
 		percent=$(($used*100/($used+$avail)))
 
-		printf '%14s %15s %13s %13s %s\n' "$percent percent" "$((used/mib)) MiB" "$((avail/mib)) MiB" "$((quota/mib)) MiB" "$subfilesystem" \
+		printf '%14s %13s %13s %13s %s\n' "$percent percent" "$((used/mib)) MiB" "$((avail/mib)) MiB" "$((quota/mib)) MiB" "$subfilesystem" \
 			| log_info "$LOGFILE"		
 		
 		# Check if the warning limit is reached		
