@@ -16,7 +16,7 @@ Changes
 -------
 
 - checkSpace.sh: arguments "filesystem" and "threshold" are now optional (-f and -t)
-- backupData.sh: the max_rollback argument is now optional (-b) 
+- backupData.sh: argument "max_rollback" is now optional (-b) 
 - commonLockFcts.sh (impact on all scripts): Do not warn if a script cannot be started because the NAS is about to shut down (normal information message instead)
 - library of funtions moved to subfolder "common"
 - config.sh: default path to "log" and "tmp" folder changed
@@ -26,5 +26,5 @@ Fixes
 
 - all scripts: improved validation of mandatory and optional arguments
 - commonLogFcts.sh: When logging, if no log file path is provided, echo text on std out instead
-- commonLogFcts.sh: When returning an log file extract: Handle case of empty file 
+- commonLogFcts.sh: When returning a log file extract: Handle case of empty file 
 
