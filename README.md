@@ -114,6 +114,7 @@ reportFromLogs.sh:
 INSTALL
 =======
 
+- Download software here: https://github.com/fritz-hh/scripts_NAS4Free/tags
 - Copy the files in a folder of your NAS(all scripts must be copied into the same folder)
 - Create a tmp folder
 - Create a log folder
