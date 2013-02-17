@@ -28,10 +28,6 @@ readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
 # Set variables corresponding to the input parameters
 ARGUMENTS="$@"
 
-# Initialize variables corresponding to the input parameters
-WARN_THRESHOLD_CPU="0"	# default value
-WARN_THRESHOLD_HDD="0"	# default value
-
 
 
 ################################## 
