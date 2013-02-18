@@ -239,8 +239,9 @@ backup() {
 			snapsAgeDiff=$(($newestSnapDestFsCreation1970-$snapSrcFsTimestamp1970))
 			if [ $snapsAgeDiff -gt $I_MAX_ROLLBACK_S ]; then
 				log_warning "$LOGFILE" "$logPrefix: A rollback of $(($snapsAgeDiff/$S_IN_DAY)) days would be required to perform the incremental backup !"
-				log_warning "$LOGFILE" "$logPrefix: Skipping backup of the filesystem"
-				log_warning "$LOGFILE" "$logPrefix: Please increase the allowed rollback duration is required"
+				log_warning "$LOGFILE" "$logPrefix: Current maximum allowed rollback value equals \"$(($I_MAX_ROLLBACK_S/$S_IN_DAY)\" days."
+				log_warning "$LOGFILE" "$logPrefix: Please increase the maximum allowed rollback duration to make the backup possible"
+				log_warning "$LOGFILE" "$logPrefix: Skipping backup of this filesystem"
 				return 1
 			fi
 
