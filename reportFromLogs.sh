@@ -36,13 +36,13 @@ echo ""
 # Computing a summary of the errors / warnings that are recorded in all log files
 echo "Summary:"
 echo "----------------------------"
-printf '%7s %7s %s\n' "WARNING" "ERROR" "log file"
+printf '%7s %7s %s\n' "WARNING" "ERROR" "log file (\"---\" means: no new log message available)"
 for f in $LOG_FILES; do
 	if [ -f "$f" ]; then
 		# check if the log does not contain any new entry
 		get_log_entries "$f" "$DURATION" >/dev/null
 		if [ $? -eq "2" ]; then
-			echo "- $f :	No new log entry available"
+			printf '%7s %7s %s\n' "---" "---" "$f"
 		else
 			# if the log contains any new entry
 			num_warn=`get_log_entries "$f" "$DURATION" | grep -c "$LOG_WARNING"`
@@ -52,3 +52,5 @@ for f in $LOG_FILES; do
 		fi
 	fi
 done
+echo
+echo "\"---\" means: no new log message available"
