@@ -43,6 +43,21 @@ I_MAX_ROLLBACK_S=$((10*$S_IN_DAY))	# Bedault value of max rollback
 # Set variables corresponding to the input parameters
 ARGUMENTS="$@"
 
+# provisionnary constants
+# should be replaced by args of the script later
+readonly REMOTE_ACTIVE="1"
+readonly REMOTE_USER="root"
+readonly REMOTE_HOST="127.0.0.1"
+if [ "$REMOTE_ACTIVE" -eq "1" ]; then
+	SSH_LOGIN="$BIN_SSH -oBatchMode=no $REMOTE_USER@$REMOTE_HOST"
+	# testing connection
+	if ! $SSH_LOGIN exit 0; then
+		echo "Could not log into remote server (key authentication must to possible)"
+		exit 1
+	fi
+else
+	SSH_LOGIN=""
+fi
 
 ################################## 
 # Check script input parameters
@@ -94,7 +109,7 @@ parseInputParams() {
 	
 	# Check if the destination pool exists
 	I_DEST_POOL="$2"
-	if ! $BIN_ZPOOL list $I_DEST_POOL 2>/dev/null 1>/dev/null; then
+	if ! $SSH_LOGIN $BIN_ZPOOL list $I_DEST_POOL 2>/dev/null 1>/dev/null; then
 		log_error "$LOGFILE" "destination pool \"$I_DEST_POOL\" does not exist."
 		return 1
 	fi
@@ -109,13 +124,13 @@ parseInputParams() {
 # Return : 0 if the filesystem is existing or could be created, 
 #	   1 otherwise
 ##################################
-ensureFsAvailability() {
+ensureRemoteFSExists() {
 
 	local fs
 	fs="$1"
 
 	# Check if the fs already exists
-	if ! $BIN_ZFS list $fs 2>/dev/null 1>/dev/null; then
+	if $SSH_LOGIN $BIN_ZFS list $fs 2>/dev/null 1>/dev/null; then
 		return 0
 	fi
 
@@ -123,17 +138,17 @@ ensureFsAvailability() {
 
 	# Ensures that the destination pool is NOT readonly
 	# So that the filesystems can be created if required
-	if ! $BIN_ZFS set readonly=off $I_DEST_POOL >/dev/null; then
+	if ! $SSH_LOGIN $BIN_ZFS set readonly=off $I_DEST_POOL >/dev/null; then
 		log_error "$LOGFILE" "Destination pool could not be set to READONLY=off. Filesystem creation not possible "
 		return 1
 	fi
 
 	# create the filesystem (-p option to create the parent fs if it does not exist)
-	if ! $BIN_ZFS create -p -o compression="$COMPRESSION" "$fs"; then
+	if ! $SSH_LOGIN $BIN_ZFS create -p -o compression="$COMPRESSION" "$fs"; then
 		log_error "$LOGFILE" "The filesystem could NOT be created"
 
 		# Set the destination pool to readonly
-		if ! $BIN_ZFS set readonly=on $I_DEST_POOL >/dev/null; then
+		if ! $SSH_LOGIN $BIN_ZFS set readonly=on $I_DEST_POOL >/dev/null; then
 			log_error "$LOGFILE" "The destination pool could not be set to \"readonly=on\""
 		fi
 
@@ -142,7 +157,7 @@ ensureFsAvailability() {
 		log_info "$LOGFILE" "Filesystem created successfully"
 
 		# Set the destination pool to readonly
-		if ! $BIN_ZFS set readonly=on $I_DEST_POOL >/dev/null; then
+		if ! $SSH_LOGIN $BIN_ZFS set readonly=on $I_DEST_POOL >/dev/null; then
 			log_warning "$LOGFILE" "The destination pool could not be set to \"readonly=on\""
 		fi
 
@@ -270,15 +285,13 @@ main() {
 		# for the current fs and all its sub-filesystems
 		for currentSubSrcFs in `$BIN_ZFS list -r -H -o name $current_fs`; do
 
-			echo $currentSubSrcFs
-		
 			# create the dest filesystems (recursively) 
 			# if they do not yet exist and exit if it fails
-			if ! ensureFsAvailability "$I_DEST_POOL/$currentSubSrcFs"; then
+			if ! ensureRemoteFSExists "$I_DEST_POOL/$currentSubSrcFs"; then
 				returnCode=1
 			else
 				# Perform the backup
-				backup $currentSubSrcFs "$I_DEST_POOL/$currentSubSrcFs"
+#				backup $currentSubSrcFs "$I_DEST_POOL/$currentSubSrcFs"
 				if [ "$?" -ne "0" ]; then
 					returnCode=1
 				fi
