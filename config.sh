@@ -29,8 +29,8 @@ CFG_MSMTP_CONF="/var/etc/msmtp.conf"
 # Paths to log files, temp files...
 ################################################
 
-CFG_TMP_FOLDER="tmp"				# Folder containing any temporary file
-CFG_LOG_FOLDER="log"				# Folder containing all log files
+CFG_TMP_FOLDER="tmp"							# Folder containing any temporary file
+CFG_LOG_FOLDER="log"							# Folder containing all log files
 CFG_RUNNING_SCRIPTS_FOLDER="$CFG_TMP_FOLDER/running_scripts"		# Folder containing all lock files (e.g. files indicating that a script is running)
 CFG_FORBID_ANY_SCRIPT_START_FILE="$CFG_TMP_FOLDER/no_script_start.lock"	# File aimed at notifying that no script should be started
 
@@ -59,4 +59,4 @@ BIN_PING="/sbin/ping"
 
 BIN_SMARTCTL="/usr/local/sbin/smartctl"
 
-
+BIN_SSH="/usr/bin/ssh"
