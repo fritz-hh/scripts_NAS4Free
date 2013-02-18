@@ -115,7 +115,7 @@ ensureFsAvailability() {
 	fs="$1"
 
 	# Check if the fs already exists
-	if ! $BIN_ZFS list $fs 2>/dev/null 1>/dev/null; then
+	if $BIN_ZFS list $fs 2>/dev/null 1>/dev/null; then
 		return 0
 	fi
 
