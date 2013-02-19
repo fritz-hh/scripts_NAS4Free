@@ -49,8 +49,10 @@ readonly SSH_BATCHMODE="no"		# Only public key authentication is allowed in batc
 
 # Initialization of inputs corresponding to optional args of the script
 I_REMOTE_ACTIVE="0"			# By default the destination pool is local
-RUN_FCT_SSH=""				# Therefore, by default no ssh is required
-RUN_CMD_SSH=""				# 
+RUN_FCT_SSH=""				# This should be put in front of FUNCTIONS that may have to be executed remotely
+					# By default (i.e. local backup) "RUN_FCT_SSH" does not have any effect
+RUN_CMD_SSH=""				# This should be put in front of COMMANDS that may have to be executed remotely
+					# By default (i.e. local backup) "RUN_CMD_SSH" does not have any effect
 I_MAX_ROLLBACK_S=$((10*$S_IN_DAY))	# Default value of max rollback
 
 # Set variables corresponding to the input parameters
