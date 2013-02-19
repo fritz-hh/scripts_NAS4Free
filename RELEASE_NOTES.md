@@ -5,8 +5,29 @@ Please read always this file before installing the package
 
 Download software here: https://github.com/fritz-hh/scripts_NAS4Free/tags
 
-v1.0-rc1: (1st version managed on github)
-=======
+v1.0-rc2 (2013-02-19):
+========
+
+New features
+------------
+
+- None
+
+Changes
+-------
+
+- reportForLogs.sh / manageAcpi.sh: Format of the report / log slighty improved
+- backupData.sh: logged data slightly improved
+
+Fixes
+-----
+
+- backupData.sh: fixed major bug in test if the destination fs already exists (bug introduced in v1.0-rc1. It did not exist before)
+- .gitattributes: config updated to ensure that files checked out follow unix new line convention (LF)
+
+
+v1.0-rc1 (2013-02-17): (1st version managed on github)
+========
 
 New features
 ------------
