@@ -1,12 +1,19 @@
 #!/bin/sh
 #############################################################################
 # Script aimed at performing a backup of a filesystem (fs) and of all 
-# sub-filesystems recursively to a filesystem located on another zpool 
+# sub-filesystems recursively to a filesystem located on another zpool
+# The other pool can be either local or on a remote host 
 #
 # Author: fritz from NAS4Free forum
 #
-# Usage: backupData.sh [-b maxRollbck] fsSource poolDest
+# Usage: backupData.sh [-r user@host] [-b maxRollbck] fsSource poolDest
 #
+#	-r user@host:	Specify a remote host on which the destination pool is located
+#			Prerequisite: An ssh server shall be running on the host and
+#			public key authentication shall be available
+#			(By default the destination pool in on the local host)
+#			host: ip address or name of the host computer
+#			user: name of the user on the host computer
 #	-b maxRollbck :	Biggest allowed rollback (in days) on the destination fs.
 #			A rollback is necessary if the snapshots available on the 
 #			destination fs are not available anymore on the source fs
@@ -35,29 +42,49 @@ readonly SCRIPT_PATH=`dirname $0`		# The path of the file
 readonly START_TIMESTAMP=`$BIN_DATE +"%s"` 
 readonly COMPRESSION="gzip"			# Type of compression to be used for the fs of the backup pool
 readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
-readonly S_IN_DAY=86400		# Number of seconds in a day
+readonly TMP_FILE="$CFG_TMP_FOLDER/run_fct_ssh.sh"
+readonly S_IN_DAY=86400			# Number of seconds in a day
+readonly SSH_BATCHMODE="no"		# Only public key authentication is allowed in batch mode 
+					# (should only change to "no" for test purposes)
 
-# Initialization of the inputs corresponding to args of the script
-I_MAX_ROLLBACK_S=$((10*$S_IN_DAY))	# Bedault value of max rollback
+# Initialization of inputs corresponding to optional args of the script
+I_REMOTE_ACTIVE="0"			# By default the destination pool is local
+RUN_FCT_SSH=""				# Therefore, by default no ssh is required
+RUN_CMD_SSH=""				# 
+I_MAX_ROLLBACK_S=$((10*$S_IN_DAY))	# Default value of max rollback
 
 # Set variables corresponding to the input parameters
 ARGUMENTS="$@"
 
-# provisionnary constants
-# should be replaced by args of the script later
-readonly REMOTE_ACTIVE="1"
-readonly REMOTE_USER="root"
-readonly REMOTE_HOST="127.0.0.1"
-if [ "$REMOTE_ACTIVE" -eq "1" ]; then
-	SSH_LOGIN="$BIN_SSH -oBatchMode=no $REMOTE_USER@$REMOTE_HOST"
-	# testing connection
-	if ! $SSH_LOGIN exit 0; then
-		echo "Could not log into remote server (key authentication must to possible)"
-		exit 1
-	fi
-else
-	SSH_LOGIN=""
-fi
+
+##########################
+# Run a function on a remote server
+# functions available the following local files are supported:
+# - commonSnapFcts.sh 
+# 
+# This function does not support to get data through PIPES
+#
+# Params: The command as well as all arguments of the command
+# Run local functions remotely
+##########################
+run_fct_ssh() {
+	local return_code
+
+	# generating the tmp file containing the code to be executed
+	cat "$SCRIPT_PATH/config.sh" > $TMP_FILE
+	cat "$SCRIPT_PATH/common/commonSnapFcts.sh" >> $TMP_FILE 
+	echo "$@" >>  $TMP_FILE
+	
+	# remote the code on the remote host
+	$BIN_SSH -oBatchMode=$SSH_BATCHMODE -t $I_REMOTE_LOGIN "/bin/sh" < $TMP_FILE
+	return_code="$?"
+	
+	# delete the tmp file
+	$BIN_RM $TMP_FILE
+	
+	return $return_code
+}
+
 
 ################################## 
 # Check script input parameters
@@ -69,8 +96,25 @@ parseInputParams() {
 
 	# parse the optional parameters
 	# (there should be none)
-	while getopts ":b:" opt; do
+	while getopts ":r:b:" opt; do
         	case $opt in
+			r)	echo "$OPTARG" | grep -E "^(.+)@(.+)$" >/dev/null 
+				if [ "$?" -eq "0" ] ; then
+					I_REMOTE_ACTIVE="1"
+					I_REMOTE_LOGIN="$OPTARG"
+					RUN_FCT_SSH="run_fct_ssh"
+					RUN_CMD_SSH="$BIN_SSH -oBatchMode=$SSH_BATCHMODE $I_REMOTE_LOGIN"
+					# test if remote host is accessible
+					# TODO: CHECK PING HERE
+					# testing ssh connection
+					if ! $RUN_FCT_SSH exit 0; then
+						log_error "$LOGFILE" "SSH connection failed. Please check username / hostname and ensure availability of public key authentication"
+						return 1
+					fi
+				else
+					log_error "$LOGFILE" "Remote login data (\"$OPTARG\") does not have the expect format: username@hostname"
+					return 1
+				fi ;;
 			b)	echo "$OPTARG" | grep -E "^([0-9]+)$" >/dev/null 
 				if [ "$?" -eq "0" ] ; then
 					I_MAX_ROLLBACK_S=$(($OPTARG*$S_IN_DAY))
@@ -109,7 +153,7 @@ parseInputParams() {
 	
 	# Check if the destination pool exists
 	I_DEST_POOL="$2"
-	if ! $SSH_LOGIN $BIN_ZPOOL list $I_DEST_POOL 2>/dev/null 1>/dev/null; then
+	if ! $RUN_FCT_SSH $BIN_ZPOOL list $I_DEST_POOL 2>/dev/null 1>/dev/null; then
 		log_error "$LOGFILE" "destination pool \"$I_DEST_POOL\" does not exist."
 		return 1
 	fi
@@ -130,7 +174,7 @@ ensureRemoteFSExists() {
 	fs="$1"
 
 	# Check if the fs already exists
-	if $SSH_LOGIN $BIN_ZFS list $fs 2>/dev/null 1>/dev/null; then
+	if $RUN_FCT_SSH $BIN_ZFS list $fs 2>/dev/null 1>/dev/null; then
 		return 0
 	fi
 
@@ -138,17 +182,17 @@ ensureRemoteFSExists() {
 
 	# Ensures that the destination pool is NOT readonly
 	# So that the filesystems can be created if required
-	if ! $SSH_LOGIN $BIN_ZFS set readonly=off $I_DEST_POOL >/dev/null; then
+	if ! $RUN_FCT_SSH $BIN_ZFS set readonly=off $I_DEST_POOL >/dev/null; then
 		log_error "$LOGFILE" "Destination pool could not be set to READONLY=off. Filesystem creation not possible "
 		return 1
 	fi
 
 	# create the filesystem (-p option to create the parent fs if it does not exist)
-	if ! $SSH_LOGIN $BIN_ZFS create -p -o compression="$COMPRESSION" "$fs"; then
+	if ! $RUN_FCT_SSH $BIN_ZFS create -p -o compression="$COMPRESSION" "$fs"; then
 		log_error "$LOGFILE" "The filesystem could NOT be created"
 
 		# Set the destination pool to readonly
-		if ! $SSH_LOGIN $BIN_ZFS set readonly=on $I_DEST_POOL >/dev/null; then
+		if ! $RUN_FCT_SSH $BIN_ZFS set readonly=on $I_DEST_POOL >/dev/null; then
 			log_error "$LOGFILE" "The destination pool could not be set to \"readonly=on\""
 		fi
 
@@ -157,7 +201,7 @@ ensureRemoteFSExists() {
 		log_info "$LOGFILE" "Filesystem created successfully"
 
 		# Set the destination pool to readonly
-		if ! $SSH_LOGIN $BIN_ZFS set readonly=on $I_DEST_POOL >/dev/null; then
+		if ! $RUN_FCT_SSH $BIN_ZFS set readonly=on $I_DEST_POOL >/dev/null; then
 			log_warning "$LOGFILE" "The destination pool could not be set to \"readonly=on\""
 		fi
 
@@ -186,7 +230,7 @@ backup() {
 	logPrefix="Backup of \"$src_fs\""
 	
 	# Get the newest snapshot on dest fs
-	newestSnapDestFs=`sortSnapshots "$dest_fs" "" | head -n 1`
+	newestSnapDestFs=`$RUN_FCT_SSH sortSnapshots "$dest_fs" "" | head -n 1`
 	# Get the oldest snapshot on the src fs
 	oldestSnapSrcFs=`sortSnapshots "$src_fs" "" | tail -n -1`
 	# Get the newest snapshot on the src fs
@@ -201,7 +245,7 @@ backup() {
 			return 0
 		else
 			log_info "$LOGFILE" "$logPrefix: Backup up oldest snapshot \"$oldestSnapSrcFs\""
-			if ! $BIN_ZFS send $oldestSnapSrcFs | $BIN_ZFS receive -F $dest_fs >/dev/null; then
+			if ! $BIN_ZFS send $oldestSnapSrcFs | $RUN_CMD_SSH $BIN_ZFS receive -F $dest_fs >/dev/null; then
 				log_error "$LOGFILE" "$logPrefix: Backup failed"
 				return 1
 			else
@@ -214,12 +258,12 @@ backup() {
 
 	# Get the newest snapshot on the dest fs
 	# (It may have changed, if a backup was performed above)
-	newestSnapDestFs=`sortSnapshots $dest_fs "" | head -n 1`
+	newestSnapDestFs=`$RUN_FCT_SSH sortSnapshots $dest_fs "" | head -n 1`
 
 	# find the newest snapshot on the dest fs that is still
 	# available in the src fs and then perform an incremental 
 	# backup starting from the latter snapshot
-	for snapDestFs in `sortSnapshots "$dest_fs" ""`; do
+	for snapDestFs in `$RUN_FCT_SSH sortSnapshots "$dest_fs" ""`; do
 
 		# Compute the src fs snapshot name corresponding to the current dest fs snapshot
 		removeDestPoolInName="s!$I_DEST_POOL/!!g"
@@ -235,24 +279,24 @@ backup() {
 
 			# Compute the required rollback duration
 			snapSrcFsTimestamp1970=`getSnapTimestamp1970 "$snapSrcFs"`
-			newestSnapDestFsCreation1970=`getSnapTimestamp1970 "$newestSnapDestFs"`		
+			newestSnapDestFsCreation1970=`$RUN_FCT_SSH getSnapTimestamp1970 "$newestSnapDestFs"`		
 			snapsAgeDiff=$(($newestSnapDestFsCreation1970-$snapSrcFsTimestamp1970))
 			if [ $snapsAgeDiff -gt $I_MAX_ROLLBACK_S ]; then
-				log_warning "$LOGFILE" "$logPrefix: A rollback of $(($snapsAgeDiff/$S_IN_DAY)) days would be required to perform the incremental backup !"
-				log_warning "$LOGFILE" "$logPrefix: Current maximum allowed rollback value equals \"$(($I_MAX_ROLLBACK_S/$S_IN_DAY)\" days."
+				log_warning "$LOGFILE" "$logPrefix: A rollback of \"$(($snapsAgeDiff/$S_IN_DAY))\" days would be required to perform the incremental backup !"
+				log_warning "$LOGFILE" "$logPrefix: Current maximum allowed rollback value equals \"$(($I_MAX_ROLLBACK_S/$S_IN_DAY))\" days."
 				log_warning "$LOGFILE" "$logPrefix: Please increase the maximum allowed rollback duration to make the backup possible"
 				log_warning "$LOGFILE" "$logPrefix: Skipping backup of this filesystem"
 				return 1
 			fi
 
 			log_info "$LOGFILE" "$logPrefix: Rolling back to last snapshot available on both source & destination fs: \"$snapDestFs\"..."
-			if ! $BIN_ZFS rollback -r $snapDestFs >/dev/null; then
+			if ! $RUN_FCT_SSH $BIN_ZFS rollback -r $snapDestFs >/dev/null; then
 				log_error "$LOGFILE" "$logPrefix: Rollback failed"
 				return 1
 			fi
 
 			log_info "$LOGFILE" "$logPrefix: Backing up incrementally from snapshot \"$snapSrcFs\" to \"$newestSnapSrcFs\" ..."
-			if ! $BIN_ZFS send -I "$snapSrcFs" "$newestSnapSrcFs" | $BIN_ZFS receive "$dest_fs" >/dev/null; then
+			if ! $BIN_ZFS send -I "$snapSrcFs" "$newestSnapSrcFs" | $RUN_CMD_SSH $BIN_ZFS receive "$dest_fs" >/dev/null; then
 				log_error "$LOGFILE" "$logPrefix: Backup failed"
 				return 1
 			else
@@ -292,7 +336,7 @@ main() {
 				returnCode=1
 			else
 				# Perform the backup
-#				backup $currentSubSrcFs "$I_DEST_POOL/$currentSubSrcFs"
+				backup $currentSubSrcFs "$I_DEST_POOL/$currentSubSrcFs"
 				if [ "$?" -ne "0" ]; then
 					returnCode=1
 				fi
