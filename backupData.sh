@@ -23,6 +23,8 @@
 #	   		Note: These fs (as well as the sub-fs) shall have a default mountpoint
 # 	fsDest : 	zfs filesystem in which the data should be backed-up (destination)
 #			Note: This filesystem must already exist before to launch the backup.
+#			Note: This ZPOOL in which this filesystem is located should be different
+#			      from the ZPOOL(s) of the source filesystems
 #
 # Example: 
 #	"backupData.sh tank/nas_scripts tank_backup" will create a backup of the ZFS fs 
@@ -98,7 +100,7 @@ run_fct_ssh() {
 # Params: all parameters of the shell script
 ##################################
 parseInputParams() {
-	local opt current_fs regex_rollback host
+	local opt current_fs current_src_pool dest_pool regex_rollback host
 
 	# parse the optional parameters
 	# (there should be none)
@@ -176,6 +178,17 @@ parseInputParams() {
 		log_error "$LOGFILE" "destination filesystem \"$I_DEST_FS\" does not exist."
 		return 1
 	fi
+	
+	# ensure that the ZPOOL of the destination filesystem is different from the
+	# ZPOOL(s) of the source filesystems
+	dest_pool=`echo "$I_DEST_FS" | cut -f1 -d/`
+	for current_fs in $I_SRC_FSS ; do
+		current_src_pool=`echo "$current_fs" | cut -f1 -d/`
+		if [ "$dest_pool" = "$current_src_pool" ]; then
+			log_error "$LOGFILE" "The source filesystem \"$current_fs\" is in the same pool than the destination filesystem \"$I_DEST_FS\""
+			return 1
+		fi
+	done
 	
 	return 0
 }
