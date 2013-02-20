@@ -16,6 +16,7 @@ All scripts that I provide to you rely on a shell script library of common funct
 - To log what the script is doing in a file (resp. extract data from the log)
 - To report issues per mail
 - To prevent a script from be executed twice concurrently and prevent a script to start if the NAS if about to sleep
+
 The scripts rely on a common configuration file (config.sh) in which the email addresses, path to log files and tmp files... can be set
 
 
