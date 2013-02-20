@@ -20,11 +20,15 @@
 #			Default value: 10 days
 #	fsSource : 	zfs filesystems to be backed-up (source).
 #	   		Several file systems can be provided (They shall be separated by a comma ",")
-#	   		Note 1: These fs (as well as the sub-fs) shall have a default mountpoint
-#	   		Note 2: The filesystem provided as parameter shall not contain any space character
+#	   		Note: These fs (as well as the sub-fs) shall have a default mountpoint
 # 	poolDest : 	zfs pool in which the data should be backed-up (destination)
-#			Note: This pool must already exist before to launch the script 
-#			backup.
+#			Note: This pool must already exist before to launch the backup.
+#
+# Example: 
+#	"backupData.sh tank tank_backup" will create a backup of the ZFS fs "tank" 
+#	(and of all its sub-filesystems) in the ZFS fs "tank_backup".
+#	I.e. After the backup an fs "tank_backup/tank" will exist.
+#
 #############################################################################
 
 # Initialization of the script name and path constants
