@@ -185,19 +185,20 @@ parseInputParams() {
 ##################################
 ensureRemoteFSExists() {
 
-	local fs
+	local fs pool
 	fs="$1"
-
+	pool=`echo "$fs" | cut -f1 -d/`
+	
 	# Check if the fs already exists
 	if $RUN_CMD_SSH $BIN_ZFS list $fs 2>/dev/null 1>/dev/null; then
 		return 0
 	fi
-
+	
 	log_info "$LOGFILE" "Destination filesystem \"$fs\" DOES NOT exist yet. Creating it..."
 
 	# Ensures that the destination pool is NOT readonly
 	# So that the filesystems can be created if required
-	if ! $RUN_CMD_SSH $BIN_ZFS set readonly=off $I_DEST_POOL >/dev/null; then
+	if ! $RUN_CMD_SSH $BIN_ZFS set readonly=off $pool >/dev/null; then
 		log_error "$LOGFILE" "Destination pool could not be set to READONLY=off. Filesystem creation not possible "
 		return 1
 	fi
@@ -207,7 +208,7 @@ ensureRemoteFSExists() {
 		log_error "$LOGFILE" "The filesystem could NOT be created"
 
 		# Set the destination pool to readonly
-		if ! $RUN_CMD_SSH $BIN_ZFS set readonly=on $I_DEST_POOL >/dev/null; then
+		if ! $RUN_CMD_SSH $BIN_ZFS set readonly=on $pool >/dev/null; then
 			log_error "$LOGFILE" "The destination pool could not be set to \"readonly=on\""
 		fi
 
@@ -216,7 +217,7 @@ ensureRemoteFSExists() {
 		log_info "$LOGFILE" "Filesystem created successfully"
 
 		# Set the destination pool to readonly
-		if ! $RUN_CMD_SSH $BIN_ZFS set readonly=on $I_DEST_POOL >/dev/null; then
+		if ! $RUN_CMD_SSH $BIN_ZFS set readonly=on $pool >/dev/null; then
 			log_warning "$LOGFILE" "The destination pool could not be set to \"readonly=on\""
 		fi
 
