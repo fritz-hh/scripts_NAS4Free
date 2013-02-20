@@ -165,7 +165,7 @@ parseInputParams() {
 	I_SRC_FSS=`echo "$1" | sed 's/,/ /g'` # replace commas by space as for loops on new line and space
 	for current_fs in $I_SRC_FSS ; do	
 		if ! $BIN_ZFS list $current_fs 2>/dev/null 1>/dev/null; then
-			log_error "$LOGFILE" "source filesystem \"$current_fs\" does not exist. Skipping it"
+			log_error "$LOGFILE" "source filesystem \"$current_fs\" does not exist."
 			return 1
 		fi
 	done	
