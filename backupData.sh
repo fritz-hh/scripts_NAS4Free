@@ -94,7 +94,7 @@ run_fct_ssh() {
 # Params: all parameters of the shell script
 ##################################
 parseInputParams() {
-	local opt current_fs regex_rollback
+	local opt current_fs regex_rollback host
 
 	# parse the optional parameters
 	# (there should be none)
@@ -104,12 +104,25 @@ parseInputParams() {
 				if [ "$?" -eq "0" ] ; then
 					I_REMOTE_ACTIVE="1"
 					I_REMOTE_LOGIN="$OPTARG"
+					
+					# set variables to ensure remote execution of
+					# some parts of the script
 					RUN_FCT_SSH="run_fct_ssh"
 					RUN_CMD_SSH="$BIN_SSH -oBatchMode=$SSH_BATCHMODE $I_REMOTE_LOGIN"
-					# test if remote host is accessible
-					# TODO: CHECK PING HERE
+					
+					# ping to test if remote host is accessible
+					host=`echo "$I_REMOTE_LOGIN" | cut -f2 -d@`
+					if $BIN_PING -c 1 -t 1 $host > /dev/null ; then
+						log_info "$LOGFILE" "Ping remote host \"$host\" successful"
+					else
+						log_error "$LOGFILE" "Ping remote host \"$host\" failed"
+						return 1
+					fi
+					
 					# testing ssh connection
-					if ! $RUN_FCT_SSH exit 0; then
+					if $RUN_CMD_SSH exit 0; then
+						log_info "$LOGFILE" "SSH connection test successful."
+					else					
 						log_error "$LOGFILE" "SSH connection failed. Please check username / hostname and ensure availability of public key authentication"
 						return 1
 					fi
@@ -155,7 +168,7 @@ parseInputParams() {
 	
 	# Check if the destination pool exists
 	I_DEST_POOL="$2"
-	if ! $RUN_FCT_SSH $BIN_ZPOOL list $I_DEST_POOL 2>/dev/null 1>/dev/null; then
+	if ! $RUN_CMD_SSH $BIN_ZPOOL list $I_DEST_POOL 2>/dev/null 1>/dev/null; then
 		log_error "$LOGFILE" "destination pool \"$I_DEST_POOL\" does not exist."
 		return 1
 	fi
@@ -176,7 +189,7 @@ ensureRemoteFSExists() {
 	fs="$1"
 
 	# Check if the fs already exists
-	if $RUN_FCT_SSH $BIN_ZFS list $fs 2>/dev/null 1>/dev/null; then
+	if $RUN_CMD_SSH $BIN_ZFS list $fs 2>/dev/null 1>/dev/null; then
 		return 0
 	fi
 
@@ -184,17 +197,17 @@ ensureRemoteFSExists() {
 
 	# Ensures that the destination pool is NOT readonly
 	# So that the filesystems can be created if required
-	if ! $RUN_FCT_SSH $BIN_ZFS set readonly=off $I_DEST_POOL >/dev/null; then
+	if ! $RUN_CMD_SSH $BIN_ZFS set readonly=off $I_DEST_POOL >/dev/null; then
 		log_error "$LOGFILE" "Destination pool could not be set to READONLY=off. Filesystem creation not possible "
 		return 1
 	fi
 
 	# create the filesystem (-p option to create the parent fs if it does not exist)
-	if ! $RUN_FCT_SSH $BIN_ZFS create -p -o compression="$COMPRESSION" "$fs"; then
+	if ! $RUN_CMD_SSH $BIN_ZFS create -p -o compression="$COMPRESSION" "$fs"; then
 		log_error "$LOGFILE" "The filesystem could NOT be created"
 
 		# Set the destination pool to readonly
-		if ! $RUN_FCT_SSH $BIN_ZFS set readonly=on $I_DEST_POOL >/dev/null; then
+		if ! $RUN_CMD_SSH $BIN_ZFS set readonly=on $I_DEST_POOL >/dev/null; then
 			log_error "$LOGFILE" "The destination pool could not be set to \"readonly=on\""
 		fi
 
@@ -203,7 +216,7 @@ ensureRemoteFSExists() {
 		log_info "$LOGFILE" "Filesystem created successfully"
 
 		# Set the destination pool to readonly
-		if ! $RUN_FCT_SSH $BIN_ZFS set readonly=on $I_DEST_POOL >/dev/null; then
+		if ! $RUN_CMD_SSH $BIN_ZFS set readonly=on $I_DEST_POOL >/dev/null; then
 			log_warning "$LOGFILE" "The destination pool could not be set to \"readonly=on\""
 		fi
 
@@ -292,7 +305,7 @@ backup() {
 			fi
 
 			log_info "$LOGFILE" "$logPrefix: Rolling back to last snapshot available on both source & destination fs: \"$snapDestFs\"..."
-			if ! $RUN_FCT_SSH $BIN_ZFS rollback -r $snapDestFs >/dev/null; then
+			if ! $RUN_CMD_SSH $BIN_ZFS rollback -r $snapDestFs >/dev/null; then
 				log_error "$LOGFILE" "$logPrefix: Rollback failed"
 				return 1
 			fi
