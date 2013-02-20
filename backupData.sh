@@ -1,17 +1,17 @@
 #!/bin/sh
 #############################################################################
-# Script aimed at performing a backup of a filesystem (fs) and of all 
-# sub-filesystems recursively to a filesystem located on another zpool
-# The other pool can be either local or on a remote host 
+# Script aimed at performing a backup of a ZFS filesystem (fs) and of all 
+# sub-filesystems recursively to a filesystem located on another ZFS filesystem
+# The other filesystem can be either on the local host or on a remote host 
 #
 # Author: fritz from NAS4Free forum
 #
-# Usage: backupData.sh [-r user@host] [-b maxRollbck] fsSource poolDest
+# Usage: backupData.sh [-r user@host] [-b maxRollbck] fsSource fsDest
 #
-#	-r user@host:	Specify a remote host on which the destination pool is located
+#	-r user@host:	Specify a remote host on which the destination filesystem is located
 #			Prerequisite: An ssh server shall be running on the host and
 #			public key authentication shall be available
-#			(By default the destination pool in on the local host)
+#			(By default the destination filesystem is on the local host)
 #			host: ip address or name of the host computer
 #			user: name of the user on the host computer
 #	-b maxRollbck :	Biggest allowed rollback (in days) on the destination fs.
@@ -21,13 +21,13 @@
 #	fsSource : 	zfs filesystems to be backed-up (source).
 #	   		Several file systems can be provided (They shall be separated by a comma ",")
 #	   		Note: These fs (as well as the sub-fs) shall have a default mountpoint
-# 	poolDest : 	zfs pool in which the data should be backed-up (destination)
-#			Note: This pool must already exist before to launch the backup.
+# 	fsDest : 	zfs filesystem in which the data should be backed-up (destination)
+#			Note: This filesystem must already exist before to launch the backup.
 #
 # Example: 
-#	"backupData.sh tank tank_backup" will create a backup of the ZFS fs "tank" 
-#	(and of all its sub-filesystems) in the ZFS fs "tank_backup".
-#	I.e. After the backup an fs "tank_backup/tank" will exist.
+#	"backupData.sh tank/nas_scripts tank_backup" will create a backup of the ZFS fs 
+#	"tank/nas_scripts" (and of all its sub-filesystems) in the ZFS fs "tank_backup".
+#	I.e. After the backup (at least) an fs "tank_backup/tank/nas_scripts" will exist.
 #
 #############################################################################
 
@@ -44,7 +44,7 @@ readonly SCRIPT_PATH=`dirname $0`		# The path of the file
 
 # Initialization of constants 
 readonly START_TIMESTAMP=`$BIN_DATE +"%s"` 
-readonly COMPRESSION="gzip"			# Type of compression to be used for the fs of the backup pool
+readonly COMPRESSION="gzip"		# Type of compression to be used for the destination fs
 readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
 readonly TMP_FILE="$CFG_TMP_FOLDER/run_fct_ssh.sh"
 readonly S_IN_DAY=86400			# Number of seconds in a day
@@ -52,7 +52,7 @@ readonly SSH_BATCHMODE="no"		# Only public key authentication is allowed in batc
 					# (should only change to "no" for test purposes)
 
 # Initialization of inputs corresponding to optional args of the script
-I_REMOTE_ACTIVE="0"			# By default the destination pool is local
+I_REMOTE_ACTIVE="0"			# By default the destination filesystem is local
 RUN_FCT_SSH=""				# This should be put in front of FUNCTIONS that may have to be executed remotely
 					# By default (i.e. local backup) "RUN_FCT_SSH" does not have any effect
 RUN_CMD_SSH=""				# This should be put in front of COMMANDS that may have to be executed remotely
@@ -170,10 +170,10 @@ parseInputParams() {
 		fi
 	done	
 	
-	# Check if the destination pool exists
-	I_DEST_POOL="$2"
-	if ! $RUN_CMD_SSH $BIN_ZPOOL list $I_DEST_POOL 2>/dev/null 1>/dev/null; then
-		log_error "$LOGFILE" "destination pool \"$I_DEST_POOL\" does not exist."
+	# Check if the destination filesystem exists
+	I_DEST_FS="$2"
+	if ! $RUN_CMD_SSH $BIN_ZFS list $I_DEST_FS 2>/dev/null 1>/dev/null; then
+		log_error "$LOGFILE" "destination filesystem \"$I_DEST_FS\" does not exist."
 		return 1
 	fi
 	
@@ -241,7 +241,7 @@ ensureRemoteFSExists() {
 ##################################
 backup() {
 	local src_fs dest_fs logPrefix newestSnapDestFs oldestSnapSrcFs newestSnapSrcFs snapDestFs \
-		removeDestPoolInName snapSrcFs snapSrcFsTimestamp1970 newestSnapDestFsCreation1970 \
+		removeDestFSInName snapSrcFs snapSrcFsTimestamp1970 newestSnapDestFsCreation1970 \
 		snapsAgeDiff
 
 	src_fs="$1"
@@ -286,8 +286,8 @@ backup() {
 	for snapDestFs in `$RUN_FCT_SSH sortSnapshots "$dest_fs" ""`; do
 
 		# Compute the src fs snapshot name corresponding to the current dest fs snapshot
-		removeDestPoolInName="s!$I_DEST_POOL/!!g"
-		snapSrcFs=`echo "$snapDestFs" | sed -e "$removeDestPoolInName"`
+		removeDestFSInName="s!$I_DEST_FS/!!g"
+		snapSrcFs=`echo "$snapDestFs" | sed -e "$removeDestFSInName"`
 
 		if [ $snapSrcFs = $newestSnapSrcFs ]; then
 			log_info "$LOGFILE" "$logPrefix: No newer snapshot exist in source filesystem. Nothing to backup"
@@ -352,11 +352,11 @@ main() {
 
 			# create the dest filesystems (recursively) 
 			# if they do not yet exist and exit if it fails
-			if ! ensureRemoteFSExists "$I_DEST_POOL/$currentSubSrcFs"; then
+			if ! ensureRemoteFSExists "$I_DEST_FS/$currentSubSrcFs"; then
 				returnCode=1
 			else
 				# Perform the backup
-				backup $currentSubSrcFs "$I_DEST_POOL/$currentSubSrcFs"
+				backup $currentSubSrcFs "$I_DEST_FS/$currentSubSrcFs"
 				if [ "$?" -ne "0" ]; then
 					returnCode=1
 				fi
