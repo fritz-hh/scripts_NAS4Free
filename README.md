@@ -23,8 +23,8 @@ The scripts rely on a common configuration file (config.sh) in which the email a
 DESCRIPTION
 ===========
 
-In my opinion, the scripts are well documented enough to be understood by anybody having shell script knowledge
-The script usage (e.g. arguments that can be passed) as well as a detailed description of the functions is provided in the header of each script
+In my opinion, the scripts are well documented enough to be understood by anybody having shell script knowledge.
+The script usage (e.g. arguments that can be passed) as well as a detailed description of the functions is provided in the header of each script.
 I tried to develop the scripts to be as versatile as possible, so that most of the scripts accept various optional arguments (For sure they will nevertheless fit everyones needs...)
 
 scrubPools.sh:
@@ -51,7 +51,7 @@ checkTemps.sh: (Thanks to miGi from NAS4Free forum)
 checkSpace.sh:
 --------------
 
-- Check there is enough space in the respective file systems (Threshold is configurable)
+- Check if there is enough space in the respective file systems (Threshold is configurable)
 - Report the results in a log file.
 - Send a mail if the space threshold is reached
 - Typical scheduling: every day for the data pool
@@ -83,9 +83,9 @@ manageAcpi.sh:
 - Controls shutdown (S5) or sleep (S3) of the NAS based on various parameters
     - If no computer that may access the NAS is online during a certain time (based on the IP address)
     - If the curfew is reached!
-- Prevent a shutdown / sleep during a configurable timeslot
-- Prevent a shutdown / sleep to be issued when one of the above administrative tasks are running
-- Report the results in a log file.
+- Prevents a shutdown / sleep during a configurable timeslot
+- Prevents a shutdown / sleep to be issued when one of the above administrative tasks is running
+- Reports the results in a log file.
 - Script to be started at NAS startup. Scripts runs as an endless loop
 
 Note 1: Depending on your motherboard and on your BIOS settings, the script may or may not work on your NAS.
@@ -116,7 +116,7 @@ INSTALL
 =======
 
 - Download software here: https://github.com/fritz-hh/scripts_NAS4Free/tags
-- Copy the files in a folder of your NAS(all scripts must be copied into the same folder)
+- Copy the files in a folder of your NAS
 - Create a tmp folder
 - Create a log folder
 - Update the config.sh file according to your needs (paths, email addresses...)
