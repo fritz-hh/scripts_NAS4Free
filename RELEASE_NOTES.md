@@ -25,6 +25,10 @@ Fixes
 - backupData.sh: fixed major bug in test if the destination fs already exists (bug introduced in v1.0-rc1. It did not exist before)
 - .gitattributes: config updated to ensure that files checked out follow unix new line convention (LF)
 
+Tested with
+-----------
+
+- NAS4Free 9.1.0.1 - Sandstorm (revision 531)
 
 v1.0-rc1 (2013-02-17): (1st version managed on github)
 ========
@@ -52,3 +56,7 @@ Fixes
 - commonLogFcts.sh: When logging, if no log file path is provided, echo text on std out instead
 - commonLogFcts.sh: When returning a log file extract: Handle case of empty file 
 
+Tested with
+-----------
+
+- NAS4Free 9.1.0.1 - Sandstorm (revision 531)
