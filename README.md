@@ -5,25 +5,26 @@ Time to give something back to the community!!!
 
 During the last 2 years I developped various scripts to complement missing functions of Freenas7/Nas4free (The scripts can probably be used on other FreeBSD distributions like FreeNAS8, but it was not tested)
 
-These scripts will probably be usefull for many users having the same usage profile as myself:
+These scripts will probably be usefull for many users having a similar usage profile as myself:
 - NAS access from several computers in a home network
-- NAS containing 2 ZFS pools (one for data shared with CIFS and one containing the backup of the data)
 - NAS should only consume power when it is required (electricity is expensive here) (makes use of acpiconf)
 - Prevent data loss (through regular monitoring)
 - Be able to go back to a previous version of the data if needed
+- NAS containing 2 ZFS pools (one for data shared with CIFS and one containing the backup of the data)
 
 All scripts that I provide to you rely on a shell script library of common functions:
 - To log what the script is doing in a file (resp. extract data from the log)
 - To report issues per mail
 - To prevent a script from be executed twice concurrently and prevent a script to start if the NAS if about to sleep
+
 The scripts rely on a common configuration file (config.sh) in which the email addresses, path to log files and tmp files... can be set
 
 
 DESCRIPTION
 ===========
 
-In my opinion, the scripts are well documented enough to be understood by anybody having shell script knowledge
-The script usage (e.g. arguments that can be passed) as well as a detailed description of the functions is provided in the header of each script
+In my opinion, the scripts are well documented enough to be understood by anybody having shell script knowledge.
+The script usage (e.g. arguments that can be passed) as well as a detailed description of the functions is provided in the header of each script.
 I tried to develop the scripts to be as versatile as possible, so that most of the scripts accept various optional arguments (For sure they will nevertheless fit everyones needs...)
 
 scrubPools.sh:
@@ -50,7 +51,7 @@ checkTemps.sh: (Thanks to miGi from NAS4Free forum)
 checkSpace.sh:
 --------------
 
-- Check there is enough space in the respective file systems (Threshold is configurable)
+- Check if there is enough space in the respective file systems (Threshold is configurable)
 - Report the results in a log file.
 - Send a mail if the space threshold is reached
 - Typical scheduling: every day for the data pool
@@ -82,9 +83,9 @@ manageAcpi.sh:
 - Controls shutdown (S5) or sleep (S3) of the NAS based on various parameters
     - If no computer that may access the NAS is online during a certain time (based on the IP address)
     - If the curfew is reached!
-- Prevent a shutdown / sleep during a configurable timeslot
-- Prevent a shutdown / sleep to be issued when one of the above administrative tasks are running
-- Report the results in a log file.
+- Prevents a shutdown / sleep during a configurable timeslot
+- Prevents a shutdown / sleep to be issued when one of the above administrative tasks is running
+- Reports the results in a log file.
 - Script to be started at NAS startup. Scripts runs as an endless loop
 
 Note 1: Depending on your motherboard and on your BIOS settings, the script may or may not work on your NAS.
@@ -115,7 +116,7 @@ INSTALL
 =======
 
 - Download software here: https://github.com/fritz-hh/scripts_NAS4Free/tags
-- Copy the files in a folder of your NAS(all scripts must be copied into the same folder)
+- Copy the files in a folder of your NAS
 - Create a tmp folder
 - Create a log folder
 - Update the config.sh file according to your needs (paths, email addresses...)

@@ -21,16 +21,18 @@
 #	filesystem : zfs filesystem for which a snapshot shall be created
 #############################################################################
 
-# Initialization of the script name and path constants
+# Initialization of the script name
 readonly SCRIPT_NAME=`basename $0` 		# The name of this file
-readonly SCRIPT_PATH=`dirname $0`		# The path of the file
 
-# import the other required scripts
-. "$SCRIPT_PATH/config.sh"
-. "$SCRIPT_PATH/common/commonSnapFcts.sh"
-. "$SCRIPT_PATH/common/commonLogFcts.sh"
-. "$SCRIPT_PATH/common/commonMailFcts.sh"
-. "$SCRIPT_PATH/common/commonLockFcts.sh"
+# set script path as working directory
+cd "`dirname $0`"
+
+# Import required scripts
+. "config.sh"
+. "common/commonSnapFcts.sh"
+. "common/commonLogFcts.sh"
+. "common/commonMailFcts.sh"
+. "common/commonLockFcts.sh"
 
 # Record the timestamp corresponding to the start of the script execution
 readonly START_TIMESTAMP=`$BIN_DATE +"%s"`
@@ -64,7 +66,9 @@ readonly MONTHLY_TAG="type04"	# Services|CIFS/SMB|Shares
 # Params: all parameters of the shell script
 ##################################
 parseInputParams() {
-	local keep_all_snap opt
+	local regex_int keep_all_snap opt
+	
+	regex_int='^[+-]{0,1}[0-9]+$'	# regex for integer (positive or negative)
 	
 	keep_all_snap="0"
 
@@ -91,28 +95,28 @@ parseInputParams() {
 	while getopts ":nh:d:w:m:k" opt; do
 		case $opt in
 			n) 	I_GENERATE_SNAPSHOT=0 ;;
-			h) 	echo "$OPTARG" | grep '^[1-9-][0-9]*$' >/dev/null	# Check if positive or negative integer
+			h) 	echo "$OPTARG" | grep -E "$regex_int" >/dev/null	# Check if positive or negative integer
 				if [ "$?" -eq "0" ] ; then 
 					I_MAX_NB_HOURLY="$OPTARG" 
 				else
 					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -h. Should be an integer."
 					return 1
 				fi ;;
-			d) 	echo "$OPTARG" | grep '^[1-9-][0-9]*$' >/dev/null	# Check if positive or negative integer
+			d) 	echo "$OPTARG" | grep -E "$regex_int" >/dev/null	# Check if positive or negative integer
 				if [ "$?" -eq "0" ] ; then 
 					I_MAX_NB_DAILY="$OPTARG" 
 				else
 					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -h. Should be an integer."
 					return 1
 				fi ;;
-			w) 	echo "$OPTARG" | grep '^[1-9-][0-9]*$' >/dev/null	# Check if positive or negative integer
+			w) 	echo "$OPTARG" | grep -E "$regex_int" >/dev/null	# Check if positive or negative integer
 				if [ "$?" -eq "0" ] ; then 
 					I_MAX_NB_WEEKLY="$OPTARG" 
 				else
 					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -h. Should be an integer."
 					return 1
 				fi ;;
-			m) 	echo "$OPTARG" | grep '^[1-9-][0-9]*$' >/dev/null	# Check if positive or negative integer
+			m) 	echo "$OPTARG" | grep -E "$regex_int" >/dev/null	# Check if positive or negative integer
 				if [ "$?" -eq "0" ] ; then 
 					I_MAX_NB_MONTHLY="$OPTARG" 
 				else

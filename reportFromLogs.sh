@@ -6,12 +6,15 @@
 #
 #############################################################################
 
-readonly SCRIPT_NAME=`basename $0`               # The name of this file
-readonly SCRIPT_PATH=`dirname $0`                # The path to the current script
+# Initialization of the script name
+readonly SCRIPT_NAME=`basename $0` 		# The name of this file
+
+# set script path as working directory
+cd "`dirname $0`"
 
 # Import required scripts
-. "$SCRIPT_PATH/config.sh"
-. "$SCRIPT_PATH/common/commonLogFcts.sh"
+. "config.sh"
+. "common/commonLogFcts.sh"
 
 # Initialization of the constants
 readonly DURATION=604800			# The entries from the last week (duration in sec)
@@ -52,5 +55,3 @@ for f in $LOG_FILES; do
 		fi
 	fi
 done
-echo
-echo "\"---\" means: no new log message available"

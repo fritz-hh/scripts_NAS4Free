@@ -8,12 +8,10 @@
 
 
 
-# Version of the package
+
 ################################################
-
-VERSION="v1.0-rc1"
-
-
+# PARAMETER THAT CAN BE USED BY THE USER
+################################################
 
 # Mail configuration
 ################################################
@@ -21,23 +19,32 @@ VERSION="v1.0-rc1"
 CFG_MAIL_FROM="nas@isp.com"
 CFG_MAIL_TO="admin@isp.com"
 
-BIN_MSMTP="/usr/local/bin/msmtp"
-CFG_MSMTP_CONF="/var/etc/msmtp.conf"
-
-
-
-# Paths to log files, temp files...
+# Paths to log folder, temp folder...
 ################################################
 
-CFG_TMP_FOLDER="tmp"							# Folder containing any temporary file
-CFG_LOG_FOLDER="log"							# Folder containing all log files
+CFG_TMP_FOLDER="tmp"				# Folder containing any temporary file
+CFG_LOG_FOLDER="log"				# Folder containing all log files
+
+
+
+
+################################################
+# DO NOT CHANGE THE PARAMETERS BELOW
+################################################
+
+# Version of the package
+################################################
+
+VERSION="v1.0-rc3"
+
+# Paths to specific temp files / folders ...
+################################################
+
 CFG_RUNNING_SCRIPTS_FOLDER="$CFG_TMP_FOLDER/running_scripts"		# Folder containing all lock files (e.g. files indicating that a script is running)
 CFG_FORBID_ANY_SCRIPT_START_FILE="$CFG_TMP_FOLDER/no_script_start.lock"	# File aimed at notifying that no script should be started
 
-
-
 # Path to used utilities
-# (should not be used by the user)
+# (should not be changed by the user)
 ################################################
 
 BIN_RM="/bin/rm"
@@ -47,6 +54,9 @@ BIN_TR="/usr/bin/tr"
 
 BIN_DATE="/bin/date"
 BIN_PRINTF="/usr/bin/printf"
+
+BIN_MSMTP="/usr/local/bin/msmtp"
+CFG_MSMTP_CONF="/var/etc/msmtp.conf"
 
 BIN_ZPOOL="/sbin/zpool"
 BIN_ZFS="/sbin/zfs"

@@ -22,7 +22,7 @@
 # Return : 0 if the script is allowed to start
 #          1 if this script id is already locked
 #          2 if no script is allowed to start
-#          3 if the user has insufficient right to write into the lock folder
+#          3 if it is not possible to create the lock folder
 ##################################
 script_start() {
 	local script_id
@@ -133,7 +133,7 @@ is_any_script_running() {
 # Return : The list of scripts
 ##################################
 get_list_of_running_scripts() {
-	$BIN_LS -A $CFG_RUNNING_SCRIPTS_FOLDER | $BIN_TR "\n" ";"_
+	$BIN_LS -A "$CFG_RUNNING_SCRIPTS_FOLDER" | $BIN_TR "\n" ";"
 }
 
 ##################################
@@ -150,7 +150,7 @@ prevent_scripts_to_start() {
 # unless it is already running 
 ##################################
 allow_scripts_to_start() {
-	$BIN_RM -f $CFG_FORBID_ANY_SCRIPT_START_FILE
+	$BIN_RM -f "$CFG_FORBID_ANY_SCRIPT_START_FILE"
 }
 
 ##################################
@@ -159,7 +159,7 @@ allow_scripts_to_start() {
 ##################################
 reset_locks() {
 	allow_scripts_to_start
-	$BIN_RM -f -r $CFG_RUNNING_SCRIPTS_FOLDER
+	$BIN_RM -f -r "$CFG_RUNNING_SCRIPTS_FOLDER"
 }
 
 ##################################
@@ -171,8 +171,11 @@ reset_locks() {
 ##################################
 create_lock_folder() {
 	# Create the folder if it did not yet exist
-	`$BIN_MKDIR -p -m go-w $CFG_RUNNING_SCRIPTS_FOLDER`
- 	return $?
+	if [ ! -d "$CFG_RUNNING_SCRIPTS_FOLDER" ]; then
+		$BIN_MKDIR -m go-w "$CFG_RUNNING_SCRIPTS_FOLDER"  2>/dev/null
+		return $?
+	fi
+	return 0
 }
 
 ##################################
@@ -207,11 +210,11 @@ run_main() {
 
 	err_in_main=0
 
-	script_start $lock_id
+	script_start "$lock_id"
 	ret_code="$?"
 	if [ "$ret_code" -eq "0" ]; then
 		! main && err_in_main=1
-		if ! script_end $lock_id; then
+		if ! script_end "$lock_id"; then
 			log_error "$log_file" "Could not delete lock file at end of execution"
 			return 2
 		fi
@@ -221,6 +224,9 @@ run_main() {
 	elif [ "$ret_code" -eq "2" ]; then
 		log_info "$log_file" "Could not start script (The system is probably about to shutdown)"
 		return 1
+	elif [ "$ret_code" -eq "3" ]; then
+		log_error "$log_file" "Lock folder \"$CFG_RUNNING_SCRIPTS_FOLDER\" could not be created (Check if the parent folder exists and check your rights)"
+		return 2	
 	else
 		log_error "$log_file" "Could not start script (Unexpected issue)"
 		return 2
