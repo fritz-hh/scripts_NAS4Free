@@ -20,16 +20,18 @@
 #			backup.
 #############################################################################
 
-# Initialization of the script name and path constants
+# Initialization of the script name
 readonly SCRIPT_NAME=`basename $0` 		# The name of this file
-readonly SCRIPT_PATH=`dirname $0`		# The path of the file
 
-# import the file containing the defition of the common functions
-. "$SCRIPT_PATH/config.sh"
-. "$SCRIPT_PATH/common/commonSnapFcts.sh"
-. "$SCRIPT_PATH/common/commonLogFcts.sh"
-. "$SCRIPT_PATH/common/commonMailFcts.sh"
-. "$SCRIPT_PATH/common/commonLockFcts.sh"
+# set script path as working directory
+cd "`dirname $0`"
+
+# Import required scripts
+. "config.sh"
+. "common/commonSnapFcts.sh"
+. "common/commonLogFcts.sh"
+. "common/commonMailFcts.sh"
+. "common/commonLockFcts.sh"
 
 # Initialization of constants 
 readonly START_TIMESTAMP=`$BIN_DATE +"%s"` 
@@ -38,7 +40,7 @@ readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
 readonly S_IN_DAY=86400		# Number of seconds in a day
 
 # Initialization of the inputs corresponding to args of the script
-I_MAX_ROLLBACK_S=$((10*$S_IN_DAY))	# Bedault value of max rollback
+I_MAX_ROLLBACK_S=$((10*$S_IN_DAY))	# Default value of max rollback
 
 # Set variables corresponding to the input parameters
 ARGUMENTS="$@"
@@ -101,7 +103,6 @@ parseInputParams() {
 	
 	return 0
 }
-
 
 ##################################
 # Ensures the availability of the filesystem given as parameter
@@ -224,7 +225,7 @@ backup() {
 			snapsAgeDiff=$(($newestSnapDestFsCreation1970-$snapSrcFsTimestamp1970))
 			if [ $snapsAgeDiff -gt $I_MAX_ROLLBACK_S ]; then
 				log_warning "$LOGFILE" "$logPrefix: A rollback of $(($snapsAgeDiff/$S_IN_DAY)) days would be required to perform the incremental backup !"
-				log_warning "$LOGFILE" "$logPrefix: Current maximum allowed rollback value equals \"$(($I_MAX_ROLLBACK_S/$S_IN_DAY)\" days."
+				log_warning "$LOGFILE" "$logPrefix: Current maximum allowed rollback value equals \"$(($I_MAX_ROLLBACK_S/$S_IN_DAY))\" days."
 				log_warning "$LOGFILE" "$logPrefix: Please increase the maximum allowed rollback duration to make the backup possible"
 				log_warning "$LOGFILE" "$logPrefix: Skipping backup of this filesystem"
 				return 1
@@ -262,17 +263,15 @@ main() {
 	if ! parseInputParams $ARGUMENTS; then
 		return 1
 	fi
-	
+
 	log_info "$LOGFILE" "Starting backup of \"$I_SRC_FSS\""
 
 	# Itterate through all source filesystems for which a backup should be done
 	for current_fs in $I_SRC_FSS ; do
-	
+
 		# for the current fs and all its sub-filesystems
 		for currentSubSrcFs in `$BIN_ZFS list -r -H -o name $current_fs`; do
 
-			echo $currentSubSrcFs
-		
 			# create the dest filesystems (recursively) 
 			# if they do not yet exist and exit if it fails
 			if ! ensureFsAvailability "$I_DEST_POOL/$currentSubSrcFs"; then

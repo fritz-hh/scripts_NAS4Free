@@ -13,15 +13,17 @@
 #			default: 80 (percent)
 #############################################################################
 
-# Initialization of the script name and path constants
+# Initialization of the script name
 readonly SCRIPT_NAME=`basename $0` 		# The name of this file
-readonly SCRIPT_PATH=`dirname $0`		# The path to the current script
+
+# set script path as working directory
+cd "`dirname $0`"
 
 # Import required scripts
-. "$SCRIPT_PATH/config.sh"
-. "$SCRIPT_PATH/common/commonLogFcts.sh"
-. "$SCRIPT_PATH/common/commonMailFcts.sh"
-. "$SCRIPT_PATH/common/commonLockFcts.sh"
+. "config.sh"
+. "common/commonLogFcts.sh"
+. "common/commonMailFcts.sh"
+. "common/commonLockFcts.sh"
 
 # Record the timestamp corresponding to the start of the script execution
 readonly START_TIMESTAMP=`$BIN_DATE +"%s"`
