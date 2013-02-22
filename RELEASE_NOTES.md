@@ -43,7 +43,7 @@ New features
 Changes
 -------
 
-- reportForLogs.sh / manageAcpi.sh: Format of the report / log slighty improved
+- reportFromLogs.sh / manageAcpi.sh: Format of the report / log slighty improved
 - backupData.sh: logged data slightly improved
 
 Fixes
@@ -63,12 +63,12 @@ v1.0-rc1 (2013-02-17): (1st version managed on github)
 New features
 ------------
 
-- reportFromLogs.sh: Generate a summary for each log file (number warnings/errors)
-- improved readability of data logged (display in columns table data)
+- reportFromLogs.sh: Generate a summary for each log file (number of arnings/errors)
 
 Changes
 -------
 
+- improved readability of data logged (display as tables whenever possible: e.g.: for checkSpace.sh)
 - checkSpace.sh: arguments "filesystem" and "threshold" are now optional (-f and -t)
 - backupData.sh: argument "max_rollback" is now optional (-b) 
 - commonLockFcts.sh (impact on all scripts): Do not warn if a script cannot be started because the NAS is about to shut down (normal information message instead)
