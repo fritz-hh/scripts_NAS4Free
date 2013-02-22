@@ -1,7 +1,7 @@
 #!/bin/sh
 #############################################################################
 # Script aimed at performing a backup of a ZFS filesystem (fs) and of all 
-# sub-filesystems recursively to a filesystem located on another ZFS filesystem
+# sub-filesystems recursively to another filesystem located on another ZPOOL
 # The other filesystem can be either on the local host or on a remote host 
 #
 # Author: fritz from NAS4Free forum
