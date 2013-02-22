@@ -22,8 +22,8 @@ CFG_MAIL_TO="admin@isp.com"
 # Paths to log folder, temp folder...
 ################################################
 
-CFG_TMP_FOLDER="tmp"				# Folder containing any temporary file
-CFG_LOG_FOLDER="log"				# Folder containing all log files
+CFG_TMP_FOLDER="tmp"				# Folder containing any temporary file (folder should exist)
+CFG_LOG_FOLDER="log"				# Folder containing all log files (folder should exist)
 
 
 
