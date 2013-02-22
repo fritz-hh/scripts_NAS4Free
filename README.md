@@ -115,16 +115,7 @@ reportFromLogs.sh:
 INSTALL
 =======
 
-- Download software here: https://github.com/fritz-hh/scripts_NAS4Free/tags
-- Copy the files in a folder of your NAS
-- Create a tmp folder
-- Create a log folder
-- Update the config.sh file according to your needs (paths, email addresses...)
-- Configure Cron to run the scripts periodically (https://github.com/fritz-hh/scripts_NAS4Free/wiki/Scheduling)
-
-Note 1: In case you use the embedded version, the folders mentionned above should be located on one of your data disks (you may create a dedicated ZFS filesystem for the scripts in your pool)
-
-Note 2: There is no dependency to utilities that are not already included in NAS4Free (9.1.0.1 - Sandstorm (revision 531))
+- See tutorial here: https://github.com/fritz-hh/scripts_NAS4Free/wiki/Install-%5BHOW-TO%5D
 
 DISCLAIMER
 ==========
