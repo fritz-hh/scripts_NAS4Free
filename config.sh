@@ -37,10 +37,10 @@ CFG_LOG_FOLDER="log"				# Folder containing all log files
 
 VERSION="v1.0-rc2"
 
-# Paths to temp files / folders ...
+# Paths to specific temp files / folders ...
 ################################################
 
-CFG_RUNNING_SCRIPTS_FOLDER="$CFG_TMP_FOLDER/running_scripts"  	# Folder containing all lock files (e.g. files indicating that a script is running)
+CFG_RUNNING_SCRIPTS_FOLDER="$CFG_TMP_FOLDER/running_scripts"		# Folder containing all lock files (e.g. files indicating that a script is running)
 CFG_FORBID_ANY_SCRIPT_START_FILE="$CFG_TMP_FOLDER/no_script_start.lock"	# File aimed at notifying that no script should be started
 
 # Path to used utilities
@@ -68,5 +68,3 @@ BIN_ACPICONF="/usr/sbin/acpiconf"
 BIN_PING="/sbin/ping"
 
 BIN_SMARTCTL="/usr/local/sbin/smartctl"
-
-
