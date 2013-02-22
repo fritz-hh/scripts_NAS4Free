@@ -70,3 +70,4 @@ BIN_PING="/sbin/ping"
 BIN_SMARTCTL="/usr/local/sbin/smartctl"
 
 BIN_SSH="/usr/bin/ssh"
+BIN_SOCKSTAT="/usr/bin/sockstat"

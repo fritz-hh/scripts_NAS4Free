@@ -1,33 +1,37 @@
 #!/bin/sh
 #############################################################################
 # Script aimed at setting the NAS in sleep state whenever possible
-# in order to save energy 
-# - The script enables to define a curfew timeslot 
-# - A timeslot where the NAS shall sleep if no other device
-#   is online
-# - A timeslot where the system shall never sleep 
+# in order to save energy.
+# - The script enables to define a curfew timeslot,
+# - A timeslot where the NAS shall sleep if no other device is online,
+# - A timeslot where the system shall never sleep. 
+# - And allows to force the NAS to stay awake if an incoming SSH connection exists
 #
 # The script shall be launched at system startup 
 #
-# Usage: manageAcpi.sh [-p duration] [-w duration] [-a beg,end] [-c beg,end,acpi] [-n beg,end,acpi,delay,ips] [-vm] 
+# Usage: manageAcpi.sh [-p duration] [-w duration] [-a beg,end] [-s delay] [-c beg,end,acpi] [-n ips,delay,acpi] [-vm] 
 #
-#	- p duration :		define the duration (in seconds) between each respective poll (by default: 120)
-#	- w duration :		define the duration (in seconds) for which the NAS should never sleep after 
-#				it wakes up (by default: 600) 
-#	- a beg,end :		define a timeslot in which the NAS shall never go sleeping (e.g. because admin
-#				tasks are scheduled during this slot
-#				beg: time of the beginning of the slot (format: hh:mm)
-#				end: time of the end of the slot (format: hh:mm)
-#	- c beg,end,acpi :	define a timeslot in which the NAS shall always go sleeping (curfew)
-#				beg: time of the beginning of the slot (format: hh:mm)
-#				end: time of the end of the slot (format: hh:mm)
-#				acpi: the ACPI state selected for the sleep (3 or 5) 
-#	- n beg,end,acpi,delay,ips : define a timeslot in which the NAS shall sleep if none of the other devices are online
-#				beg: time of the beginning of the slot (format: hh:mm)
-#				end: time of the end of the slot (format: hh:mm)
-#				acpi: the ACPI state selected for the sleep (3 or 5)
-#				delay: delay in seconds between last device going offline and start of sleep 
-#				ips: IP addresses of the devices to poll (at least one), separated by "+" (Note: IP shall be static)
+#	- p duration :		Define the duration (in seconds) between each respective poll (by default: 120)
+#	- w duration :		Define the duration (in seconds) for which the NAS should never sleep after 
+#				it wakes up (by default: 600)
+#	- a beg,end :		Define a timeslot in which the NAS shall never go sleeping (e.g. because admin
+#				tasks are scheduled during this slot) 
+#				(This option superseeds a sleep order originating from -c and -n)
+#				+ beg: time of the beginning of the slot (format: hh:mm)
+#				+ end: time of the end of the slot (format: hh:mm)
+#	- s delay :		Define that the NAS shall not never go sleep if an incoming SSH connection exists.
+#				This function may be required in case the NAS is used as a destination of a remote
+#				backup.
+#				(This option superseeds a sleep order originating from -c and -n)
+#				+ delay: delay in seconds between the end of the connection and start of sleep 
+#	- c beg,end,acpi :	Define a curfew timeslot in which the NAS shall go sleeping.
+#				+ beg: time of the beginning of the slot (format: hh:mm)
+#				+ end: time of the end of the slot (format: hh:mm)
+#				+ acpi: the ACPI state selected for the sleep (3 or 5) 
+#	- n ips,delay,acpi : 	Define that the NAS shall sleep if none of the other devices are online
+#				+ ips: IP addresses of the devices to poll (at least one), separated by "+" (Note: IP shall be static)
+#				+ delay: delay in seconds between last device going offline and start of sleep 
+#				+ acpi: the ACPI state selected for the sleep (3 or 5)
 #	- v:			Requests the log to be more verbose
 #				Note: This is likely to prevent the disks to spin down 
 #	- m:			Send mail on ACPI state change
@@ -71,17 +75,18 @@ I_CHECK_ALWAYS_ON="0"			# 1 if the check shall be performed, 0 otherwise
 I_BEG_ALWAYS_ON="00:00"			# time when the NAS shall never sleep (because of management tasks like backup may start)
 I_END_ALWAYS_ON="00:00"			# If end = beg => 24 hours
 
-I_CHECK_CURFEW_ACTIVE="0"			# 1 if the check shall be performed, 0 otherwise
-I_BEG_POLL_CURFEW="00:00"			# time when the script enters the sleep state (except if tasks like backup are running)
-I_END_POLL_CURFEW="00:00"			# If end = beg => 24 hours
+I_CHECK_SSH_ACTIVE="0"			# 1 if the check shall be performed, 0 otherwise
+I_DELAY_SSH="0"				# Delay in seconds between the moment where the SSH connection stops and the moment where the NAS may sleep
+
+I_CHECK_CURFEW_ACTIVE="0"		# 1 if the check shall be performed, 0 otherwise
+I_BEG_POLL_CURFEW="00:00"		# time when the script enters the sleep state (except if tasks like backup are running)
+I_END_POLL_CURFEW="00:00"		# If end = beg => 24 hours
 I_ACPI_STATE_CURFEW="0"			# ACPI state 
 
 I_CHECK_NOONLINE_ACTIVE="0"		# 1 if the check shall be performed, 0 otherwise
-I_BEG_POLL_NOONLINE="0:00"		# time when the script starts to check wether there is no other device is online
-I_END_POLL_NOONLINE="00:00"		# If end = beg => 24 hours 
-I_ACPI_STATE_NOONLINE="0"			# ACPI state if no other device is online 
-I_DELAY_NOONLINE="0"			# Delay in seconds between the moment where no devices are online anymore and the moment where the NAS shall sleep
 I_IP_ADDRS="" 				# IP addresses of the devices to be polled, separated by a space character)
+I_DELAY_NOONLINE="0"			# Delay in seconds between the moment where no devices are online anymore and the moment where the NAS shall sleep
+I_ACPI_STATE_NOONLINE="0"		# ACPI state if no other device is online 
 
 # Initialization the global variables
 awake="0"				# 1=NAS is awake, 0=NAS is about to sleep (resp. just woke up)
@@ -105,11 +110,10 @@ parseInputParams() {
 
 	regex_a="^$regex_time[,]$regex_time$"
 	regex_c="^($regex_time[,]){2,2}[35]$"
-	regex_n="^($regex_time[,]){2,2}[35][,]$regex_dur[,]$regex_ip([+]$regex_ip){0,}$"
-
+	regex_n="^$regex_ip([+]$regex_ip){0,}[,]$regex_dur[,][35]$"
 
 	# parse the parameters
-	while getopts ":p:w:a:c:n:vm" opt; do
+	while getopts ":p:w:a:s:c:n:vm" opt; do
 		
 		case $opt in
 			p)	echo "$OPTARG" | grep -E "^$regex_dur$" >/dev/null 
@@ -135,6 +139,14 @@ parseInputParams() {
 					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -a. Should be \"hh:mm,hh:mm\""
 					return 1
 				fi ;;
+			s)	echo "$OPTARG" | grep -E "$regex_dur" >/dev/null
+				if [ "$?" -eq "0" ] ; then
+					I_CHECK_SSH_ACTIVE="1"			
+					I_DELAY_SSH="$OPTARG"
+				else
+					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -s. Should be a positive integer"
+					return 1
+				fi ;;
 			c)	echo "$OPTARG" | grep -E "$regex_c" >/dev/null
 				if [ "$?" -eq "0" ] ; then
 					I_CHECK_CURFEW_ACTIVE="1"	
@@ -147,14 +159,12 @@ parseInputParams() {
 				fi ;;
 			n)	echo "$OPTARG" | grep -E "$regex_n" >/dev/null
 				if [ "$?" -eq "0" ] ; then
-					I_CHECK_NOONLINE_ACTIVE="1"	
-					I_BEG_POLL_NOONLINE=`echo "$OPTARG" | cut -f1 -d,`			
-					I_END_POLL_NOONLINE=`echo "$OPTARG" | cut -f2 -d,`			
-					I_ACPI_STATE_NOONLINE=`echo "$OPTARG" | cut -f3 -d,`			
-					I_DELAY_NOONLINE=`echo "$OPTARG" | cut -f4 -d,`			
-					I_IP_ADDRS=`echo "$OPTARG" | cut -f5 -d, | sed 's/+/ /g'`
+					I_CHECK_NOONLINE_ACTIVE="1"
+					I_IP_ADDRS=`echo "$OPTARG" | cut -f1 -d, | sed 's/+/ /g'`
+					I_DELAY_NOONLINE=`echo "$OPTARG" | cut -f2 -d,`
+					I_ACPI_STATE_NOONLINE=`echo "$OPTARG" | cut -f3 -d,`
 				else
-					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -n. Should be \"hh:mm,hh:mm,acpi_state,delay,ips\""
+					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -n. Should be \"ips,delay,acpi_state\""
 					return 1
 				fi ;;
 			v)	I_VERBOSE=1 ;;
@@ -277,13 +287,15 @@ nasSleep() {
 # Main 
 ##################################
 main() {
-	local ts_last_online_device ts_wakeup in_always_on_timeslot curfew_sleep_request noonline_sleep_request \
-		any_device_online delta_t awakefor
+	local ts_last_online_device ts_last_ssh ts_wakeup in_always_on_timeslot curfew_sleep_request \
+		noonline_sleep_request any_device_online delta_t awakefor
 	
 	# initialization of local variables
 	ts_last_online_device=`$BIN_DATE +%s`	# Timestamp when the last other device was detected to be online
+	ts_last_ssh=`$BIN_DATE +%s`		# Timestamp when the last SSH connection ended
 	ts_wakeup=`$BIN_DATE +%s`		# Timestamp when the NAS woke up last time
 	in_always_on_timeslot="0"		# 1=We are currently in the always on timeslot, 0 otherwise 
+	ssh_sleep_prevent="0"			# 1=Sleep prevented by SSH, 0 otherwise
 	curfew_sleep_request="0"		# 1=Sleep requested by curfew check, 0 otherwise
 	noonline_sleep_request="0"		# 1=Sleep requested by no-online check, 0 otherwise 
 
@@ -305,13 +317,13 @@ main() {
 	printf '%-35s %s\n' "- CHECK_ALWAYS_ON:" "$I_CHECK_ALWAYS_ON" | log_info "$LOGFILE"
 	printf '%-35s %s\n' "- BEG_ALWAYS_ON:" "$I_BEG_ALWAYS_ON" | log_info "$LOGFILE"
 	printf '%-35s %s\n' "- END_ALWAYS_ON:" "$I_END_ALWAYS_ON" | log_info "$LOGFILE"
+	printf '%-35s %s\n' "- CHECK_SSH_ACTIVE:" "$I_CHECK_SSH_ACTIVE" | log_info "$LOGFILE"
+	printf '%-35s %s\n' "- DELAY_SSH:" "$I_DELAY_SSH" | log_info "$LOGFILE"
 	printf '%-35s %s\n' "- CHECK_CURFEW_ACTIVE:" "$I_CHECK_CURFEW_ACTIVE" | log_info "$LOGFILE"
 	printf '%-35s %s\n' "- BEG_POLL_CURFEW:" "$I_BEG_POLL_CURFEW" | log_info "$LOGFILE"
 	printf '%-35s %s\n' "- END_POLL_CURFEW:" "$I_END_POLL_CURFEW" | log_info "$LOGFILE"
 	printf '%-35s %s\n' "- ACPI_STATE_CURFEW:" "$I_ACPI_STATE_CURFEW" | log_info "$LOGFILE"
 	printf '%-35s %s\n' "- CHECK_NOONLINE_ACTIVE:" "$I_CHECK_NOONLINE_ACTIVE" | log_info "$LOGFILE"
-	printf '%-35s %s\n' "- BEG_POLL_NOONLINE:" "$I_BEG_POLL_NOONLINE" | log_info "$LOGFILE"
-	printf '%-35s %s\n' "- END_POLL_NOONLINE:" "$I_END_POLL_NOONLINE" | log_info "$LOGFILE"
 	printf '%-35s %s\n' "- ACPI_STATE_NOONLINE:" "$I_ACPI_STATE_NOONLINE" | log_info "$LOGFILE"
 	printf '%-35s %s\n' "- DELAY_NOONLINE:" "$I_DELAY_NOONLINE" | log_info "$LOGFILE"
 	printf '%-35s %s\n' "- IP_ADDRS:" "$I_IP_ADDRS" | log_info "$LOGFILE"
@@ -344,6 +356,23 @@ main() {
 			fi
 		fi
 
+		# Check if an incoming SSH connection existed recently  
+		ssh_sleep_prevent="0"
+		if [ $I_CHECK_SSH_ACTIVE -eq "1" ]; then
+			# Check if an ingoing ssh connection exist
+			if $BIN_SOCKSTAT -c | grep "sshd" > /dev/null ; then
+				ts_last_ssh=`$BIN_DATE +%s`
+				ssh_sleep_prevent="1"				
+				[ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "Incoming SSH connection detected"
+			else
+				delta_t=$((`$BIN_DATE +%s`-$ts_last_ssh))
+				[ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "No incoming SSH connection for $delta_t s"
+				if [ "$delta_t" -le "$I_DELAY_SSH" ]; then
+					ssh_sleep_prevent="1"
+				fi
+			fi
+		fi
+		
 		# Check if curfew is reached
 		curfew_sleep_request="0"
 		if [ $I_CHECK_CURFEW_ACTIVE -eq "1" ]; then
@@ -356,37 +385,32 @@ main() {
 		# Check if no other devices are online for a certain duration
 		noonline_sleep_request="0"	
 		if [ $I_CHECK_NOONLINE_ACTIVE -eq "1" ]; then
-		
-			if isInTimeSlot "$I_BEG_POLL_NOONLINE" "$I_END_POLL_NOONLINE"; then
+			any_device_online="0"
+			for ip_addr in $I_IP_ADDRS; do 	
+				if $BIN_PING -c 1 -t 1 $ip_addr > /dev/null ; then
+					any_device_online="1"
+					[ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "Online device detected: $ip_addr (skipping any other device)"
+					break
+				fi
+			done
 
-				[ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "In timeslot for monitoring other devices [ $I_BEG_POLL_NOONLINE ; $I_END_POLL_NOONLINE ]"
-
-				any_device_online="0"
-				for ip_addr in $I_IP_ADDRS; do 	
-					if $BIN_PING -c 1 -t 1 $ip_addr > /dev/null ; then
-						any_device_online="1"
-						[ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "Online device detected: $ip_addr (skipping any other device)"
-						break
-					fi
-				done
-
-				if [ "$any_device_online" -eq "1" ]; then	
-					ts_last_online_device=`$BIN_DATE +%s`
-				else
-					delta_t=$((`$BIN_DATE +%s`-$ts_last_online_device))
-					[ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "No devices online for $delta_t s"
-					if [ "$delta_t" -gt "$I_DELAY_NOONLINE" ]; then
-						noonline_sleep_request="1"	
-					fi
+			if [ "$any_device_online" -eq "1" ]; then	
+				ts_last_online_device=`$BIN_DATE +%s`
+			else
+				delta_t=$((`$BIN_DATE +%s`-$ts_last_online_device))
+				[ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "No devices online for $delta_t s"
+				if [ "$delta_t" -gt "$I_DELAY_NOONLINE" ]; then
+					noonline_sleep_request="1"	
 				fi
 			fi
 		fi
 
-		# Sleep if required, but never if: 
+		# Sleep if requested, but never if:
+		# - The NAS woke-up shortly
 		# - We are in the always on timeslot
-		# - If the NAS woke-up shortly 
+		# - An SSH connection existed recently 
 		awakefor=$((`$BIN_DATE +"%s"`-$ts_wakeup))
-		if [ $in_always_on_timeslot -eq "0" -a $awakefor -gt $I_DELAY_PREVENT_SLEEP_AFTER_WAKE ]; then
+		if [ $in_always_on_timeslot -eq "0" -a $ssh_sleep_prevent -eq "0" -a $awakefor -gt $I_DELAY_PREVENT_SLEEP_AFTER_WAKE ]; then
 			if [ $curfew_sleep_request -eq "1" ]; then
 				log_info "$LOGFILE" "Curfew: Sleep requested"
 				prevent_scripts_to_start
@@ -414,6 +438,4 @@ if ! main; then
         # execution of the script
         get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "Sleep management issue"
 fi
-
-
 
