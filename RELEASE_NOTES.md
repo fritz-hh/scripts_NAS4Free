@@ -5,6 +5,33 @@ Please read always this file before installing the package
 
 Download software here: https://github.com/fritz-hh/scripts_NAS4Free/tags
 
+v1.0-rc3 (2013-02-22):
+========
+
+New features
+------------
+
+- None
+
+Changes
+-------
+
+- config.sh: layout changed to segregate the variables that can be used by the users from the other variables
+
+Fixes
+-----
+
+- All scripts: Fix #9 (script can now be called from any directory)
+- manageSnapshots.sh: Fix #10 and #11 (corrects an erroneous argument check for switches -h -d -w and -m)
+- backupData.sh: Correct syntax error preventing the script to run (bug introduced in v1.0-rc2)
+- commonLockFcts.sh: robustness improved
+- commonLogFcts.sh: robustness against bad log file name/path improved, and increased verbosity if error is detected
+
+Tested with
+-----------
+
+- NAS4Free 9.1.0.1 - Sandstorm (revision 531)
+
 v1.0-rc2 (2013-02-19):
 ========
 
