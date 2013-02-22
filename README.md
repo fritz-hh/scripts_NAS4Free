@@ -124,7 +124,7 @@ INSTALL
 
 Note 1: In case you use the embedded version, the folders mentionned above should be located on one of your data disks (you may create a dedicated ZFS filesystem for the scripts in your pool)
 
-Note 2: There no dependencies to utilities that are not already included in NAS4Free (9.1.0.1 - Sandstorm (revision 531))
+Note 2: There is no dependency to utilities that are not already included in NAS4Free (9.1.0.1 - Sandstorm (revision 531))
 
 DISCLAIMER
 ==========
