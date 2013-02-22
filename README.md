@@ -25,7 +25,7 @@ DESCRIPTION
 
 In my opinion, the scripts are well documented enough to be understood by anybody having shell script knowledge.
 The script usage (e.g. arguments that can be passed) as well as a detailed description of the functions is provided in the header of each script.
-I tried to develop the scripts to be as versatile as possible, so that most of the scripts accept various optional arguments (For sure they will nevertheless fit everyones needs...)
+I tried to develop the scripts to be as versatile as possible (the scripts accept various optional arguments), so that they should help many NAS4Free users
 
 scrubPools.sh:
 --------------
