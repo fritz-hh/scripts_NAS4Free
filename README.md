@@ -30,14 +30,14 @@ I tried to develop the scripts to be as versatile as possible (the scripts accep
 scrubPools.sh:
 --------------
 
-- Scrub all the zpools and report the results in a log file.
+- Scrub all the ZPOOLS and report the results in a log file.
 - Send a mail if an error is detected
 - Typical scheduling: once a week
 
 checkPools.sh:
 --------------
 
-- Checks the status of the pools and report the results in a log file.
+- Checks the status of the ZPOOLS and report the results in a log file.
 - Send a mail if an error is detected
 - Typical scheduling: every hour
 
@@ -51,7 +51,7 @@ checkTemps.sh: (Thanks to miGi from NAS4Free forum)
 checkSpace.sh:
 --------------
 
-- Check if there is enough space in the respective file systems (Threshold is configurable)
+- Check if there is enough space in the respective ZFS file systems (The filesystems to monitor as well as the threshold is configurable)
 - Report the results in a log file.
 - Send a mail if the space threshold is reached
 - Typical scheduling: every day for the data pool
@@ -60,7 +60,7 @@ checkSpace.sh:
 manageSnapshots.sh:
 -------------------
 
-- Create hourly/daily/weekly/monthly snapshots of a filesystem (and child filesystems) and keep a configurable number of them (i.e. delete the superfluous snapshots)
+- Create hourly/daily/weekly/monthly snapshots of a ZFS filesystem (and child filesystems) and keep a configurable number of them (i.e. delete the superfluous snapshots)
 - Report the results in a log file.
 - Send a mail if an error occurs
 - This script was specially designed to work fine even if the NAS is NOT always ON. E.g. if the NAS is OFF when the next monthly snapshot should be created, the script will create it as soon as the NAS is back on.
@@ -71,7 +71,7 @@ Note 1: In Services|CIFS/SMB|Share|Edit, set the parameter "Shadow Copy format" 
 backupData.sh:
 --------------
 
-- Backup incrementally (using zfs send/receive) the content of a set of FS into another pool located in the same NAS box
+- Backup incrementally (using zfs send/receive) the content of a set of ZFS filesystems into another pool located in the same NAS box
 - Report the results in a log file.
 - Send a mail if an error occurs
 - This script was designed to able to cope with the deletion of superfluous snapshots in the data pool (This may be issued by the manageSnapshots.sh script)
@@ -86,7 +86,7 @@ manageAcpi.sh:
 - Prevents a shutdown / sleep during a configurable timeslot
 - Prevents a shutdown / sleep to be issued when one of the above administrative tasks is running
 - Reports the results in a log file.
-- Script to be started at NAS startup. Scripts runs as an endless loop
+- Script to be started at NAS startup. The script runs as an endless loop
 
 Note 1: Depending on your motherboard and on your BIOS settings, the script may or may not work on your NAS.
 
@@ -103,7 +103,7 @@ acpiStats.sh:
 - Send a mail if an error occurs
 - Typical scheduling: once a week
 
-Note 1: This script required manageAcpi.sh to be started when your NAS starts (indeed manageAcpi.sh generates a file (acpi.log) that is required by acpiStats.sh)
+Note 1: This script requires manageAcpi.sh to be started when your NAS starts (indeed manageAcpi.sh generates a file (acpi.log) that is required by acpiStats.sh)
 
 reportFromLogs.sh:
 ------------------
