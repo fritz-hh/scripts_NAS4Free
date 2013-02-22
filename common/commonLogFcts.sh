@@ -57,47 +57,48 @@ log_error() {
 # Param 1: message criticality 
 # Param 2: path to the log file
 # Param 3: message to be logged (optional)
-# return: 1 if no log file path was provided
+# return: 1 if a bad log file path was provided
 #	  0 otherwise
 ##################################
 log() {
-	local criticality logfile text line local_ifs
-
+	local criticality logfile text line local_ifs returnCode
 	criticality="$1"
 	logfile="$2"
 	
-	# If the text to be logged was provided through an argument pipe
+	# If the text to be logged was provided through as the 3rd argument
 	if [ -n "$3" ]; then
-		text="$3"
+		text=`format_log_txt "$criticality" "$3"`
 		if [ -z "$logfile" ]; then
-			echo "INVALID LOG FILE: " `format_log_txt "$criticality" "$text"`
+			echo "EMPTY LOG FILE NAME: $text"
 			return 1
+		elif ! echo "$logfile" | grep ".*[.]log$" >/dev/null; then
+			echo "BAD LOG FILE EXTENSION ($logfile): $text"
+			return 1
+		elif [ ! -d `dirname "$logfile"` ]; then
+			echo "LOG DIR NOT EXISTING ($logfile): $text"
+			return 1		
 		else
-			format_log_txt "$criticality" "$text" >> $logfile
+			echo "$text" >> $logfile
+			return 0
 		fi
+
 	# If the text to be logged was provided through the pipe
-	else
+	else	
 		# IFS need to be changed so that the read cmd does not remove leading spaces
 		local_ifs="$IFS"
-		IFS=""
-	
-		line="" 
-		if [ -z "$logfile" ]; then
-			while read line; do
-				echo "INVALID LOG FILE: " `format_log_txt "$criticality" "$text"`
-			done
-			return 1
-		else
-			while read line; do
-				format_log_txt "$criticality" "$line" >> $logfile
-			done
-		fi
+		IFS=""	
+		
+		returnCode="0"
+		while read line; do
+			# recursive call with pipe to avoid to handle this case specially
+			log "$criticality" "$logfile" "$line" || returnCode="1" 
+		done
 		
 		# setting IFS back to its initial value
 		IFS="$local_ifs"
-	fi
 	
-	return 0 
+		return "$returnCode"
+	fi
 }
 
 ##################################
