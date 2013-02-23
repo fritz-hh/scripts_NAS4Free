@@ -10,7 +10,7 @@
 
 
 ################################################
-# PARAMETER THAT CAN BE USED BY THE USER
+# PARAMETERS THAT CAN BE MODIFIED BY THE USER
 ################################################
 
 # Mail configuration
