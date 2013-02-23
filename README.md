@@ -112,8 +112,13 @@ reportFromLogs.sh:
 - This script is used in the "Status|Email Report" section of nas4free
 
 
-INSTALL
-=======
+DOWNLOAD:
+=========
+
+https://github.com/fritz-hh/scripts_NAS4Free/tags
+
+INSTALLATION AND CONFIGURATION:
+===============================
 
 - See tutorial here: https://github.com/fritz-hh/scripts_NAS4Free/wiki/Install-%5BHOW-TO%5D
 
