@@ -118,15 +118,6 @@ parseInputParams() {
 					RUN_FCT_SSH="run_fct_ssh"
 					RUN_CMD_SSH="$BIN_SSH -oBatchMode=$SSH_BATCHMODE $I_REMOTE_LOGIN"
 					
-					# ping to test if remote host is accessible
-					host=`echo "$I_REMOTE_LOGIN" | cut -f2 -d@`
-					if $BIN_PING -c 1 -t 1 $host > /dev/null ; then
-						log_info "$LOGFILE" "Ping remote host \"$host\" successful"
-					else
-						log_error "$LOGFILE" "Ping remote host \"$host\" failed"
-						return 1
-					fi
-					
 					# testing ssh connection
 					if $RUN_CMD_SSH exit 0; then
 						log_info "$LOGFILE" "SSH connection test successful."
