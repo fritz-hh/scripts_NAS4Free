@@ -120,7 +120,7 @@ https://github.com/fritz-hh/scripts_NAS4Free/tags
 INSTALLATION AND CONFIGURATION:
 ===============================
 
-See tutorial here: https://github.com/fritz-hh/scripts_NAS4Free/wiki/Install-%5BHOW-TO%5D
+https://github.com/fritz-hh/scripts_NAS4Free/wiki
 
 DISCLAIMER
 ==========
