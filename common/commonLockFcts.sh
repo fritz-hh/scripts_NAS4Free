@@ -170,12 +170,8 @@ reset_locks() {
 #          1 if the folder could not be created
 ##################################
 create_lock_folder() {
-	# Create the folder if it did not yet exist
-	if [ ! -d "$CFG_RUNNING_SCRIPTS_FOLDER" ]; then
-		$BIN_MKDIR -m go-w "$CFG_RUNNING_SCRIPTS_FOLDER"  2>/dev/null
-		return $?
-	fi
-	return 0
+	$BIN_MKDIR -p -m go-w "$CFG_RUNNING_SCRIPTS_FOLDER"
+	return $?
 }
 
 ##################################
@@ -225,7 +221,7 @@ run_main() {
 		log_info "$log_file" "Could not start script (The system is probably about to shutdown)"
 		return 1
 	elif [ "$ret_code" -eq "3" ]; then
-		log_error "$log_file" "Lock folder \"$CFG_RUNNING_SCRIPTS_FOLDER\" could not be created (Check if the parent folder exists and check your rights)"
+		log_error "$log_file" "Lock folder \"$CFG_RUNNING_SCRIPTS_FOLDER\" could not be created"
 		return 2	
 	else
 		log_error "$log_file" "Could not start script (Unexpected issue)"
