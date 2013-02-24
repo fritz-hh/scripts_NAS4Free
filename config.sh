@@ -16,14 +16,17 @@
 # Mail configuration
 ################################################
 
-CFG_MAIL_FROM="nas@isp.com"   # Enter the mail address of the NAS here (should be the same address than in NAS GUI: System|Advanced|Email)
-CFG_MAIL_TO="admin@isp.com"   # Enter the email of the NAS administrator here
+CFG_MAIL_FROM="nas@isp.com"	# Enter the mail address of the NAS here (should be the same address than in NAS GUI: System|Advanced|Email)
+CFG_MAIL_TO="admin@isp.com"	# Enter the email of the NAS administrator here
 
 # Paths to log folder, temp folder...
+#
+# ATTENTION: 	THESE FOLDERS MUST EXIST !!!
+# 		IF THEY DON'T, PLEASE CREATE THEM
 ################################################
 
-CFG_TMP_FOLDER="./tmp"				# Folder used to write temporary file (This folder should exist)
-CFG_LOG_FOLDER="./log"				# Folder containing all log files (This folder should exist)
+CFG_TMP_FOLDER="./tmp"		# Folder used to write temporary file
+CFG_LOG_FOLDER="./log"		# Folder containing all log files 
 
 
 
