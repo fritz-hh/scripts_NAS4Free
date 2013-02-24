@@ -22,8 +22,8 @@ CFG_MAIL_TO="admin@isp.com"   # Enter the email of the NAS administrator here
 # Paths to log folder, temp folder...
 ################################################
 
-CFG_TMP_FOLDER="tmp"				# Folder containing any temporary file (folder should exist)
-CFG_LOG_FOLDER="log"				# Folder containing all log files (folder should exist)
+CFG_TMP_FOLDER="./tmp"				# Folder used to write temporary file (This folder should exist)
+CFG_LOG_FOLDER="./log"				# Folder containing all log files (This folder should exist)
 
 
 
