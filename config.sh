@@ -44,7 +44,6 @@ CFG_RUNNING_SCRIPTS_FOLDER="$CFG_TMP_FOLDER/running_scripts"		# Folder containin
 CFG_FORBID_ANY_SCRIPT_START_FILE="$CFG_TMP_FOLDER/no_script_start.lock"	# File aimed at notifying that no script should be started
 
 # Path to used utilities
-# (should not be changed by the user)
 ################################################
 
 BIN_RM="/bin/rm"
