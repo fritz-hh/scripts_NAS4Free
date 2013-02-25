@@ -109,7 +109,8 @@ reportFromLogs.sh:
 ------------------
 
 - Scripts aimed at generating a extract of all log files (the part that has been populated during the last week)
-- This script is used in the "Status|Email Report" section of nas4free
+- Additionally it generates statistics on the number of errors and warnings that occured in each scripts
+- This script can be sheduled in the "Status|Email Report" section of nas4free
 
 
 DOWNLOAD:
@@ -125,10 +126,10 @@ https://github.com/fritz-hh/scripts_NAS4Free/wiki
 DISCLAIMER
 ==========
 
-Of course, the scripts are provided without any warranty!
+Even though the scripts were developped with particular focus on robustness, I do not provide any warranty with the script !
 (I am nor a freeBSD expert nor a SW developper, but a simple user)
 
-Any contribution (new functions, fixes, problem reports) is welcome!
+Any contribution (problem reports, fixes, improvement of the wiki, comments, new functions) is welcome!
 
 Feel free to use the scripts on your own NAS!
 
