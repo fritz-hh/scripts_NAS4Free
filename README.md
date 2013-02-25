@@ -24,20 +24,20 @@ DESCRIPTION
 ===========
 
 In my opinion, the scripts are well documented enough to be understood by anybody having shell script knowledge.
-The script usage (e.g. arguments that can be passed) as well as a detailed description of the functions is provided in the header of each script.
-I tried to develop the scripts to be as versatile as possible, so that most of the scripts accept various optional arguments (For sure they will nevertheless fit everyones needs...)
+The script usage (e.g. arguments that can be passed) as well as a detailed description of the functions is provided in the header of each script. PLEASE READ THE HEADER OF THE SCRIPT BEFORE USING IT!
+I tried to develop the scripts to be as versatile as possible (the scripts accept various optional arguments), so that they should help many NAS4Free users
 
 scrubPools.sh:
 --------------
 
-- Scrub all the zpools and report the results in a log file.
+- Scrub all the ZPOOLS and report the results in a log file.
 - Send a mail if an error is detected
 - Typical scheduling: once a week
 
 checkPools.sh:
 --------------
 
-- Checks the status of the pools and report the results in a log file.
+- Checks the status of the ZPOOLS and report the results in a log file.
 - Send a mail if an error is detected
 - Typical scheduling: every hour
 
@@ -51,7 +51,7 @@ checkTemps.sh: (Thanks to miGi from NAS4Free forum)
 checkSpace.sh:
 --------------
 
-- Check if there is enough space in the respective file systems (Threshold is configurable)
+- Check if there is enough space in the respective ZFS file systems (The filesystems to monitor as well as the threshold is configurable)
 - Report the results in a log file.
 - Send a mail if the space threshold is reached
 - Typical scheduling: every day for the data pool
@@ -60,7 +60,7 @@ checkSpace.sh:
 manageSnapshots.sh:
 -------------------
 
-- Create hourly/daily/weekly/monthly snapshots of a filesystem (and child filesystems) and keep a configurable number of them (i.e. delete the superfluous snapshots)
+- Create hourly/daily/weekly/monthly snapshots of a ZFS filesystem (and child filesystems) and keep a configurable number of them (i.e. delete the superfluous snapshots)
 - Report the results in a log file.
 - Send a mail if an error occurs
 - This script was specially designed to work fine even if the NAS is NOT always ON. E.g. if the NAS is OFF when the next monthly snapshot should be created, the script will create it as soon as the NAS is back on.
@@ -71,7 +71,7 @@ Note 1: In Services|CIFS/SMB|Share|Edit, set the parameter "Shadow Copy format" 
 backupData.sh:
 --------------
 
-- Backup incrementally (using zfs send/receive) the content of a set of FS into another pool located in the same NAS box
+- Backup incrementally (using zfs send/receive) the content of a set of ZFS filesystems into another pool located in the same NAS box
 - Report the results in a log file.
 - Send a mail if an error occurs
 - This script was designed to able to cope with the deletion of superfluous snapshots in the data pool (This may be issued by the manageSnapshots.sh script)
@@ -86,7 +86,7 @@ manageAcpi.sh:
 - Prevents a shutdown / sleep during a configurable timeslot
 - Prevents a shutdown / sleep to be issued when one of the above administrative tasks is running
 - Reports the results in a log file.
-- Script to be started at NAS startup. Scripts runs as an endless loop
+- Script to be started at NAS startup. The script runs as an endless loop
 
 Note 1: Depending on your motherboard and on your BIOS settings, the script may or may not work on your NAS.
 
@@ -103,7 +103,7 @@ acpiStats.sh:
 - Send a mail if an error occurs
 - Typical scheduling: once a week
 
-Note 1: This script required manageAcpi.sh to be started when your NAS starts (indeed manageAcpi.sh generates a file (acpi.log) that is required by acpiStats.sh)
+Note 1: This script requires manageAcpi.sh to be started when your NAS starts (indeed manageAcpi.sh generates a file (acpi.log) that is required by acpiStats.sh)
 
 reportFromLogs.sh:
 ------------------
@@ -112,19 +112,15 @@ reportFromLogs.sh:
 - This script is used in the "Status|Email Report" section of nas4free
 
 
-INSTALL
-=======
+DOWNLOAD:
+=========
 
-- Download software here: https://github.com/fritz-hh/scripts_NAS4Free/tags
-- Copy the files in a folder of your NAS
-- Create a tmp folder
-- Create a log folder
-- Update the config.sh file according to your needs (paths, email addresses...)
-- Configure Cron to run the scripts periodically (https://github.com/fritz-hh/scripts_NAS4Free/wiki/Scheduling)
+https://github.com/fritz-hh/scripts_NAS4Free/tags
 
-Note 1: In case you use the embedded version, the folders mentionned above should be located on one of your data disks (you may create a dedicated ZFS filesystem for the scripts in your pool)
+INSTALLATION AND CONFIGURATION:
+===============================
 
-Note 2: There no dependencies to utilities that are not already included in NAS4Free (9.1.0.1 - Sandstorm (revision 531))
+https://github.com/fritz-hh/scripts_NAS4Free/wiki
 
 DISCLAIMER
 ==========

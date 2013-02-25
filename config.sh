@@ -10,20 +10,23 @@
 
 
 ################################################
-# PARAMETER THAT CAN BE USED BY THE USER
+# PARAMETERS THAT CAN BE MODIFIED BY THE USER
 ################################################
 
 # Mail configuration
 ################################################
 
-CFG_MAIL_FROM="nas@isp.com"
-CFG_MAIL_TO="admin@isp.com"
+CFG_MAIL_FROM="nas@isp.com"	# Enter the mail address of the NAS here (should be the same address than in NAS GUI: System|Advanced|Email)
+CFG_MAIL_TO="admin@isp.com"	# Enter the email of the NAS administrator here
 
 # Paths to log folder, temp folder...
+#
+# ATTENTION: 	THESE FOLDERS MUST EXIST !!!
+# 		IF THEY DON'T, PLEASE CREATE THEM
 ################################################
 
-CFG_TMP_FOLDER="tmp"				# Folder containing any temporary file
-CFG_LOG_FOLDER="log"				# Folder containing all log files
+CFG_TMP_FOLDER="./tmp"		# Folder used to write temporary file
+CFG_LOG_FOLDER="./log"		# Folder containing all log files 
 
 
 
@@ -44,7 +47,6 @@ CFG_RUNNING_SCRIPTS_FOLDER="$CFG_TMP_FOLDER/running_scripts"		# Folder containin
 CFG_FORBID_ANY_SCRIPT_START_FILE="$CFG_TMP_FOLDER/no_script_start.lock"	# File aimed at notifying that no script should be started
 
 # Path to used utilities
-# (should not be changed by the user)
 ################################################
 
 BIN_RM="/bin/rm"

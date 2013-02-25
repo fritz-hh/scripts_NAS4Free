@@ -27,7 +27,7 @@ sortSnapshots() {
 
 	# sort the snapshot based on the "creation" attribute
 	$BIN_ZFS list -H -o name -S creation -t snapshot -d 1 -r $filesystem \
-		| grep "^$filesystem@[0-9]\{8,8\}_[0-9]\{4,4\}_autosnap_$snapshotTag"
+		| grep ".*@.*$snapshotTag"
 }
 
 ################################## 
