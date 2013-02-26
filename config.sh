@@ -38,7 +38,7 @@ CFG_LOG_FOLDER="./log"		# Folder containing all log files
 # Version of the package
 ################################################
 
-VERSION="v1.0-rc3"
+VERSION="v1.0-rc3+fixes"
 
 # Paths to specific temp files / folders ...
 ################################################
