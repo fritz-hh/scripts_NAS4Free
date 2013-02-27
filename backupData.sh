@@ -81,8 +81,8 @@ run_fct_ssh() {
 	local return_code
 
 	# generating the tmp file containing the code to be executed
-	cat "$SCRIPT_PATH/config.sh" > $TMP_FILE
-	cat "$SCRIPT_PATH/common/commonSnapFcts.sh" >> $TMP_FILE 
+	cat "config.sh" > $TMP_FILE
+	cat "common/commonSnapFcts.sh" >> $TMP_FILE 
 	echo "$@" >>  $TMP_FILE
 	
 	# remote the code on the remote host
