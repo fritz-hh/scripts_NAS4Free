@@ -29,7 +29,7 @@ acquire_lock() {
 	fi 
 	
 	# If no lock is allowed to be acquired
-	if [ -f "$CFG_FORBID_ANY_SCRIPT_START_FILE" ]; then
+	if [ -f "$CFG_FORBID_ANY_LOCK_ACQUISITION_FILE" ]; then
 		return 2
 	fi
 
@@ -82,7 +82,7 @@ does_any_lock_exist() {
 	fi 
 
 	# check if any lock exists
-	if [ "`$BIN_LS -A $CFG_RUNNING_SCRIPTS_FOLDER`" != "" ]; then
+	if [ "`$BIN_LS -A $CFG_LOCKS_FOLDER`" != "" ]; then
 		return 0
 	else
 		return 1
@@ -95,7 +95,7 @@ does_any_lock_exist() {
 # Return : The list of locks
 ##################################
 get_list_of_locks() {
-	$BIN_LS -A "$CFG_RUNNING_SCRIPTS_FOLDER" | $BIN_TR "\n" ";"
+	$BIN_LS -A "$CFG_LOCKS_FOLDER" | $BIN_TR "\n" ";"
 }
 
 ##################################
@@ -104,7 +104,7 @@ get_list_of_locks() {
 # acquire_lock() function will always return 1
 ##################################
 prevent_acquire_locks() {
-	echo "No lock allowed to be acquired since: `$BIN_DATE`" > "$CFG_FORBID_ANY_SCRIPT_START_FILE"
+	echo "No lock allowed to be acquired since: `$BIN_DATE`" > "$CFG_FORBID_ANY_LOCK_ACQUISITION_FILE"
 }
 
 ##################################
@@ -112,7 +112,7 @@ prevent_acquire_locks() {
 # unless it was already acquired 
 ##################################
 allow_acquire_locks() {
-	$BIN_RM -f "$CFG_FORBID_ANY_SCRIPT_START_FILE"
+	$BIN_RM -f "$CFG_FORBID_ANY_LOCK_ACQUISITION_FILE"
 }
 
 ##################################
@@ -121,7 +121,7 @@ allow_acquire_locks() {
 ##################################
 reset_locks() {
 	allow_acquire_locks
-	$BIN_RM -f -r "$CFG_RUNNING_SCRIPTS_FOLDER"
+	$BIN_RM -f -r "$CFG_LOCKS_FOLDER"
 }
 
 ##################################
@@ -132,7 +132,7 @@ reset_locks() {
 #          1 if the folder could not be created
 ##################################
 ensure_lock_folder_exits() {
-	$BIN_MKDIR -p -m go-w "$CFG_RUNNING_SCRIPTS_FOLDER"
+	$BIN_MKDIR -p -m go-w "$CFG_LOCKS_FOLDER"
 	return $?
 }
 
@@ -146,11 +146,11 @@ get_lock_path() {
 	local lock_id
 	lock_id="$1"
 
-	echo "$CFG_RUNNING_SCRIPTS_FOLDER/$lock_id.lock"
+	echo "$CFG_LOCKS_FOLDER/$lock_id.lock"
 }
 
 ################################## 
-# Run the "main" function unless a lock with the given ID already exists 
+# Run the "main" function unless the lock could not be acquired 
 # remove the lock at the end of the execution
 #
 # Param 1: log file name
@@ -182,7 +182,7 @@ run_main() {
 		log_info "$log_file" "Could not start script (The system is probably about to shutdown)"
 		return 1
 	elif [ "$ret_code" -eq "3" ]; then
-		log_error "$log_file" "Lock folder \"$CFG_RUNNING_SCRIPTS_FOLDER\" could not be created"
+		log_error "$log_file" "Lock folder \"$CFG_LOCKS_FOLDER\" could not be created"
 		return 2	
 	else
 		log_error "$log_file" "Could not start script (Unexpected issue)"
