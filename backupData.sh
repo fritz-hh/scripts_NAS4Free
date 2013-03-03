@@ -35,7 +35,7 @@ cd "`dirname $0`"
 
 # Initialization of constants 
 readonly START_TIMESTAMP=`$BIN_DATE +"%s"` 
-readonly COMPRESSION="gzip"			# Type of compression to be used for the fs of the backup pool
+readonly COMPRESSION="lzjb"	# Type of compression to be used for the fs of the backup pool
 readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
 readonly S_IN_DAY=86400		# Number of seconds in a day
 
