@@ -160,28 +160,25 @@ get_lock_path() {
 #	   2 : any other error 
 ##################################
 run_main() {
-	local log_file lock_id ret_code err_in_main
+	local log_file lock_id retCodeAcquireLock errInMain
 
 	log_file="$1" 
 	lock_id="$2"
 
-	err_in_main=0
-
+	errInMain=0
+	
+	# acquire lock and run main
 	acquire_lock "$lock_id"
-	ret_code="$?"
-	if [ "$ret_code" -eq "0" ]; then
-		! main && err_in_main=1
-		if ! release_lock "$lock_id"; then
-			log_error "$log_file" "Could not delete lock at end of execution"
-			return 2
-		fi
-	elif [ "$ret_code" -eq "1" ]; then
+	retCodeAcquireLock="$?"
+	if [ "$retCodeAcquireLock" -eq "0" ]; then
+		! main && errInMain=1
+	elif [ "$retCodeAcquireLock" -eq "1" ]; then
 		log_error "$log_file" "Could not start script (Another instance is running)"
 		return 2
-	elif [ "$ret_code" -eq "2" ]; then
+	elif [ "$retCodeAcquireLock" -eq "2" ]; then
 		log_info "$log_file" "Could not start script (The system is probably about to shutdown)"
 		return 1
-	elif [ "$ret_code" -eq "3" ]; then
+	elif [ "$retCodeAcquireLock" -eq "3" ]; then
 		log_error "$log_file" "Lock folder \"$CFG_LOCKS_FOLDER\" could not be created"
 		return 2	
 	else
@@ -189,7 +186,14 @@ run_main() {
 		return 2
 	fi
 
-	if [ "$err_in_main" -ne "0" ]; then
+	# release lock
+	if ! release_lock "$lock_id"; then
+		log_error "$log_file" "Could not delete lock at end of execution"
+		return 2
+	fi	
+	
+	# return code of main
+	if [ "$errInMain" -ne "0" ]; then
 		return 2
 	else
 		return 0
