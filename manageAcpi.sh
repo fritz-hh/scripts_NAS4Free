@@ -99,7 +99,7 @@ awake="0"				# 1=NAS is awake, 0=NAS is about to sleep (resp. just woke up)
 ##################################
 parseInputParams() {
 
-	local regex_dur regex_hh regex_mm regex_time regex_0_255 regex_ip regex_a regex_c regex_n opt  
+	local regex_dur regex_hh regex_mm regex_time regex_0_255 regex_ip regex_a regex_c regex_n opt w_min 
 
 	regex_dur="([0-9]+)"
 	regex_hh="(([0-9])|([0-1][0-9])|([2][0-3]))"
@@ -111,6 +111,8 @@ parseInputParams() {
 	regex_a="^$regex_time[,]$regex_time$"
 	regex_c="^($regex_time[,]){2,2}[35]$"
 	regex_n="^$regex_ip([+]$regex_ip){0,}[,]$regex_dur[,][35]$"
+
+	w_min="300"
 
 	# parse the parameters
 	while getopts ":p:w:a:s:c:n:vm" opt; do
@@ -126,6 +128,14 @@ parseInputParams() {
 			w)	echo "$OPTARG" | grep -E "^$regex_dur$" >/dev/null 
 				if [ "$?" -eq "0" ] ; then
 					I_DELAY_PREVENT_SLEEP_AFTER_WAKE="$OPTARG"
+
+					if [ "$I_DELAY_PREVENT_SLEEP_AFTER_WAKE" -lt "$w_min" ] ; then
+						log_warning "$LOGFILE" "The value passed to the -w option must be at least $w_min s."
+						log_warning "$LOGFILE" "Replacing the provided value ($I_DELAY_PREVENT_SLEEP_AFTER_WAKE s) with the value $w_min s"
+						log_warning "$LOGFILE" "Rationale: If other options are not set correctly, the server may always"
+						log_warning "$LOGFILE" "shutdown/sleep just after booting making the server unusable"
+						I_DELAY_PREVENT_SLEEP_AFTER_WAKE="$w_min"			
+					fi
 				else
 					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -w. Should be a positive integer"
 					return 1
@@ -133,8 +143,8 @@ parseInputParams() {
 			a)	echo "$OPTARG" | grep -E "$regex_a" >/dev/null
 				if [ "$?" -eq "0" ] ; then
 					I_CHECK_ALWAYS_ON="1"	
-					I_BEG_ALWAYS_ON=`echo "$OPTARG" | cut -f1 -d,`			
-					I_END_ALWAYS_ON=`echo "$OPTARG" | cut -f2 -d,`			
+					I_BEG_ALWAYS_ON=`echo "$OPTARG" | cut -f1 -d,`
+					I_END_ALWAYS_ON=`echo "$OPTARG" | cut -f2 -d,`
 				else
 					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -a. Should be \"hh:mm,hh:mm\""
 					return 1
@@ -302,13 +312,14 @@ main() {
 	# Remove any existing locks
 	reset_locks
 
+	log_info "$LOGFILE" "-------------------------------------"
+
 	# Parse the input parameters
 	if ! parseInputParams $ARGUMENTS; then
 		return 1
 	fi
 
 	# log the selected configuration
-	log_info "$LOGFILE" "-------------------------------------"
 	log_info "$LOGFILE" "Selected settings for \"$SCRIPT_NAME\":"
 	printf '%-35s %s\n' "- VERBOSE:" "$I_VERBOSE" | log_info "$LOGFILE"
 	printf '%-35s %s\n' "- MAIL ACPI STATE CHANGES:" "$I_MAIL_ACPI_CHANGE" | log_info "$LOGFILE"
