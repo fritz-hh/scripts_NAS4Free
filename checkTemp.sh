@@ -68,13 +68,13 @@ parseInputParams() {
 
         echo "$I_WARN_THRESHOLD_CPU" | grep -E "^$regex_temp$" >/dev/null
         if [ "$?" -ne "0" ]; then
-                log_warning "$LOGFILE" "Wrong CPU temperature notification threshold definition !"
+                log_error "$LOGFILE" "Wrong CPU temperature notification threshold definition !"
                 return 1
         fi
 
         echo "$I_WARN_THRESHOLD_HDD" | grep -E "^$regex_temp$" >/dev/null
         if [ "$?" -ne "0" ]; then
-                log_warning "$LOGFILE" "Wrong HDD temperature notification threshold definition !"
+                log_error "$LOGFILE" "Wrong HDD temperature notification threshold definition !"
                 return 1
         fi
 
