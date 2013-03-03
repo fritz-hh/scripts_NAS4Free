@@ -44,8 +44,7 @@ LOGFILE=""		# provisionary value of log file name (will be set in fct "parseInpu
 # Params: all parameters of the shell script
 ##################################
 parseInputParams() {
-
-	local fs_without_slash specific_fs
+	local opt fs_without_slash specific_fs
 	specific_fs="0"
 
 	# parse the parameters

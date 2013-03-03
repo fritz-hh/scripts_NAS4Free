@@ -38,6 +38,7 @@ ARGUMENTS="$@"
 # Params: all parameters of the shell script
 ##################################
 parseInputParams() {
+	local opt regex_temp 
 
 	# parse the optional parameters
 	# (there should be none)
