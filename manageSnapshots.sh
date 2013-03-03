@@ -75,7 +75,7 @@ parseInputParams() {
 	# get the mandatory script parameter (Filesystem for which a snapshot shall be created)
 	# this argument is parsed at first because it is required to compute the log file name
 	if [ $# -gt 0 ]; then
-		eval I_FILESYSTEM=\$$#				# Filesystem to snapshot
+		eval I_FILESYSTEM=\${$#}			# Filesystem to snapshot
 	else
 		echo "Name of the filesystem to snapshot not provided when calling \"$SCRIPT_NAME\"" | sendMail "Snapshot management issue"
 		exit 1
