@@ -11,114 +11,77 @@
 
 
 ##################################
-# Record that a given script is starting now
+# Acquire a lock
 #
-# Param 1: script id. The script id can be either, the script
-#	   name, or any other string. If a script with the same id is
-#	   already running, the script will not get start allowance.
-#	   The script name shall be used, if only one instance of the
-#	   script should be executed at a given point in time, otherwise
-#	   the lock id should not equal the script name.
-# Return : 0 if the script is allowed to start
-#          1 if this script id is already locked
-#          2 if no script is allowed to start
-#          3 if it is not possible to create the lock folder
+# Param 1: lock id. If the lock was already acquired, the lock cannot be acquired anymore
+# Return : 0 if the lock could be acquired
+#          1 if the lock was already acquired
+#          2 if no lock at all are allowed to be acquired
+#          3 if it is not possible to create the folder that shall contain all locks
 ##################################
-script_start() {
-	local script_id
-	script_id="$1"
+acquire_lock() {
+	local lock_id
+	lock_id="$1"
 
-	# If the lock folder cannot be created
-	if ! create_lock_folder; then
- 		return 3
+	# Ensure that the folder that shall contain all locks exists
+	if ! ensure_lock_folder_exits; then
+		return 3
 	fi 
-
-	# If an instance is already running
-	if is_script_running "$script_id"; then
-		return 1
-	fi	
 	
-	# If no script is allowed to start
-        if [ -f "$CFG_FORBID_ANY_SCRIPT_START_FILE" ]; then
-                return 2
-        fi
+	# If no lock is allowed to be acquired
+	if [ -f "$CFG_FORBID_ANY_SCRIPT_START_FILE" ]; then
+		return 2
+	fi
 
-	# record that script is now running
-	# (i.e. create the lock file)
-	echo "script started at the following time: `$BIN_DATE`" > "`get_lock_file_name_and_path $script_id`"
-
-	return 0
+	# acquire the lock 
+	if $BIN_MKDIR "`get_lock_path $lock_id`"; then
+		return 0
+	else
+		return 1
+	fi
 }
 
 ##################################
-# Record that a given script is ending now
+# Release a lock that was acquired before
 #
-# Param 1: script id (must be the same id, as the id 
-#	   provided when the script started)
-# Return : 0 if the script was running before
+# Param 1: lock id (must be the same id, as the id 
+#	   provided when the lock was acquired)
+# Return : 0 if the lock could be released
 #          1 otherwise
 ##################################
-script_end() {
-	local script_id
-	script_id="$1"
+release_lock() {
+	local lock_id
+	lock_id="$1"
 
-	# If the lock folder cannot be created
-	if ! create_lock_folder; then
+	# Ensure that the folder that shall contain all locks exists
+	if ! ensure_lock_folder_exits; then
  		return 1
 	fi
  
-	# If the script was not running
-	if ! is_script_running "$script_id"; then
-		return 1
-	fi
-
-	# record that script is stopping
-	# (i.e. delete the lock file)
-	$BIN_RM -f "`get_lock_file_name_and_path $script_id`"
-
-	return 0
-}
-
-##################################
-# Ckecks if a given script is running
-#
-# Param 1: script id
-# Return : 0 if the script is already running
-#          1 otherwise
-##################################
-is_script_running() {
-	local script_id
-	script_id="$1"
-
-	# If the lock folder cannot be created
-	if ! create_lock_folder; then
- 		return 1
-	fi
-
-	# if lock file does exists
-	if [ -f "`get_lock_file_name_and_path $script_id`" ]; then
+	# Release the lock
+	if $BIN_RM -r "`get_lock_path $lock_id`"; then
 		return 0
 	else
-		return 1 
-	fi 
+		return 1
+	fi
 }
 
 ##################################
-# Check if any script is running
+# Check if any lock exists currently
 #
-# Return : 0 if at least one script is running
-# 	   1 if no script is running
+# Return : 0 if at least one lock exists
+# 	   1 if no lock exists
 ##################################
-is_any_script_running() {
+does_any_lock_exist() {
 
-	# If the lock folder cannot be created,
+	# If the folder that shall contain all locks cannot be created,
 	# then no lock can exist
 	# (this case should not happen)
-	if ! create_lock_folder; then
+	if ! ensure_lock_folder_exits; then
  		return 1
 	fi 
 
-	# check if any script is running
+	# check if any lock exists
 	if [ "`$BIN_LS -A $CFG_RUNNING_SCRIPTS_FOLDER`" != "" ]; then
 		return 0
 	else
@@ -127,38 +90,37 @@ is_any_script_running() {
 }
 
 ##################################
-# Get the list of scripts that are currently running
-# the script names are separated by a semicolon (";")
+# Get the list of locks that currently exist (i.e. were acquired) separated by a semicolon (";")
 #
-# Return : The list of scripts
+# Return : The list of locks
 ##################################
-get_list_of_running_scripts() {
+get_list_of_locks() {
 	$BIN_LS -A "$CFG_RUNNING_SCRIPTS_FOLDER" | $BIN_TR "\n" ";"
 }
 
 ##################################
-# Prevent any script to start
+# Prevent any lock to be acquired
 # After a call of this function, the
-# script_start() function will always return 1
+# acquire_lock() function will always return 1
 ##################################
-prevent_scripts_to_start() {
-	echo "No script allowed to start since: `$BIN_DATE`" > "$CFG_FORBID_ANY_SCRIPT_START_FILE"
+prevent_acquire_locks() {
+	echo "No lock allowed to be acquired since: `$BIN_DATE`" > "$CFG_FORBID_ANY_SCRIPT_START_FILE"
 }
 
 ##################################
-# Allows any script to start 
-# unless it is already running 
+# Allows any lock to be acquired 
+# unless it was already acquired 
 ##################################
-allow_scripts_to_start() {
+allow_acquire_locks() {
 	$BIN_RM -f "$CFG_FORBID_ANY_SCRIPT_START_FILE"
 }
 
 ##################################
 # Delete all locks
-# This function should be called at NAS startup for robustness reasons
+# This function may be called at NAS startup for robustness reasons
 ##################################
 reset_locks() {
-	allow_scripts_to_start
+	allow_acquire_locks
 	$BIN_RM -f -r "$CFG_RUNNING_SCRIPTS_FOLDER"
 }
 
@@ -169,23 +131,22 @@ reset_locks() {
 # Return : 0 if the folder existed or could be created
 #          1 if the folder could not be created
 ##################################
-create_lock_folder() {
+ensure_lock_folder_exits() {
 	$BIN_MKDIR -p -m go-w "$CFG_RUNNING_SCRIPTS_FOLDER"
 	return $?
 }
 
 ##################################
-# Get the name (incl path) of the
-# lock file corresponding to a given script id
+# Get the path corresponding to a given lock id
 #
-# Param 1: script id
-# Return : the lock file name (incl path)
+# Param 1: lock id
+# Return : the lock path
 ##################################
-get_lock_file_name_and_path() {
-	local script_id
-	script_id="$1"
+get_lock_path() {
+	local lock_id
+	lock_id="$1"
 
-	echo "$CFG_RUNNING_SCRIPTS_FOLDER/$script_id.lock"
+	echo "$CFG_RUNNING_SCRIPTS_FOLDER/$lock_id.lock"
 }
 
 ################################## 
@@ -193,9 +154,9 @@ get_lock_file_name_and_path() {
 # remove the lock at the end of the execution
 #
 # Param 1: log file name
-# Param 2: lock id (should be a valid file name without path) 
+# Param 2: lock id (should be a folder name without its path) 
 # Return : 0 : no error
-#          1 : could not start script because system is (probably) about to shutdown
+#          1 : could not start script because the system is (probably) about to shutdown
 #	   2 : any other error 
 ##################################
 run_main() {
@@ -206,12 +167,12 @@ run_main() {
 
 	err_in_main=0
 
-	script_start "$lock_id"
+	acquire_lock "$lock_id"
 	ret_code="$?"
 	if [ "$ret_code" -eq "0" ]; then
 		! main && err_in_main=1
-		if ! script_end "$lock_id"; then
-			log_error "$log_file" "Could not delete lock file at end of execution"
+		if ! release_lock "$lock_id"; then
+			log_error "$log_file" "Could not delete lock at end of execution"
 			return 2
 		fi
 	elif [ "$ret_code" -eq "1" ]; then

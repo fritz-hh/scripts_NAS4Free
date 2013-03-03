@@ -241,7 +241,7 @@ nasSleep() {
 
 	acpi_state="$1"
 
-        if ! is_any_script_running; then
+        if ! does_any_lock_exist; then
 
                 msg="Shutting down the system to save energy (ACPI state : S$acpi_state)"
                 
@@ -274,7 +274,7 @@ nasSleep() {
 		fi	
 		return 0
 	else
-		log_info "$LOGFILE" "Shutdown not possible. The following scripts are running: `get_list_of_running_scripts`"
+		log_info "$LOGFILE" "Shutdown not possible. The following scripts are running: `get_list_of_locks`"
 		return 1
 	fi
 }
@@ -399,17 +399,17 @@ main() {
 		if [ $in_always_on_timeslot -eq "0" -a $awakefor -gt $I_DELAY_PREVENT_SLEEP_AFTER_WAKE ]; then
 			if [ $curfew_sleep_request -eq "1" ]; then
 				log_info "$LOGFILE" "Curfew: Sleep requested"
-				prevent_scripts_to_start
+				prevent_acquire_locks
 				nasSleep $I_ACPI_STATE_CURFEW
  			elif [ $noonline_sleep_request -eq "1" ]; then
 				log_info "$LOGFILE" "No other device online: sleep requested"
-				prevent_scripts_to_start
+				prevent_acquire_locks
 				nasSleep $I_ACPI_STATE_NOONLINE
 			else
-				allow_scripts_to_start
+				allow_acquire_locks
 			fi
 		else
-			allow_scripts_to_start
+			allow_acquire_locks
 		fi
 
 		# wait until next poll	
