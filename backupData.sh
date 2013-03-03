@@ -48,7 +48,7 @@ cd "`dirname $0`"
 
 # Initialization of constants 
 readonly START_TIMESTAMP=`$BIN_DATE +"%s"` 
-readonly COMPRESSION="gzip"		# Type of compression to be used for the destination fs
+readonly COMPRESSION="lzjb"		# Type of compression to be used for the destination fs
 readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
 readonly TMP_FILE="$CFG_TMP_FOLDER/run_fct_ssh.sh"
 readonly S_IN_DAY=86400			# Number of seconds in a day
