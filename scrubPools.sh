@@ -23,7 +23,43 @@ readonly START_TIMESTAMP=`$BIN_DATE +"%s"`
 
 # Initialization of the constants 
 readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
+readonly TMPFILE_ARGS="$CFG_TMP_FOLDER/$SCRIPT_NAME.$$.args.tmp"
 
+# Set variables corresponding to the input parameters
+ARGUMENTS="$@"
+
+
+################################## 
+# Check script input parameters
+#
+# Params: all parameters of the shell script
+# return : 1 if an error occured, 0 otherwise 
+##################################
+parseInputParams() {
+	local opt
+	
+	# parse the optional parameters
+	# (there should be none)
+	while getopts ":" opt; do
+        	case $opt in
+			\?)
+				echo "Invalid option: -$OPTARG"
+				return 1 ;;
+        	esac
+	done
+
+	# Remove the optional arguments parsed above.
+	shift $((OPTIND-1))
+	
+	# Check if the number of mandatory parameters 
+	# provided is as expected 
+	if [ "$#" -ne "0" ]; then
+		echo "No mandatory arguments should be provided"
+		return 1
+	fi
+	
+	return 0
+}
 
 ##################################
 # Check if scrubing is still in progress for a given pool
@@ -46,6 +82,7 @@ scrubInProgress() {
 main() {
 
 	# Starting scrubbing
+	log_info "$LOGFILE" "Starting srubbing" 
 	$BIN_ZPOOL list -H -o name | while read pool; do
 		$BIN_ZPOOL scrub $pool
 		log_info "$LOGFILE" "Starting srubbing of pool: $pool" 
@@ -66,14 +103,22 @@ main() {
 }
 
 
-log_info "$LOGFILE" "-------------------------------------"
-log_info "$LOGFILE" "Starting srubbing" 
 
-# run script if possible (lock not existing)
-run_main "$LOGFILE" "$SCRIPT_NAME"
-# in case of error, send mail with extract of log file
-[ "$?" -eq "2" ] && `get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "Issue detected during scrubbing"`
+# Parse and validate the input parameters
+if ! parseInputParams $ARGUMENTS > "$TMPFILE_ARGS"; then
+	log_info "$LOGFILE" "-------------------------------------"
+	cat "$TMPFILE_ARGS" | log_error "$LOGFILE"
+	get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "$SCRIPT_NAME : Invalid arguments"
+else
+	log_info "$LOGFILE" "-------------------------------------"
+	cat "$TMPFILE_ARGS" | log_info "$LOGFILE"
 
+	# run script if possible (lock not existing)
+	run_main "$LOGFILE" "$SCRIPT_NAME"
+	# in case of error, send mail with extract of log file
+	[ "$?" -eq "2" ] && get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "$SCRIPT_NAME : issue occured during execution"
+fi
+
+$BIN_RM "$TMPFILE_ARGS"
 exit 0
-
 

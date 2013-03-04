@@ -37,6 +37,7 @@ cd "`dirname $0`"
 readonly START_TIMESTAMP=`$BIN_DATE +"%s"` 
 readonly COMPRESSION="lzjb"	# Type of compression to be used for the fs of the backup pool
 readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
+readonly TMPFILE_ARGS="$CFG_TMP_FOLDER/$SCRIPT_NAME.$$.args.tmp"
 readonly S_IN_DAY=86400		# Number of seconds in a day
 
 # Initialization of the inputs corresponding to args of the script
@@ -50,6 +51,7 @@ ARGUMENTS="$@"
 # Check script input parameters
 #
 # Params: all parameters of the shell script
+# return : 1 if an error occured, 0 otherwise 
 ##################################
 parseInputParams() {
 	local opt current_fs regex_rollback
@@ -62,14 +64,14 @@ parseInputParams() {
 				if [ "$?" -eq "0" ] ; then
 					I_MAX_ROLLBACK_S=$(($OPTARG*$S_IN_DAY))
 				else
-					log_error "$LOGFILE" "Wrong maximum rollback value, should be a positive integer or zero (unit: days) !"
+					echo "Wrong maximum rollback value, should be a positive integer or zero (unit: days) !"
 					return 1
 				fi ;;
 			\?)
-				log_error "$LOGFILE" "Invalid option: -$OPTARG"
+				echo "Invalid option: -$OPTARG"
 				return 1 ;;
                         :)
-				log_error "$LOGFILE" "Option -$OPTARG requires an argument"
+				echo "Option -$OPTARG requires an argument"
 				return 1 ;;
         	esac
 	done
@@ -80,7 +82,7 @@ parseInputParams() {
 	# Check if the number of mandatory parameters 
 	# provided is as expected 
 	if [ "$#" -ne "2" ]; then
-		log_error "$LOGFILE" "Exactly 2 mandatory argument shall be provided"
+		echo "Exactly 2 mandatory argument shall be provided"
 		return 1
 	fi
 
@@ -89,7 +91,7 @@ parseInputParams() {
 	I_SRC_FSS=`echo "$1" | sed 's/,/ /g'` # replace commas by space as for loops on new line and space
 	for current_fs in $I_SRC_FSS ; do	
 		if ! $BIN_ZFS list $current_fs 2>/dev/null 1>/dev/null; then
-			log_error "$LOGFILE" "source filesystem \"$current_fs\" does not exist."
+			echo "source filesystem \"$current_fs\" does not exist."
 			return 1
 		fi
 	done	
@@ -97,7 +99,7 @@ parseInputParams() {
 	# Check if the destination pool exists
 	I_DEST_POOL="$2"
 	if ! $BIN_ZPOOL list $I_DEST_POOL 2>/dev/null 1>/dev/null; then
-		log_error "$LOGFILE" "destination pool \"$I_DEST_POOL\" does not exist."
+		echo "destination pool \"$I_DEST_POOL\" does not exist."
 		return 1
 	fi
 	
@@ -255,14 +257,7 @@ backup() {
 main() {
 	local returnCode current_fs currentSubSrcFs 
 
-	returnCode=0	
-
-	log_info "$LOGFILE" "-------------------------------------"	
-
-	# Parse the input parameters
-	if ! parseInputParams $ARGUMENTS; then
-		return 1
-	fi
+	returnCode=0
 
 	log_info "$LOGFILE" "Starting backup of \"$I_SRC_FSS\""
 
@@ -291,10 +286,21 @@ main() {
 
 
 
-# run script if possible (lock not existing)
-run_main "$LOGFILE" "$SCRIPT_NAME"
-# in case of error, send mail with extract of log file
-[ "$?" -eq "2" ] && `get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "Backup issue"`
+# Parse and validate the input parameters
+if ! parseInputParams $ARGUMENTS > "$TMPFILE_ARGS"; then
+	log_info "$LOGFILE" "-------------------------------------"
+	cat "$TMPFILE_ARGS" | log_error "$LOGFILE"
+	get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "$SCRIPT_NAME : Invalid arguments"
+else
+	log_info "$LOGFILE" "-------------------------------------"
+	cat "$TMPFILE_ARGS" | log_info "$LOGFILE"
 
+	# run script if possible (lock not existing)
+	run_main "$LOGFILE" "$SCRIPT_NAME"
+	# in case of error, send mail with extract of log file
+	[ "$?" -eq "2" ] && get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "$SCRIPT_NAME : issue occured during execution"
+fi
+
+$BIN_RM "$TMPFILE_ARGS"
 exit 0
 

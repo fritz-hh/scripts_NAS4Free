@@ -26,6 +26,7 @@ cd "`dirname $0`"
 # Initialization of the constants 
 readonly START_TIMESTAMP=`$BIN_DATE +"%s"`
 readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
+readonly TMPFILE_ARGS="$CFG_TMP_FOLDER/$SCRIPT_NAME.$$.args.tmp"
 
 # Set variables corresponding to the input parameters
 ARGUMENTS="$@"
@@ -36,6 +37,7 @@ ARGUMENTS="$@"
 # Check script input parameters
 #
 # Params: all parameters of the shell script
+# return : 1 if an error occured, 0 otherwise 
 ##################################
 parseInputParams() {
 	local opt regex_temp 
@@ -45,7 +47,7 @@ parseInputParams() {
 	while getopts ":" opt; do
         	case $opt in
 			\?)
-				log_error "$LOGFILE" "Invalid option: -$OPTARG"
+				echo "Invalid option: -$OPTARG"
 				return 1 ;;
         	esac
 	done
@@ -56,7 +58,7 @@ parseInputParams() {
 	# Check if the number of mandatory parameters 
 	# provided is as expected 
 	if [ "$#" -ne "2" ]; then
-		log_error "$LOGFILE" "Exactly two mandatory argument shall be provided"
+		echo "$LOGFILE" "Exactly two mandatory argument shall be provided"
 		return 1
 	fi
 
@@ -68,13 +70,13 @@ parseInputParams() {
 
         echo "$I_WARN_THRESHOLD_CPU" | grep -E "^$regex_temp$" >/dev/null
         if [ "$?" -ne "0" ]; then
-                log_error "$LOGFILE" "Wrong CPU temperature notification threshold definition !"
+                echo "$LOGFILE" "Wrong CPU temperature notification threshold definition !"
                 return 1
         fi
 
         echo "$I_WARN_THRESHOLD_HDD" | grep -E "^$regex_temp$" >/dev/null
         if [ "$?" -ne "0" ]; then
-                log_error "$LOGFILE" "Wrong HDD temperature notification threshold definition !"
+                echo "$LOGFILE" "Wrong HDD temperature notification threshold definition !"
                 return 1
         fi
 
@@ -86,16 +88,9 @@ parseInputParams() {
 # Main
 ##################################
 main() {
-
 	returnCode=0
-
-	log_info "$LOGFILE" "-------------------------------------"
-	log_info "$LOGFILE" "Starting checking temperatures..."
 	
-	# Parse the input parameters
-	if ! parseInputParams $ARGUMENTS; then
-		return 1
-	fi
+	log_info "$LOGFILE" "Starting checking temperatures..."
 	
 	log_info "$LOGFILE" "CPUs (warning threshold: $((I_WARN_THRESHOLD_CPU))C):"
 	printf '%8s %s\n' "Temp(C)" "CPU" | log_info "$LOGFILE"
@@ -131,10 +126,21 @@ main() {
 
 
 
-# run script if possible (lock not existing)
-run_main "$LOGFILE" "$SCRIPT_NAME"
-# in case of error, send mail with extract of log file
-[ "$?" -eq "2" ] && `get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "Problem with temperatures"`
+# Parse and validate the input parameters
+if ! parseInputParams $ARGUMENTS > "$TMPFILE_ARGS"; then
+	log_info "$LOGFILE" "-------------------------------------"
+	cat "$TMPFILE_ARGS" | log_error "$LOGFILE"
+	get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "$SCRIPT_NAME : Invalid arguments"
+else
+	log_info "$LOGFILE" "-------------------------------------"
+	cat "$TMPFILE_ARGS" | log_info "$LOGFILE"
 
+	# run script if possible (lock not existing)
+	run_main "$LOGFILE" "$SCRIPT_NAME"
+	# in case of error, send mail with extract of log file
+	[ "$?" -eq "2" ] && get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "$SCRIPT_NAME : issue occured during execution"
+fi
+
+$BIN_RM "$TMPFILE_ARGS"
 exit 0
 
