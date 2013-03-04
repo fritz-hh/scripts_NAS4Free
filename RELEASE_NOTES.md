@@ -5,6 +5,33 @@ Please read always this file before installing the package
 
 Download software here: https://github.com/fritz-hh/scripts_NAS4Free/tags
 
+v1.0-rc4 (2013-03-04):
+========
+
+New features
+------------
+
+- None
+
+Changes
+-------
+
+- backupData.sh: compression algorithm changed from "gzip" to "lzjb"
+
+Fixes
+-----
+
+- backupData.sh: (fixes #13) supports any snapshots names (even if they do not follow naming convention used by manageSnapshot.sh)
+- commonLockFcts.sh: (affects all scripts) (fixes #14) lock acquisition now atomic to prevent that the same lock is acquired more once in case 2 scripts try to acquire the same lock at the same time
+- checkSpace.sh and manageSnapshots.sh: (fixes #17) The script now supports providing as argument an fs name that contains more than one "/" (e.g.: "tank/data/user1")
+- manageSnapshots.sh: Fixes a bug that occurs when the script is called with many arguments
+- manageAcpi.sh: Ensure that "prevent sleep after wake" is never smaller than 300s (otherwise the server may always shutdown just after booting if other parameters are set incorrectly)
+
+Tested with
+-----------
+
+- NAS4Free 9.1.0.1 - Sandstorm (revision 531)
+
 v1.0-rc3 (2013-02-22):
 ========
 
