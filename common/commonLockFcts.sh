@@ -15,7 +15,7 @@
 #
 # Param 1: lock id. If the lock was already acquired, the lock cannot be acquired anymore
 # Return : 0 if the lock could be acquired
-#          1 if the lock was already acquired
+#          1 if the lock is not available any more (was already acquired)
 #          2 if no lock at all are allowed to be acquired
 #          3 if it is not possible to create the folder that shall contain all locks
 ##################################
@@ -34,7 +34,7 @@ acquire_lock() {
 	fi
 
 	# acquire the lock 
-	if $BIN_MKDIR "`get_lock_path $lock_id`"; then
+	if $BIN_MKDIR "`get_lock_path $lock_id`" 2>/dev/null; then
 		return 0
 	else
 		return 1
@@ -59,7 +59,7 @@ release_lock() {
 	fi
  
 	# Release the lock
-	if $BIN_RM -r "`get_lock_path $lock_id`"; then
+	if $BIN_RM -r "`get_lock_path $lock_id`" 2>/dev/null; then
 		return 0
 	else
 		return 1
