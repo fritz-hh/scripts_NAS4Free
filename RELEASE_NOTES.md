@@ -30,7 +30,7 @@ Fixes
 Tested with
 -----------
 
-- NAS4Free 9.1.0.1 - Sandstorm (revision 531)
+- NAS4Free 9.1.0.1 - Sandstorm (revision 531) - Embedded
 
 v1.0-rc3 (2013-02-22):
 ========
@@ -57,7 +57,7 @@ Fixes
 Tested with
 -----------
 
-- NAS4Free 9.1.0.1 - Sandstorm (revision 531)
+- NAS4Free 9.1.0.1 - Sandstorm (revision 531) - Embedded
 
 v1.0-rc2 (2013-02-19):
 ========
@@ -82,7 +82,7 @@ Fixes
 Tested with
 -----------
 
-- NAS4Free 9.1.0.1 - Sandstorm (revision 531)
+- NAS4Free 9.1.0.1 - Sandstorm (revision 531) - Embedded
 
 v1.0-rc1 (2013-02-17): (1st version managed on github)
 ========
@@ -113,4 +113,4 @@ Fixes
 Tested with
 -----------
 
-- NAS4Free 9.1.0.1 - Sandstorm (revision 531)
+- NAS4Free 9.1.0.1 - Sandstorm (revision 531) - Embedded
