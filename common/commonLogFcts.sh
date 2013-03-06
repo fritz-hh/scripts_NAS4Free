@@ -211,7 +211,7 @@ get_log_entries_ts() {
 	
 	# Check if the file exists
 	if [ ! -s "$f" ]; then
-		echo "Impossible to retrieve log flie, the file \"$f\" does not exists"
+		echo "Impossible to retrieve log file, the file \"$f\" does not exists"
 		return 1
 	fi
 
