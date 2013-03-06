@@ -55,6 +55,7 @@ cd "`dirname $0`"
 # Initialization of the constants 
 readonly START_TIMESTAMP=`$BIN_DATE +"%s"`
 readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
+readonly TMPFILE_ARGS="$CFG_TMP_FOLDER/$SCRIPT_NAME.$$.args.tmp"
 readonly ACPI_STATE_LOGFILE="$CFG_LOG_FOLDER/acpi.log"
 
 # Set variables corresponding to the input parameters
@@ -96,6 +97,7 @@ awake="0"				# 1=NAS is awake, 0=NAS is about to sleep (resp. just woke up)
 # Check script input parameters
 #
 # Params: all parameters of the shell script
+# return : 1 if an error occured, 0 otherwise 
 ##################################
 parseInputParams() {
 
@@ -122,7 +124,7 @@ parseInputParams() {
 				if [ "$?" -eq "0" ] ; then
 					I_POLL_INTERVAL="$OPTARG"
 				else
-					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -p. Should be a positive integer"
+					echo "Invalid parameter \"$OPTARG\" for option: -p. Should be a positive integer"
 					return 1
 				fi ;;
 			w)	echo "$OPTARG" | grep -E "^$regex_dur$" >/dev/null 
@@ -130,14 +132,14 @@ parseInputParams() {
 					I_DELAY_PREVENT_SLEEP_AFTER_WAKE="$OPTARG"
 
 					if [ "$I_DELAY_PREVENT_SLEEP_AFTER_WAKE" -lt "$w_min" ] ; then
-						log_warning "$LOGFILE" "The value passed to the -w option must be at least $w_min s."
-						log_warning "$LOGFILE" "Replacing the provided value ($I_DELAY_PREVENT_SLEEP_AFTER_WAKE s) with the value $w_min s"
-						log_warning "$LOGFILE" "Rationale: If other options are not set correctly, the server may always"
-						log_warning "$LOGFILE" "shutdown/sleep just after booting making the server unusable"
+						echo "The value passed to the -w option must be at least $w_min s."
+						echo "Replacing the provided value ($I_DELAY_PREVENT_SLEEP_AFTER_WAKE s) with the value $w_min s"
+						echo "Rationale: If other options are not set correctly, the server may always"
+						echo "shutdown/sleep just after booting making the server unusable"
 						I_DELAY_PREVENT_SLEEP_AFTER_WAKE="$w_min"			
 					fi
 				else
-					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -w. Should be a positive integer"
+					echo "Invalid parameter \"$OPTARG\" for option: -w. Should be a positive integer"
 					return 1
 				fi ;;
 			a)	echo "$OPTARG" | grep -E "$regex_a" >/dev/null
@@ -146,7 +148,7 @@ parseInputParams() {
 					I_BEG_ALWAYS_ON=`echo "$OPTARG" | cut -f1 -d,`
 					I_END_ALWAYS_ON=`echo "$OPTARG" | cut -f2 -d,`
 				else
-					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -a. Should be \"hh:mm,hh:mm\""
+					echo "Invalid parameter \"$OPTARG\" for option: -a. Should be \"hh:mm,hh:mm\""
 					return 1
 				fi ;;
 			s)	echo "$OPTARG" | grep -E "$regex_dur" >/dev/null
@@ -154,7 +156,7 @@ parseInputParams() {
 					I_CHECK_SSH_ACTIVE="1"			
 					I_DELAY_SSH="$OPTARG"
 				else
-					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -s. Should be a positive integer"
+					echo "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -s. Should be a positive integer"
 					return 1
 				fi ;;
 			c)	echo "$OPTARG" | grep -E "$regex_c" >/dev/null
@@ -164,7 +166,7 @@ parseInputParams() {
 					I_END_POLL_CURFEW=`echo "$OPTARG" | cut -f2 -d,`			
 					I_ACPI_STATE_CURFEW=`echo "$OPTARG" | cut -f3 -d,`			
 				else
-					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -c. Should be \"hh:mm,hh:mm,acpi_state\""
+					echo "Invalid parameter \"$OPTARG\" for option: -c. Should be \"hh:mm,hh:mm,acpi_state\""
 					return 1
 				fi ;;
 			n)	echo "$OPTARG" | grep -E "$regex_n" >/dev/null
@@ -174,16 +176,16 @@ parseInputParams() {
 					I_DELAY_NOONLINE=`echo "$OPTARG" | cut -f2 -d,`
 					I_ACPI_STATE_NOONLINE=`echo "$OPTARG" | cut -f3 -d,`
 				else
-					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -n. Should be \"ips,delay,acpi_state\""
+					echo "Invalid parameter \"$OPTARG\" for option: -n. Should be \"ips,delay,acpi_state\""
 					return 1
 				fi ;;
 			v)	I_VERBOSE=1 ;;
 			m)	I_MAIL_ACPI_CHANGE=1 ;;
 			\?)
-				log_error "$LOGFILE" "Invalid option: -$OPTARG"
+				echo "Invalid option: -$OPTARG"
 				return 1 ;;
                         :)
-				log_error "$LOGFILE" "Option -$OPTARG requires an argument"
+				echo "Option -$OPTARG requires an argument"
 				return 1 ;;
                 esac
         done
@@ -194,7 +196,7 @@ parseInputParams() {
 	# Check if the number of mandatory parameters 
 	# provided is as expected 
 	if [ "$#" -ne "0" ]; then
-		log_error "$LOGFILE" "No mandatory arguments should be provided"
+		echo "No mandatory arguments should be provided"
 		return 1
 	fi
 
@@ -252,7 +254,7 @@ nasSleep() {
 
 	acpi_state="$1"
 
-        if ! is_any_script_running; then
+        if ! does_any_lock_exist; then
 
                 msg="Shutting down the system to save energy (ACPI state : S$acpi_state)"
                 
@@ -285,7 +287,7 @@ nasSleep() {
 		fi	
 		return 0
 	else
-		log_info "$LOGFILE" "Shutdown not possible. The following scripts are running: `get_list_of_running_scripts`"
+		log_info "$LOGFILE" "Shutdown not possible. The following scripts are running: `get_list_of_locks`"
 		return 1
 	fi
 }
@@ -309,15 +311,8 @@ main() {
 	curfew_sleep_request="0"		# 1=Sleep requested by curfew check, 0 otherwise
 	noonline_sleep_request="0"		# 1=Sleep requested by no-online check, 0 otherwise 
 
-	# Remove any existing locks
+	# Remove any existing lock
 	reset_locks
-
-	log_info "$LOGFILE" "-------------------------------------"
-
-	# Parse the input parameters
-	if ! parseInputParams $ARGUMENTS; then
-		return 1
-	fi
 
 	# log the selected configuration
 	log_info "$LOGFILE" "Selected settings for \"$SCRIPT_NAME\":"
@@ -424,17 +419,17 @@ main() {
 		if [ $in_always_on_timeslot -eq "0" -a $ssh_sleep_prevent -eq "0" -a $awakefor -gt $I_DELAY_PREVENT_SLEEP_AFTER_WAKE ]; then
 			if [ $curfew_sleep_request -eq "1" ]; then
 				log_info "$LOGFILE" "Curfew: Sleep requested"
-				prevent_scripts_to_start
+				prevent_acquire_locks
 				nasSleep $I_ACPI_STATE_CURFEW
  			elif [ $noonline_sleep_request -eq "1" ]; then
 				log_info "$LOGFILE" "No other device online: sleep requested"
-				prevent_scripts_to_start
+				prevent_acquire_locks
 				nasSleep $I_ACPI_STATE_NOONLINE
 			else
-				allow_scripts_to_start
+				allow_acquire_locks
 			fi
 		else
-			allow_scripts_to_start
+			allow_acquire_locks
 		fi
 
 		# wait until next poll	
@@ -444,9 +439,20 @@ main() {
 
 
 
-if ! main; then
+# Parse and validate the input parameters
+if ! parseInputParams $ARGUMENTS > "$TMPFILE_ARGS"; then
+	log_info "$LOGFILE" "-------------------------------------"
+	cat "$TMPFILE_ARGS" | log_error "$LOGFILE"
+	get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "$SCRIPT_NAME : Invalid arguments"
+else
+	log_info "$LOGFILE" "-------------------------------------"
+	cat "$TMPFILE_ARGS" | log_info "$LOGFILE"
+	
         # Return the log entries that have been logged during the current
         # execution of the script
-        get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "Sleep management issue"
+	! main && get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "Sleep management issue"
 fi
+
+$BIN_RM "$TMPFILE_ARGS"
+exit 0
 

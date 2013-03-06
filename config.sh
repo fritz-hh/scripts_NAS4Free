@@ -38,13 +38,13 @@ CFG_LOG_FOLDER="./log"		# Folder containing all log files
 # Version of the package
 ################################################
 
-VERSION="v1.0-rc3+fixes"
+VERSION="v1.0-rc4"
 
 # Paths to specific temp files / folders ...
 ################################################
 
-CFG_RUNNING_SCRIPTS_FOLDER="$CFG_TMP_FOLDER/running_scripts"		# Folder containing all lock files (e.g. files indicating that a script is running)
-CFG_FORBID_ANY_SCRIPT_START_FILE="$CFG_TMP_FOLDER/no_script_start.lock"	# File aimed at notifying that no script should be started
+CFG_LOCKS_FOLDER="$CFG_TMP_FOLDER/locks"					# Folder containing all locks (indicating that a script is running)
+CFG_FORBID_ANY_LOCK_ACQUISITION_FILE="$CFG_TMP_FOLDER/forbid_acquisition.lock"	# File aimed at notifying that no lock is allowed to be acquired
 
 # Path to used utilities
 ################################################

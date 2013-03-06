@@ -21,7 +21,43 @@ cd "`dirname $0`"
 # Initialization of the constants 
 readonly START_TIMESTAMP=`$BIN_DATE +"%s"`
 readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
+readonly TMPFILE_ARGS="$CFG_TMP_FOLDER/$SCRIPT_NAME.$$.args.tmp"
 
+# Set variables corresponding to the input parameters
+ARGUMENTS="$@"
+
+
+################################## 
+# Check script input parameters
+#
+# Params: all parameters of the shell script
+# return : 1 if an error occured, 0 otherwise 
+##################################
+parseInputParams() {
+	local opt
+	
+	# parse the optional parameters
+	# (there should be none)
+	while getopts ":" opt; do
+        	case $opt in
+			\?)
+				echo "Invalid option: -$OPTARG"
+				return 1 ;;
+        	esac
+	done
+
+	# Remove the optional arguments parsed above.
+	shift $((OPTIND-1))
+	
+	# Check if the number of mandatory parameters 
+	# provided is as expected 
+	if [ "$#" -ne "0" ]; then
+		echo "No mandatory arguments should be provided"
+		return 1
+	fi
+	
+	return 0
+}
 
 ##################################
 # Scrub all pools
@@ -31,7 +67,6 @@ readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
 main() {
 	local pool
 
-	log_info "$LOGFILE" "-------------------------------------"
 	log_info "$LOGFILE" "Starting checking of pools" 
 	
 	$BIN_ZPOOL list -H -o name | while read pool; do
@@ -52,10 +87,21 @@ main() {
 
 
 
-# run script if possible (lock not existing)
-run_main "$LOGFILE" "$SCRIPT_NAME"
-# in case of error, send mail with extract of log file
-[ "$?" -eq "2" ] && `get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "Problem detected in a pool"`
+# Parse and validate the input parameters
+if ! parseInputParams $ARGUMENTS > "$TMPFILE_ARGS"; then
+	log_info "$LOGFILE" "-------------------------------------"
+	cat "$TMPFILE_ARGS" | log_error "$LOGFILE"
+	get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "$SCRIPT_NAME : Invalid arguments"
+else
+	log_info "$LOGFILE" "-------------------------------------"
+	cat "$TMPFILE_ARGS" | log_info "$LOGFILE"
 
+	# run script if possible (lock not existing)
+	run_main "$LOGFILE" "$SCRIPT_NAME"
+	# in case of error, send mail with extract of log file
+	[ "$?" -eq "2" ] && get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "$SCRIPT_NAME : issue occured during execution"
+fi
+
+$BIN_RM "$TMPFILE_ARGS"
 exit 0
 

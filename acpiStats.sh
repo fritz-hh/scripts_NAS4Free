@@ -28,7 +28,8 @@ cd "`dirname $0`"
 # Initialization of the constants 
 readonly START_TIMESTAMP=`$BIN_DATE +"%s"`
 readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
-readonly TMPFILE="$CFG_TMP_FOLDER/$SCRIPT_NAME.tmp"
+readonly TMPFILE="$CFG_TMP_FOLDER/$SCRIPT_NAME.$$.stat.tmp"
+readonly TMPFILE_ARGS="$CFG_TMP_FOLDER/$SCRIPT_NAME.$$.args.tmp"
 readonly ACPI_STATE_LOGFILE="$CFG_LOG_FOLDER/acpi.log"
 
 # Set variables corresponding to the input parameters
@@ -50,6 +51,7 @@ I_W_S5="0"			# Power consumed by the NAS in S5 (in mW)
 # Check script input parameters
 #
 # Params: all parameters of the shell script
+# return : 1 if an error occured, 0 otherwise 
 ##################################
 parseInputParams() {
 	local regex_pow regex_pows opt
@@ -61,7 +63,6 @@ parseInputParams() {
 	while getopts ":p:" opt; do
 	
 		case $opt in
-		
 			p)	echo "$OPTARG" | grep -E "^$regex_pows$" >/dev/null 
 				if [ "$?" -eq "0" ] ; then
 					I_COMPUTE_CONSUMPTION="1"	
@@ -69,14 +70,14 @@ parseInputParams() {
 					I_W_S3=`echo "$OPTARG" | cut -f2 -d,`			
 					I_W_S5=`echo "$OPTARG" | cut -f3 -d,`			
 				else
-					log_error "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -p. Should be \"pS0,pS3,pS5\", were pSx are integer"
+					echo "Invalid parameter \"$OPTARG\" for option: -p. Should be \"pS0,pS3,pS5\", were pSx are integer"
 					return 1
 				fi ;;
 			\?)
-				log_error "$LOGFILE" "Invalid option: -$OPTARG"
+				echo "Invalid option: -$OPTARG"
 				return 1 ;;
 			:)
-				log_error "$LOGFILE" "Option -$OPTARG requires an argument"
+				echo "Option -$OPTARG requires an argument"
 				return 1 ;;
                 esac
         done
@@ -87,7 +88,7 @@ parseInputParams() {
 	# Check if the number of mandatory parameters 
 	# provided is as expected 
 	if [ "$#" -ne "0" ]; then
-		log_error "$LOGFILE" "No mandatory arguments should be provided"
+		echo "No mandatory arguments should be provided"
 		return 1
 	fi
 	
@@ -208,13 +209,7 @@ log_stats() {
 main() {
 	local oldest_acpi_ts 
 
-	log_info "$LOGFILE" "-------------------------------------"
 	log_info "$LOGFILE" "Starting computation of ACPI statistics"
-	
-	# Parse the input parameters
-	if ! parseInputParams $ARGUMENTS; then
-		return 1
-	fi
 
 	oldest_acpi_ts=`get_log_oldest_ts "$ACPI_STATE_LOGFILE"`
 	if [ "$?" -ne "0" ]; then
@@ -252,10 +247,21 @@ main() {
 
 
 
-# run script if possible (lock not existing)
-run_main "$LOGFILE" "$SCRIPT_NAME" 
-# in case of error, send mail with extract of log file
-[ "$?" -eq "2" ] && `get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "ACPI statistics computation issue"`
+# Parse and validate the input parameters
+if ! parseInputParams $ARGUMENTS > "$TMPFILE_ARGS"; then
+	log_info "$LOGFILE" "-------------------------------------"
+	cat "$TMPFILE_ARGS" | log_error "$LOGFILE"
+	get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "$SCRIPT_NAME : Invalid arguments"
+else
+	log_info "$LOGFILE" "-------------------------------------"
+	cat "$TMPFILE_ARGS" | log_info "$LOGFILE"
 
-exit 0 
+	# run script if possible (lock not existing)
+	run_main "$LOGFILE" "$SCRIPT_NAME"
+	# in case of error, send mail with extract of log file
+	[ "$?" -eq "2" ] && get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "$SCRIPT_NAME : issue occured during execution"
+fi
+
+$BIN_RM "$TMPFILE_ARGS"
+exit 0
 
