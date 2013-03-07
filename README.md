@@ -123,8 +123,13 @@ INSTALLATION AND CONFIGURATION:
 
 https://github.com/fritz-hh/scripts_NAS4Free/wiki
 
-DISCLAIMER
-==========
+SUPPORT / QUESTIONS:
+====================
+
+http://forums.nas4free.org/viewtopic.php?f=70&t=2197
+
+DISCLAIMER:
+===========
 
 Even though the scripts were developped with particular focus on robustness, I do not provide any warranty with the script !
 (I am nor a freeBSD expert nor a SW developper, but a simple user)
