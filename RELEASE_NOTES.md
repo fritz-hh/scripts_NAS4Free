@@ -5,6 +5,29 @@ Please read always this file before installing the package
 
 Download software here: https://github.com/fritz-hh/scripts_NAS4Free/tags
 
+v1.0 (2013-03-12):
+====
+
+New features
+------------
+
+- None
+
+Changes
+-------
+
+- None
+
+Fixes
+-----
+
+- checkSpace.sh: (fixes #18): Minor fix regarding quota of volumes that may equal to the character: "-"
+
+Tested with
+-----------
+
+- NAS4Free 9.1.0.1 - Sandstorm (revision 531) - Embedded
+
 v1.0-rc4 (2013-03-04):
 ========
 
@@ -16,7 +39,7 @@ New features
 Changes
 -------
 
-- backupData.sh: compression algorithm changed from "gzip" to "lzjb"
+- backupData.sh: compression algorithm of destination pool changed from "gzip" to "lzjb"
 
 Fixes
 -----
@@ -30,7 +53,7 @@ Fixes
 Tested with
 -----------
 
-- NAS4Free 9.1.0.1 - Sandstorm (revision 531)
+- NAS4Free 9.1.0.1 - Sandstorm (revision 531) - Embedded
 
 v1.0-rc3 (2013-02-22):
 ========
@@ -57,7 +80,7 @@ Fixes
 Tested with
 -----------
 
-- NAS4Free 9.1.0.1 - Sandstorm (revision 531)
+- NAS4Free 9.1.0.1 - Sandstorm (revision 531) - Embedded
 
 v1.0-rc2 (2013-02-19):
 ========
@@ -82,7 +105,7 @@ Fixes
 Tested with
 -----------
 
-- NAS4Free 9.1.0.1 - Sandstorm (revision 531)
+- NAS4Free 9.1.0.1 - Sandstorm (revision 531) - Embedded
 
 v1.0-rc1 (2013-02-17): (1st version managed on github)
 ========
@@ -113,4 +136,4 @@ Fixes
 Tested with
 -----------
 
-- NAS4Free 9.1.0.1 - Sandstorm (revision 531)
+- NAS4Free 9.1.0.1 - Sandstorm (revision 531) - Embedded

@@ -96,11 +96,14 @@ parseInputParams() {
 # Return : quota in byte (0 if no quota was set)
 ##################################
 getQuota() {
-	local fs
+	local fs q
 	fs="$1"
 
-	# compute the quota of the filesystem in bytes
-	$BIN_ZFS get -o value -Hp quota $fs
+	# compute the quota of the filesystem in byte
+	q=`$BIN_ZFS get -o value -Hp quota $fs`
+	# check if quota is not a number, for volumes it migh be "-"
+	! [ "$q" -eq "$q" ] 2>/dev/null && q="0"   
+	echo $q
 }
 
 ##################################
@@ -112,7 +115,7 @@ getUsed() {
 	local fs
 	fs="$1"
 
-	# compute the used size of the filesystem in bytes
+	# compute the used size of the filesystem in byte
 	$BIN_ZFS get -o value -Hp used $fs
 }
 
@@ -125,7 +128,7 @@ getAvailable() {
 	local fs
 	fs="$1"
 
-	# compute the used size of the filesystem in bytes
+	# compute the used size of the filesystem in byte
 	$BIN_ZFS get -o value -Hp avail $fs
 }
 
