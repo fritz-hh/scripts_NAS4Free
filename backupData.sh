@@ -6,7 +6,7 @@
 #
 # Author: fritz from NAS4Free forum
 #
-# Usage: backupData.sh [-r user@host] [-b maxRollbck] fsSource fsDest
+# Usage: backupData.sh [-r user@host] [-b maxRollbck] [-c compression1[...,compressionN]] fsSource1[...,fsSourceN] fsDest
 #
 #	-r user@host:	Specify a remote host on which the destination filesystem is located
 #			Prerequisite: An ssh server shall be running on the host and
@@ -18,7 +18,15 @@
 #			A rollback is necessary if the snapshots available on the 
 #			destination fs are not available anymore on the source fs
 #			Default value: 10 days
-#	fsSource : 	zfs filesystems to be backed-up (source).
+#	-c compression1[...,compressionN] : compression algorithm to be used for the respective
+#			destination filesystem.
+#			If only one compression algorithm is provided, this algorithm applies to each 
+#			destination filesystem.
+#			If more then one compression algorithm is provided (exactly the same number
+#			of algorithm shall be provided as the number of source filesystems), 
+#			compressionN is the algorithm that will be set for the destination filesystem
+#			corresponding to fsSourceN.
+#	fsSource1[...,fsSourceN] :  zfs filesystems to be backed-up (source).
 #	   		Several file systems can be provided (They shall be separated by a comma ",")
 #	   		Note: These fs (as well as the sub-fs) shall have a default mountpoint
 # 	fsDest : 	zfs filesystem in which the data should be backed-up (destination)
@@ -48,7 +56,8 @@ cd "`dirname $0`"
 
 # Initialization of constants 
 readonly START_TIMESTAMP=`$BIN_DATE +"%s"` 
-readonly COMPRESSION="lzjb"		# Type of compression to be used for the destination fs
+readonly SUPPORTED_COMPRESSION='on|off|lzjb|gzip|gzip-[1-9]|zle'
+readonly DEFAULT_COMPRESSION="lzjb"	# Default compression algorithm to be used for the destination fs
 readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
 readonly TMP_FILE="$CFG_TMP_FOLDER/run_fct_ssh.sh"
 readonly TMPFILE_ARGS="$CFG_TMP_FOLDER/$SCRIPT_NAME.$$.args.tmp"
@@ -104,11 +113,13 @@ run_fct_ssh() {
 # return : 1 if an error occured, 0 otherwise 
 ##################################
 parseInputParams() {
-	local opt current_fs current_src_pool dest_pool regex_rollback host
-
+	local opt current_fs current_src_pool dest_pool regex_rollback host regex_comp comp_num fs_num
+	
+	regex_comp="^($SUPPORTED_COMPRESSION)([,]($SUPPORTED_COMPRESSION)){0,}$"
+	
 	# parse the optional parameters
 	# (there should be none)
-	while getopts ":r:b:" opt; do
+	while getopts ":r:b:c:" opt; do
         	case $opt in
 			r)	echo "$OPTARG" | grep -E "^(.+)@(.+)$" >/dev/null 
 				if [ "$?" -eq "0" ] ; then
@@ -136,6 +147,13 @@ parseInputParams() {
 					I_MAX_ROLLBACK_S=$(($OPTARG*$S_IN_DAY))
 				else
 					echo "Wrong maximum rollback value, should be a positive integer or zero (unit: days) !"
+					return 1
+				fi ;;
+			c)	echo "$OPTARG" | grep -E "$regex_comp" >/dev/null 
+				if [ "$?" -eq "0" ] ; then
+					I_COMPRESSION=$OPTARG
+				else
+					echo "Bad compression definition, should be a set of compression algorithms (supported by ZFS) separated by comma \",\" characters"
 					return 1
 				fi ;;
 			\?)
@@ -185,6 +203,29 @@ parseInputParams() {
 		fi
 	done
 	
+	# Ensure that the number of compression algorithm provided is compatible with
+	# the number of source filesystems
+	if [ -n "$I_COMPRESSION" ]; then
+		
+		# number of compression algorithm defined
+		comp_num=`echo "$I_COMPRESSION" | tr "," "\n" | wc -l`
+		echo "comp num = $comp_num"
+		# number of source fs defined
+		fs_num=`echo "$I_SRC_FSS" | tr " " "\n" | wc -l`
+		echo "fs num = $fs_num"
+		
+		# if exactly 1 compression algorithm was defined
+		if [ $comp_num -eq 1 ]; then
+			# TODO replace I_COMPRESSION, by as many occurences of the algo as occurences of source fs
+			echo "1"
+		# if the number of compression algorithm is no equal 
+		# to the number number of source fs that were defined
+		elif [ $comp_num -ne $fs_num ]; then
+			echo "Bad compression definition, the number of compression algorithm should either equal 1 or should be equal to the number of source filesystems"
+			return 1
+		fi
+	fi
+	
 	return 0
 }
 
@@ -215,7 +256,7 @@ ensureRemoteFSExists() {
 	fi
 
 	# create the filesystem (-p option to create the parent fs if it does not exist)
-	if ! $RUN_CMD_SSH $BIN_ZFS create -p -o compression="$COMPRESSION" "$fs"; then
+	if ! $RUN_CMD_SSH $BIN_ZFS create -p -o compression="$DEFAULT_COMPRESSION" "$fs"; then
 		log_error "$LOGFILE" "The filesystem could NOT be created"
 
 		# Set the destination pool to readonly
@@ -235,6 +276,7 @@ ensureRemoteFSExists() {
 		return 0
 	fi
 }
+
 
 ##################################
 # Backup the source filesystem 
@@ -338,15 +380,18 @@ backup() {
 # Main 
 ##################################
 main() {
-	local returnCode current_fs currentSubSrcFs 
+	local returnCode current_fs currentSubSrcFs algo cpt
 
 	returnCode=0
-
+	
 	log_info "$LOGFILE" "Starting backup of \"$I_SRC_FSS\""
 
 	# Itterate through all source filesystems for which a backup should be done
+	cpt=0
 	for current_fs in $I_SRC_FSS ; do
 
+		cpt=$(($cpt+1))
+	
 		# for the current fs and all its sub-filesystems
 		for currentSubSrcFs in `$BIN_ZFS list -r -H -o name $current_fs`; do
 
@@ -355,11 +400,18 @@ main() {
 			if ! ensureRemoteFSExists "$I_DEST_FS/$currentSubSrcFs"; then
 				returnCode=1
 			else
-				# Perform the backup
-				backup $currentSubSrcFs "$I_DEST_FS/$currentSubSrcFs"
-				if [ "$?" -ne "0" ]; then
-					returnCode=1
+				# if a compression algorithm was specified by the user
+				# set compression algorithm for the current destination fs
+				if [ -n "$I_COMPRESSION" ]; then
+					algo=`echo "$I_COMPRESSION" | cut -f$cpt -d,`
+					$BIN_ZFS set compression="$algo" "$I_DEST_FS/$currentSubSrcFs"
 				fi
+					
+				# Perform the backup
+				#backup $currentSubSrcFs "$I_DEST_FS/$currentSubSrcFs"
+				#if [ "$?" -ne "0" ]; then
+				#	returnCode=1
+				#fi
 			fi
 		done
 	done	
