@@ -57,7 +57,6 @@ cd "`dirname $0`"
 # Initialization of constants 
 readonly START_TIMESTAMP=`$BIN_DATE +"%s"` 
 readonly SUPPORTED_COMPRESSION='on|off|lzjb|gzip|gzip-[1-9]|zle'
-readonly DEFAULT_COMPRESSION="lzjb"	# Default compression algorithm to be used for the destination fs
 readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
 readonly TMP_FILE="$CFG_TMP_FOLDER/run_fct_ssh.sh"
 readonly TMPFILE_ARGS="$CFG_TMP_FOLDER/$SCRIPT_NAME.$$.args.tmp"
@@ -209,18 +208,12 @@ parseInputParams() {
 		
 		# number of compression algorithm defined
 		comp_num=`echo "$I_COMPRESSION" | tr "," "\n" | wc -l`
-		echo "comp num = $comp_num"
 		# number of source fs defined
 		fs_num=`echo "$I_SRC_FSS" | tr " " "\n" | wc -l`
-		echo "fs num = $fs_num"
 		
-		# if exactly 1 compression algorithm was defined
-		if [ $comp_num -eq 1 ]; then
-			# TODO replace I_COMPRESSION, by as many occurences of the algo as occurences of source fs
-			echo "1"
-		# if the number of compression algorithm is no equal 
-		# to the number number of source fs that were defined
-		elif [ $comp_num -ne $fs_num ]; then
+		# if the number of compression algorithm defined is neither 1
+		# nor equal to the number number of source fs that were defined
+		if [ $comp_num -ne 1 -a $comp_num -ne $fs_num ]; then
 			echo "Bad compression definition, the number of compression algorithm should either equal 1 or should be equal to the number of source filesystems"
 			return 1
 		fi
@@ -256,7 +249,7 @@ ensureRemoteFSExists() {
 	fi
 
 	# create the filesystem (-p option to create the parent fs if it does not exist)
-	if ! $RUN_CMD_SSH $BIN_ZFS create -p -o compression="$DEFAULT_COMPRESSION" "$fs"; then
+	if ! $RUN_CMD_SSH $BIN_ZFS create -p "$fs"; then
 		log_error "$LOGFILE" "The filesystem could NOT be created"
 
 		# Set the destination pool to readonly
@@ -380,7 +373,7 @@ backup() {
 # Main 
 ##################################
 main() {
-	local returnCode current_fs currentSubSrcFs algo cpt
+	local returnCode current_fs currentSubSrcFs currentSubDstFs algo cpt
 
 	returnCode=0
 	
@@ -395,28 +388,33 @@ main() {
 		# for the current fs and all its sub-filesystems
 		for currentSubSrcFs in `$BIN_ZFS list -r -H -o name $current_fs`; do
 
+			currentSubDstFs="$I_DEST_FS/$currentSubSrcFs"
+		
 			# create the dest filesystems (recursively) 
 			# if they do not yet exist and exit if it fails
-			if ! ensureRemoteFSExists "$I_DEST_FS/$currentSubSrcFs"; then
+			if ! ensureRemoteFSExists "$currentSubDstFs"; then
 				returnCode=1
 			else
 				# if a compression algorithm was specified by the user
 				# set compression algorithm for the current destination fs
 				if [ -n "$I_COMPRESSION" ]; then
-					algo=`echo "$I_COMPRESSION" | cut -f$cpt -d,`
-					$BIN_ZFS set compression="$algo" "$I_DEST_FS/$currentSubSrcFs"
+					# compute compress algorithm for the current fs, or unique algorithm if only one was defined
+					algo=`echo "$I_COMPRESSION" | cut -f$cpt -d,` 
+					if ! $BIN_ZFS set compression="$algo" "$currentSubDstFs"; then
+						log_error "$LOGFILE" "Could not set compression algorithm to \"$algo\" for \"$currentSubDstFs\""
+						returnCode=1
+					fi
 				fi
-					
+
 				# Perform the backup
-				#backup $currentSubSrcFs "$I_DEST_FS/$currentSubSrcFs"
-				#if [ "$?" -ne "0" ]; then
-				#	returnCode=1
-				#fi
+				if ! backup "$currentSubSrcFs" "$currentSubDstFs"; then
+					returnCode=1
+				fi
 			fi
 		done
-	done	
+	done
 
-	return $returnCode 
+	return $returnCode
 }
 
 
