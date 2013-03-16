@@ -20,9 +20,11 @@ cd "`dirname $0`"
 readonly DURATION=604800			# The entries from the last week (duration in sec)
 readonly LOG_FILES="$CFG_LOG_FOLDER/*.log"	# The log files to be considered
 
-# Appending the extract of the logs
+echo "Script package version: $CFG_VERSION"
 time_limit=`$BIN_DATE -j -v-"$DURATION"S`
 echo "Showing log entries appended after: $time_limit" 
+
+# Appending the extract of the logs
 for f in $LOG_FILES; do
 	# Only consider files, not folders
 	if [ -f "$f" ]; then
