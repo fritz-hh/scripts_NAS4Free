@@ -6,19 +6,23 @@
 #
 # Author: fritz from NAS4Free forum
 #
-# Usage: backupData.sh [-r user@host] [-b maxRollbck] [-c compression1[...,compressionN]] fsSource1[...,fsSourceN] fsDest
+# Usage: backupData.sh [-r user@host[,path2privatekey]] [-b maxRollbck] [-c compression[,...]] fsSource[,...] fsDest
 #
-#	-r user@host:	Specify a remote host on which the destination filesystem is located
+#	-r user@host[,path2privatekey]:	Specify a remote host on which the destination filesystem 
+#			is located
 #			Prerequisite: An ssh server shall be running on the host and
 #			public key authentication shall be available
 #			(By default the destination filesystem is on the local host)
 #			host: ip address or name of the host computer
 #			user: name of the user on the host computer
+#			path2privatekey: The path to the private key that should be used to
+#				login. (This is required either if you are logged under another user
+#				in the local host, or if you run the script from cron)
 #	-b maxRollbck :	Biggest allowed rollback (in days) on the destination fs.
 #			A rollback is necessary if the snapshots available on the 
 #			destination fs are not available anymore on the source fs
 #			Default value: 10 days
-#	-c compression1[...,compressionN] : compression algorithm to be used for the respective
+#	-c compression[,...] : compression algorithm to be used for the respective
 #			destination filesystem.
 #			If only one compression algorithm is provided, this algorithm applies to each 
 #			destination filesystem.
@@ -26,7 +30,7 @@
 #			of algorithm shall be provided as the number of source filesystems), 
 #			compressionN is the algorithm that will be set for the destination filesystem
 #			corresponding to fsSourceN.
-#	fsSource1[...,fsSourceN] :  zfs filesystems to be backed-up (source).
+#	fsSource[,...] :  zfs filesystems to be backed-up (source).
 #	   		Several file systems can be provided (They shall be separated by a comma ",")
 #	   		Note: These fs (as well as the sub-fs) shall have a default mountpoint
 # 	fsDest : 	zfs filesystem in which the data should be backed-up (destination)
@@ -61,7 +65,7 @@ readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
 readonly TMP_FILE="$CFG_TMP_FOLDER/run_fct_ssh.sh"
 readonly TMPFILE_ARGS="$CFG_TMP_FOLDER/$SCRIPT_NAME.$$.args.tmp"
 readonly S_IN_DAY=86400			# Number of seconds in a day
-readonly SSH_BATCHMODE="no"		# Only public key authentication is allowed in batch mode 
+readonly SSH_BATCHMODE="yes"		# Only public key authentication is allowed in batch mode 
 					# (should only change to "no" for test purposes)
 
 # Initialization of inputs corresponding to optional args of the script
@@ -94,8 +98,12 @@ run_fct_ssh() {
 	cat "common/commonSnapFcts.sh" >> $TMP_FILE 
 	echo "$@" >>  $TMP_FILE
 	
-	# remote the code on the remote host
-	$BIN_SSH -oBatchMode=$SSH_BATCHMODE -t $I_REMOTE_LOGIN "/bin/sh" < $TMP_FILE
+	# run the code on the remote host
+	if [ -z "$I_PATH_KEY" ]; then
+		$BIN_SSH -oBatchMode=$SSH_BATCHMODE -t $I_REMOTE_LOGIN "/bin/sh" < $TMP_FILE
+	else
+		$BIN_SSH -i "$I_PATH_KEY" -oBatchMode=$SSH_BATCHMODE -t $I_REMOTE_LOGIN "/bin/sh" < $TMP_FILE
+	fi
 	return_code="$?"
 	
 	# delete the tmp file
@@ -123,17 +131,22 @@ parseInputParams() {
 			r)	echo "$OPTARG" | grep -E "^(.+)@(.+)$" >/dev/null 
 				if [ "$?" -eq "0" ] ; then
 					I_REMOTE_ACTIVE="1"
-					I_REMOTE_LOGIN="$OPTARG"
+					I_REMOTE_LOGIN=`echo "$OPTARG" | cut -f1 -d,`
+					I_PATH_KEY=`echo "$OPTARG" | cut -s -f2 -d,`	# empty if path not specified (i.e. no "," found)
 					
 					# set variables to ensure remote execution of
 					# some parts of the script
 					RUN_FCT_SSH="run_fct_ssh"
-					RUN_CMD_SSH="$BIN_SSH -oBatchMode=$SSH_BATCHMODE $I_REMOTE_LOGIN"
+					if [ -z "$I_PATH_KEY" ]; then
+						RUN_CMD_SSH="$BIN_SSH -oBatchMode=$SSH_BATCHMODE $I_REMOTE_LOGIN"
+					else				
+						RUN_CMD_SSH="$BIN_SSH -i $I_PATH_KEY -oBatchMode=$SSH_BATCHMODE $I_REMOTE_LOGIN"				
+					fi
 					
 					# testing ssh connection
 					if $RUN_CMD_SSH exit 0; then
 						echo "SSH connection test successful."
-					else					
+					else
 						echo "SSH connection failed. Please check username / hostname and ensure availability of public key authentication"
 						return 1
 					fi
