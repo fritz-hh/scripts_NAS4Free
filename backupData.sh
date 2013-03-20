@@ -413,7 +413,9 @@ main() {
 				if [ -n "$I_COMPRESSION" ]; then
 					# compute compress algorithm for the current fs, or unique algorithm if only one was defined
 					algo=`echo "$I_COMPRESSION" | cut -f$cpt -d,` 
-					if ! $BIN_ZFS set compression="$algo" "$currentSubDstFs"; then
+					if $RUN_CMD_SSH $BIN_ZFS set compression="$algo" "$currentSubDstFs" 2>/dev/null 1>/dev/null; then
+						log_info "$LOGFILE" "Compression algorithm set to \"$algo\" for \"$currentSubDstFs\""
+					else
 						log_error "$LOGFILE" "Could not set compression algorithm to \"$algo\" for \"$currentSubDstFs\""
 						returnCode=1
 					fi
