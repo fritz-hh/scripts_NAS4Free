@@ -209,7 +209,7 @@ createSnapshot() {
 	elif [ $I_MAX_NB_HOURLY -ne 0 ]; then  
 		tag="$HOURLY_TAG"
 	else
-		log_info "$LOGFILE" "Currently, no need to create any snapshot for filesystem $filesystem"
+		log_info "$LOGFILE" "$filesystem: Currently, no need to create any snapshot"
 		return 0
 	fi
 
@@ -218,11 +218,11 @@ createSnapshot() {
 	newSnapshotName=`generateSnapshotName "$tag" "$now"`
 
 	fullNewSnapshotname="$filesystem@$newSnapshotName"
-	log_info "$LOGFILE" "Creating new snapshot \"$fullNewSnapshotname\""
+	log_info "$LOGFILE" "$filesystem: Creating new snapshot \"$fullNewSnapshotname\""
 	if `$BIN_ZFS snapshot $fullNewSnapshotname>/dev/null`; then 
 		return 0
 	else
-		log_error "$LOGFILE" "Problem while creating snapshot $fullNewSnapshotname (A snapshot having the same name may already exist)"
+		log_error "$LOGFILE" "$filesystem: Problem while creating snapshot $fullNewSnapshotname (A snapshot having the same name may already exist)"
 		return 1
 	fi
 }
@@ -230,43 +230,37 @@ createSnapshot() {
 
 ##################################
 # Delete old snapshots for the filesystem given as parameter
-# Note: Snapshots for subfile systems are ALSO deleted
+# (not recursively)
 #
 # Param 1: zfs filesystem for which a snapshot shall be deleted
 # Param 2: the snapshot tag to be considered
 # Param 3: max number of snapshots to be kept (all are kept if value is negative)
 ##################################
 deleteOldSnapshots() {
-	local filesystem tag maxNb returnCode subfs
+	local filesystem tag maxNb returnCode
         
 	filesystem="$1"
 	tag="$2"
 	maxNb="$3"
 
 	returnCode=0
-        
-	log_info "$LOGFILE" "Analyzing snapshots with tag \"$tag\""
 
 	# Check if all snapshots are required to be kept
 	if [ "$maxNb" -lt "0" ]; then
-		log_info "$LOGFILE" "$filesystem (and sub-filesystems): All snapshots with tag \"$tag\" kept"
+		log_info "$LOGFILE" "$filesystem: All snapshots with tag \"$tag\" kept"
 		return 0
 	fi 
+	
+	# Delete the snapshots that are too old in the current sub filesystem
+	for snapshot in `sortSnapshots $filesystem $tag | tail -n +$((maxNb+1))`; do
 
-	# Get the list of sub-filesystems from the requested filesystem
-	for subfs in `$BIN_ZFS list -H -r -o name $filesystem`; do
-
-		# Delete the snapshots that are too old in the current sub filesystem
-		for snapshot in `sortSnapshots $subfs $tag | tail -n +$((maxNb+1))`; do
-
-			# Destroy the snapshots that are too old
-			if ! $BIN_ZFS destroy $snapshot; then
-			        log_error "$LOGFILE" "Problem while trying to delete snapshot \"$snapshot\""
-			        returnCode=1
-			else
-				log_info "$LOGFILE" "Snapshot \"$snapshot\" DELETED"
-			fi
-		done
+		# Destroy the snapshots that are too old
+		if ! $BIN_ZFS destroy $snapshot; then
+		        log_error "$LOGFILE" "$filesystem: Problem while trying to delete snapshot \"$snapshot\""
+		        returnCode=1
+		else
+			log_info "$LOGFILE" "$filesystem: Snapshot \"$snapshot\" DELETED"
+		fi
 	done
 
 	return $returnCode
@@ -282,31 +276,32 @@ main() {
 	log_info "$LOGFILE" "Starting snapshot script for dataset \"$I_FILESYSTEM\""
 	log_info "$LOGFILE" "Keeping up to $I_MAX_NB_HOURLY hourly / $I_MAX_NB_DAILY daily / $I_MAX_NB_WEEKLY weekly / $I_MAX_NB_MONTHLY monthly snapshots (<0 = all)" 
 
-	# Make a snapshot of all file systems within the filesystem $I_FILESYSTEM
-	if [ "$I_GENERATE_SNAPSHOT" -eq "1" ]; then
-		for subfilesystem in `$BIN_ZFS list -H -r -o name $I_FILESYSTEM`; do
+	# Itterate the filesystems
+	for subfilesystem in `$BIN_ZFS list -H -r -o name $I_FILESYSTEM`; do
+		# If requested make a snapshot of all file systems within the filesystem $I_FILESYSTEM
+		if [ "$I_GENERATE_SNAPSHOT" -eq "1" ]; then	
 			if ! createSnapshot $subfilesystem; then
 				returnCode=1	
-			fi 
-		done
-	else
-		log_info "$LOGFILE" "Snapshot creation deactivated (no snapshot created)"
-	fi
+			fi
+		else
+			log_info "$LOGFILE" "$subfilesystem: Snapshot creation deactivated (no snapshot created)"
+		fi
 
-	# Delete the superfluous snapshots
-	log_info "$LOGFILE" "Removing superfluous snapshots"
-	if ! deleteOldSnapshots "$I_FILESYSTEM" "$HOURLY_TAG" "$I_MAX_NB_HOURLY"; then
-		returnCode=1	
-	fi 
-	if ! deleteOldSnapshots "$I_FILESYSTEM" "$DAILY_TAG" "$I_MAX_NB_DAILY"; then
-		returnCode=1	
-	fi 
-	if ! deleteOldSnapshots "$I_FILESYSTEM" "$WEEKLY_TAG" "$I_MAX_NB_WEEKLY"; then
-		returnCode=1	
-	fi 
-	if ! deleteOldSnapshots "$I_FILESYSTEM" "$MONTHLY_TAG" "$I_MAX_NB_MONTHLY"; then
-		returnCode=1	
-	fi 
+		# Delete the superfluous snapshots for the filesystem
+		log_info "$LOGFILE" "$subfilesystem: Removing superfluous snapshots"
+		if ! deleteOldSnapshots "$subfilesystem" "$HOURLY_TAG" "$I_MAX_NB_HOURLY"; then
+			returnCode=1	
+		fi 
+		if ! deleteOldSnapshots "$subfilesystem" "$DAILY_TAG" "$I_MAX_NB_DAILY"; then
+			returnCode=1	
+		fi 
+		if ! deleteOldSnapshots "$subfilesystem" "$WEEKLY_TAG" "$I_MAX_NB_WEEKLY"; then
+			returnCode=1	
+		fi 
+		if ! deleteOldSnapshots "$subfilesystem" "$MONTHLY_TAG" "$I_MAX_NB_MONTHLY"; then
+			returnCode=1	
+		fi 		
+	done
 
 	return $returnCode
 }
