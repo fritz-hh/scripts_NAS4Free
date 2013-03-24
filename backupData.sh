@@ -147,7 +147,8 @@ parseInputParams() {
 					if $RUN_CMD_SSH exit 0; then
 						echo "SSH connection test successful."
 					else
-						echo "SSH connection failed. Please check username / hostname and ensure availability of public key authentication"
+						echo "SSH connection failed. Please check username / hostname,"
+						echo "ensure that public key authentication is configured, and that you have access to the private key file"
 						return 1
 					fi
 				else
