@@ -26,7 +26,7 @@ sortSnapshots() {
 	snapshotTag="$2"
 
 	# sort the snapshot based on the "creation" attribute
-	$BIN_ZFS list -H -o name -S creation -t snapshot -d 1 -r $filesystem \
+	$BIN_ZFS list -H -o name -S creation -t snapshot -d 1 $filesystem \
 		| grep ".*@.*$snapshotTag"
 }
 
