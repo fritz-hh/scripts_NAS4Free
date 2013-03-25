@@ -6,9 +6,9 @@
 #
 # Author: fritz from NAS4Free forum
 #
-# Usage: backupData.sh [-r user@host[,path2privatekey]] [-b maxRollbck] [-c compression[,...]] fsSource[,...] fsDest
+# Usage: backupData.sh [-s user@host[,path2privatekey]] [-b maxRollbck] [-c compression[,...]] fsSource[,...] fsDest
 #
-#	-r user@host[,path2privatekey]:	Specify a remote host on which the destination filesystem 
+#	-s user@host[,path2privatekey]:	Specify a remote host on which the destination filesystem 
 #			is located
 #			Prerequisite: An ssh server shall be running on the host and
 #			public key authentication shall be available
@@ -126,9 +126,9 @@ parseInputParams() {
 	
 	# parse the optional parameters
 	# (there should be none)
-	while getopts ":r:b:c:" opt; do
+	while getopts ":s:b:c:" opt; do
         	case $opt in
-			r)	echo "$OPTARG" | grep -E "^(.+)@(.+)$" >/dev/null 
+			s)	echo "$OPTARG" | grep -E "^(.+)@(.+)$" >/dev/null 
 				if [ "$?" -eq "0" ] ; then
 					I_REMOTE_ACTIVE="1"
 					I_REMOTE_LOGIN=`echo "$OPTARG" | cut -f1 -d,`
@@ -152,7 +152,7 @@ parseInputParams() {
 						return 1
 					fi
 				else
-					echo "Remote login data (\"$OPTARG\") does not have the expect format: username@hostname"
+					echo "Remote login data (\"$OPTARG\") does not have the expected format: username@hostname"
 					return 1
 				fi ;;
 			b)	echo "$OPTARG" | grep -E "^([0-9]+)$" >/dev/null 
