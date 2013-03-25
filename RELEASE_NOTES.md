@@ -5,6 +5,35 @@ Please read always this file before installing the package
 
 Download software here: https://github.com/fritz-hh/scripts_NAS4Free/tags
 
+v2.0-beta1 (2013-03-25):
+====
+
+New features
+------------
+
+- backupData.sh: support of remote backup through ssh
+- backupData.sh: check that the pool of the destination filesystem is different from the pool of each destination filesystem
+- backupData.sh: (closes #19) new option -c to set compression for the destination filesystems
+- manageAcpi.sh: (closes #7) new switch -s to prevent shutdown in case of active ssh connection to the server
+- manageSnapshots.sh: new switch -r to process recursively the filesystems at and given depth
+
+Changes
+-------
+
+- backupData.sh: (closes #8) allow any zfs fs as detination of the backup (not only a pool) (e.g. not only "backup_pool" but also "backup_pool/abc" are now supported)
+- manageAcpi.sh: signature of -n switch changed (before [-n beg,end,acpi,delay,ips], after [-n ips,delay,acpi])
+- reportFromLogs.sh: mention package version in report
+
+Fixes
+-----
+
+- None
+
+Tested with
+-----------
+
+- NAS4Free 9.1.0.1 - Sandstorm (revision 531) - Embedded
+
 v1.0 (2013-03-12):
 ====
 
