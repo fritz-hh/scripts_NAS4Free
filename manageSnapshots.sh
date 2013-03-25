@@ -10,8 +10,12 @@
 #
 # Author: fritz from NAS4Free forum
 #
-# Usage: manageSnapshots.sh [-n] [-h num] [-d num] [-w num] [-m num] [-k] filesystem
+# Usage: manageSnapshots.sh [-r depth] [-n] [-h num] [-d num] [-w num] [-m num] [-k] filesystem
 #
+#	-r depth : recursion depth. Recursively process any children of the filesystem, 
+#		limiting the recursion to depth.  
+#		 A depth of 1 will process only the fs and its direct children.
+#		 A negative depth will process the fs and all its children recursively
 # 	-n : Do not create a new snapshot of the file system
 #	-h num : Keep 'num' hourly snapshots (by default: 24) (<0 for all) 
 #	-d num : Keep 'num' daily snapshots (by default: 15) (<0 for all)
@@ -45,9 +49,11 @@ ARGUMENTS="$@"
 I_GENERATE_SNAPSHOT=1	# By default, the script shall generate snapshots (1=true)
 
 I_MAX_NB_HOURLY=24	# Default number of hourly snapshots to be kept
-I_MAX_NB_DAILY=15		# Default number of daily snapshots to be kept
-I_MAX_NB_WEEKLY=8		# Default number of weekly snapshots to be kept
+I_MAX_NB_DAILY=15	# Default number of daily snapshots to be kept
+I_MAX_NB_WEEKLY=8	# Default number of weekly snapshots to be kept
 I_MAX_NB_MONTHLY=12	# Default number of monthly snapshots to be kept
+
+I_DEPTH="-1"		# Default recursion depth
 
 readonly S_IN_HOUR=36000	# Number of seconds in an hour
 readonly S_IN_DAY=86400		# Number of seconds in a day
@@ -94,9 +100,16 @@ parseInputParams() {
 	fi	
 	
 	# parse the optional parameters
-	while getopts ":nh:d:w:m:k" opt; do
+	while getopts ":r:nh:d:w:m:k" opt; do
 		case $opt in
 			n) 	I_GENERATE_SNAPSHOT=0 ;;
+			r) 	echo "$OPTARG" | grep -E "$regex_int" >/dev/null	# Check if positive or negative integer
+				if [ "$?" -eq "0" ] ; then 
+					I_DEPTH="$OPTARG" 
+				else
+					echo "Invalid parameter \"$OPTARG\" for option: -r. Should be an integer."
+					return 1
+				fi ;;
 			h) 	echo "$OPTARG" | grep -E "$regex_int" >/dev/null	# Check if positive or negative integer
 				if [ "$?" -eq "0" ] ; then 
 					I_MAX_NB_HOURLY="$OPTARG" 
@@ -270,14 +283,21 @@ deleteOldSnapshots() {
 # Main 
 ##################################
 main() {
-	local returnCode
+	local returnCode depth_flag
 	returnCode=0
 
-	log_info "$LOGFILE" "Starting snapshot script for dataset \"$I_FILESYSTEM\""
+	log_info "$LOGFILE" "Starting snapshot script for dataset \"$I_FILESYSTEM\" (depth: $I_DEPTH)"
 	log_info "$LOGFILE" "Keeping up to $I_MAX_NB_HOURLY hourly / $I_MAX_NB_DAILY daily / $I_MAX_NB_WEEKLY weekly / $I_MAX_NB_MONTHLY monthly snapshots (<0 = all)" 
 
-	# Itterate the filesystems
-	for subfilesystem in `$BIN_ZFS list -H -r -o name $I_FILESYSTEM`; do
+	# Compute the arguments required to process the fs ar the requested depth
+	if [ "$I_DEPTH" -lt "0" ]; then
+		depth_flag="-r"
+	else
+		depth_flag="-d $I_DEPTH"	
+	fi
+
+	# Itterate the filesystems	
+	for subfilesystem in `$BIN_ZFS list -H $depth_flag -o name $I_FILESYSTEM`; do
 		# If requested make a snapshot of all file systems within the filesystem $I_FILESYSTEM
 		if [ "$I_GENERATE_SNAPSHOT" -eq "1" ]; then	
 			if ! createSnapshot $subfilesystem; then
@@ -288,7 +308,6 @@ main() {
 		fi
 
 		# Delete the superfluous snapshots for the filesystem
-		log_info "$LOGFILE" "$subfilesystem: Removing superfluous snapshots"
 		if ! deleteOldSnapshots "$subfilesystem" "$HOURLY_TAG" "$I_MAX_NB_HOURLY"; then
 			returnCode=1	
 		fi 
