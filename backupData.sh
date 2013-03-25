@@ -35,7 +35,7 @@
 #	   		Note: These fs (as well as the sub-fs) shall have a default mountpoint
 # 	fsDest : 	zfs filesystem in which the data should be backed-up (destination)
 #			Note: This filesystem must already exist before to launch the backup.
-#			Note: This ZPOOL in which this filesystem is located should be different
+#			Note: The ZPOOL in which this filesystem is located should be different
 #			      from the ZPOOL(s) of the source filesystems
 #
 # Example: 
