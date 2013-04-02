@@ -71,7 +71,7 @@ Note 1: In Services|CIFS/SMB|Share|Edit, set the parameter "Shadow Copy format" 
 backupData.sh:
 --------------
 
-- Backup incrementally (using zfs send/receive) the content of a set of ZFS filesystems into another pool located in the same NAS box
+- Backup incrementally (using zfs send/receive) the content of a set of ZFS filesystems into another pool located either in the same NAS box, or in a remote machine
 - Report the results in a log file.
 - Send a mail if an error occurs
 - This script was designed to able to cope with the deletion of superfluous snapshots in the data pool (This may be issued by the manageSnapshots.sh script)
@@ -83,8 +83,9 @@ manageAcpi.sh:
 - Controls shutdown (S5) or sleep (S3) of the NAS based on various parameters
     - If no computer that may access the NAS is online during a certain time (based on the IP address)
     - If the curfew is reached!
-- Prevents a shutdown / sleep during a configurable timeslot
-- Prevents a shutdown / sleep to be issued when one of the above administrative tasks is running
+- (if requested) prevents a shutdown / sleep during a configurable timeslot
+- (if requested) Prevents a shutdown / sleep if another machine is accessing to the NAS using SSH 
+- Prevents a shutdown / sleep to be issued when one of the above administrative scripts is running
 - Reports the results in a log file.
 - Script to be started at NAS startup. The script runs as an endless loop
 
