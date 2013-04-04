@@ -1,7 +1,7 @@
 RELEASE NOTES
 =============
 
-Please read always this file before installing the package
+Please always read this file before installing the package
 
 Download software here: https://github.com/fritz-hh/scripts_NAS4Free/tags
 
@@ -12,10 +12,10 @@ New features
 ------------
 
 - backupData.sh: support of remote backup through ssh
-- backupData.sh: check that the pool of the destination filesystem is different from the pool of each destination filesystem
+- backupData.sh: check that the pool of the destination filesystem is different from the pool of each source filesystem
 - backupData.sh: (closes #19) new option -c to set compression for the destination filesystems
 - manageAcpi.sh: (closes #7) new switch -s to prevent shutdown in case of active ssh connection to the server
-- manageSnapshots.sh: new switch -r to process recursively the filesystems at and given depth
+- manageSnapshots.sh: new switch -r to process recursively the filesystems at a given depth
 
 Changes
 -------
