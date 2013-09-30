@@ -173,7 +173,8 @@ run_main() {
 	if [ "$retCodeAcquireLock" -eq "0" ]; then
 		! main && errInMain=1
 	elif [ "$retCodeAcquireLock" -eq "1" ]; then
-		log_error "$log_file" "Could not start script (Another instance is running)"
+		log_error "$log_file" "Could not start script: Another instance is running or stopped abnormally"
+		log_error "$log_file" "In the latter case, please delete manually the corresponding lock: \"`get_lock_path $lock_id`\""
 		return 2
 	elif [ "$retCodeAcquireLock" -eq "2" ]; then
 		log_info "$log_file" "Could not start script (The system is probably about to shutdown)"
