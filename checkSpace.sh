@@ -148,7 +148,7 @@ main() {
 
 	
 	# Check the space for the filesystem (and for all sub-fs recursively)
-	for subfilesystem in `$BIN_ZFS list -H -r -o name $I_FILESYSTEM`; do
+	for subfilesystem in `$BIN_ZFS list -t filesystem,volume -H -r -o name $I_FILESYSTEM`; do
 
 		quota=`getQuota $subfilesystem`
 		used=`getUsed $subfilesystem`

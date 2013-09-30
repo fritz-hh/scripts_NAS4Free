@@ -297,7 +297,7 @@ main() {
 	fi
 
 	# Itterate the filesystems	
-	for subfilesystem in `$BIN_ZFS list -H $depth_flag -o name $I_FILESYSTEM`; do
+	for subfilesystem in `$BIN_ZFS list -t filesystem,volume -H $depth_flag -o name $I_FILESYSTEM`; do
 		# If requested make a snapshot of all file systems within the filesystem $I_FILESYSTEM
 		if [ "$I_GENERATE_SNAPSHOT" -eq "1" ]; then	
 			if ! createSnapshot $subfilesystem; then

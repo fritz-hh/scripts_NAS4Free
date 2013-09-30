@@ -400,7 +400,7 @@ main() {
 		cpt=$(($cpt+1))
 	
 		# for the current fs and all its sub-filesystems
-		for currentSubSrcFs in `$BIN_ZFS list -r -H -o name $current_fs`; do
+		for currentSubSrcFs in `$BIN_ZFS list -t filesystem,volume -r -H -o name $current_fs`; do
 
 			currentSubDstFs="$I_DEST_FS/$currentSubSrcFs"
 		
