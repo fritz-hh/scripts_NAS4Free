@@ -19,7 +19,7 @@
 #				(This option superseeds a sleep order originating from -c and -n)
 #				+ beg: time of the beginning of the slot (format: hh:mm)
 #				+ end: time of the end of the slot (format: hh:mm)
-#	- s delay :		Define that the NAS shall not never go sleep if an incoming SSH connection exists.
+#	- s delay :		Define that the NAS shall never go sleep if an incoming SSH connection exists.
 #				This function may be required in case the NAS is used as a destination of a remote
 #				backup.
 #				(This option superseeds a sleep order originating from -c and -n)
