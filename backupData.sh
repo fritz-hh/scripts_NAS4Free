@@ -60,7 +60,7 @@ cd "`dirname $0`"
 
 # Initialization of constants 
 readonly START_TIMESTAMP=`$BIN_DATE +"%s"` 
-readonly SUPPORTED_COMPRESSION='on|off|lzjb|gzip|gzip-[1-9]|zle'
+readonly SUPPORTED_COMPRESSION='on|off|lzjb|gzip|gzip-[1-9]|zle|lz4'
 readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
 readonly TMP_FILE="$CFG_TMP_FOLDER/run_fct_ssh.sh"
 readonly TMPFILE_ARGS="$CFG_TMP_FOLDER/$SCRIPT_NAME.$$.args.tmp"
