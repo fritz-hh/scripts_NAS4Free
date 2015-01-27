@@ -281,7 +281,7 @@ get_log_entries_ts() {
 		tail -$(($nbLinesInFile-$lastLine+1)) "$f"
 	# Even the last line in the log is too old
 	else
-		echo "The data available in the log file are to old"
+		echo "The data available in the log file are too old"
 		return 2
 	fi
 
