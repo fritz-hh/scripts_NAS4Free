@@ -117,7 +117,7 @@ reportFromLogs.sh:
 DOWNLOAD:
 =========
 
-https://github.com/fritz-hh/scripts_NAS4Free/tags
+https://github.com/fritz-hh/scripts_NAS4Free/releases
 
 INSTALLATION AND CONFIGURATION:
 ===============================
