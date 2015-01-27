@@ -5,6 +5,30 @@ Please always read this file before installing the package
 
 Download software here: https://github.com/fritz-hh/scripts_NAS4Free/tags
 
+v2.0 (2015-01-27):
+====
+
+New features
+------------
+
+- backupData.sh: support for lz4 compression algorithm
+
+Changes
+-------
+
+- None
+
+Fixes
+-----
+
+- manageSnapshots.sh: (fixes #23) Correct wrong behaviour in case zfs property listsnaps=ON
+- Log messages improved
+
+Tested with
+-----------
+
+- NAS4Free  	9.2.0.1 - Shigawire (revision 972) - Embedded
+
 v2.0-beta1 (2013-03-25):
 ====
 
