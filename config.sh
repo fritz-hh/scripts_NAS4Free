@@ -16,8 +16,8 @@
 # Mail configuration
 ################################################
 
-CFG_MAIL_FROM="nas@isp.com"	# Enter the mail address of the NAS here (should be the same address than in NAS GUI: System|Advanced|Email)
-CFG_MAIL_TO="admin@isp.com"	# Enter the email of the NAS administrator here
+CFG_MAIL_FROM="nas@example.com"	# Enter the mail address of the NAS here (should be the same address than in NAS GUI: System|Advanced|Email)
+CFG_MAIL_TO="admin@example.com"	# Enter the email of the NAS administrator here
 
 # Paths to log folder, temp folder...
 #
@@ -38,7 +38,7 @@ CFG_LOG_FOLDER="./log"		# Folder containing all log files
 # Version of the package
 ################################################
 
-CFG_VERSION="v2.0-beta1"
+CFG_VERSION="v2.0"
 
 # Paths to specific temp files / folders ...
 ################################################
