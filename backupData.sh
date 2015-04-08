@@ -208,14 +208,14 @@ parseInputParams() {
 	# ensure that the ZPOOL of the destination filesystem is different from the
 	# ZPOOL(s) of the source filesystems
 	if [ "$I_REMOTE_ACTIVE" -eq "0" ]; then
-	dest_pool=`echo "$I_DEST_FS" | cut -f1 -d/`
-	for current_fs in $I_SRC_FSS ; do
-		current_src_pool=`echo "$current_fs" | cut -f1 -d/`
-		if [ "$dest_pool" = "$current_src_pool" ]; then
-			echo "The source filesystem \"$current_fs\" is in the same pool than the destination filesystem \"$I_DEST_FS\""
-			return 1
-		fi
-	done
+		dest_pool=`echo "$I_DEST_FS" | cut -f1 -d/`
+		for current_fs in $I_SRC_FSS ; do
+			current_src_pool=`echo "$current_fs" | cut -f1 -d/`
+			if [ "$dest_pool" = "$current_src_pool" ]; then
+				echo "The source filesystem \"$current_fs\" is in the same pool than the destination filesystem \"$I_DEST_FS\""
+				return 1
+			fi
+		done
 	fi
 	
 	# Ensure that the number of compression algorithm provided is compatible with
