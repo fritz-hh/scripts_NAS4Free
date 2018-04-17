@@ -82,10 +82,10 @@ scrubInProgress() {
 main() {
 
 	# Starting scrubbing
-	log_info "$LOGFILE" "Starting srubbing" 
+	log_info "$LOGFILE" "Starting scrubbing" 
 	$BIN_ZPOOL list -H -o name | while read pool; do
 		$BIN_ZPOOL scrub $pool
-		log_info "$LOGFILE" "Starting srubbing of pool: $pool" 
+		log_info "$LOGFILE" "Starting scrubbing of pool: $pool" 
 	done
 
 	# Waiting for the end of the scrubbing
