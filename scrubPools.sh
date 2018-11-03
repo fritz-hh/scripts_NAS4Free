@@ -97,7 +97,7 @@ main() {
 		$BIN_ZPOOL status -x | log_info "$LOGFILE"
 		return 0
 	else
-		$BIN_ZPOOL status | log_error "$LOGFILE"
+		$BIN_ZPOOL status -v | log_error "$LOGFILE"
 		return 1
 	fi
 }

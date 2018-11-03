@@ -73,7 +73,7 @@ main() {
 		if $BIN_ZPOOL status -x $pool | grep "is healthy">/dev/null; then
 			$BIN_ZPOOL status -x $pool | log_info "$LOGFILE"
 		else
-			$BIN_ZPOOL status $pool | log_error "$LOGFILE"
+			$BIN_ZPOOL status -v $pool | log_error "$LOGFILE"
 		fi 
 	done
 

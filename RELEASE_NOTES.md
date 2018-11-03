@@ -5,6 +5,32 @@ Please always read this file before installing the package
 
 Download software here: https://github.com/fritz-hh/scripts_NAS4Free/tags
 
+v2.1 (2018-11-03):
+====
+
+New features
+------------
+
+- checkPools.sh and scrubPools.sh: In case of pool error, provide
+  a more verbose status message in the log, so that it is possible to located the
+  impacted files. 
+
+Changes
+-------
+
+- None
+
+Fixes
+-----
+
+- None
+
+Tested with
+-----------
+
+- Xigmanas (formerly NAS4Free) 11.2.0.4 - Omnius (revision 6005)
+
+
 v2.0 (2015-01-27):
 ====
 
