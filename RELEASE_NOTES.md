@@ -5,6 +5,32 @@ Please always read this file before installing the package
 
 Download software here: https://github.com/fritz-hh/scripts_NAS4Free/tags
 
+v2.2 (2018-11-03):
+====
+
+New features
+------------
+
+- None 
+
+Changes
+-------
+
+- None
+
+Fixes
+-----
+
+- backupData.sh: (closes #21) Fix a bug that leads the backupData.sh script to set the whole destination pool to 
+  read only a the end of the backup.
+  This is not a good idea at least 1 filesystem of the destination pool are used for other purposes than backup.
+  Now the script puts the zpool to readonly at the end of the script, only if it was readonly, when the script started.
+
+Tested with
+-----------
+
+- Xigmanas (formerly NAS4Free) 11.2.0.4 - Omnius (revision 6005)
+
 v2.1 (2018-11-03):
 ====
 
