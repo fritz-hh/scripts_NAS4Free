@@ -95,7 +95,7 @@ main() {
 	log_info "$LOGFILE" "CPUs (warning threshold: $((I_WARN_THRESHOLD_CPU))C):"
 	printf '%8s %s\n' "Temp(C)" "CPU" | log_info "$LOGFILE"
 	for cpu in `sysctl -a | grep -E "cpu\.[0-9]+\.temp" | cut -f1 -d:`; do 
-		cpuTemp=`sysctl -a | grep $cpu | awk '{gsub(/[[.][0-9]C]*/,"");print $2}'` 
+		cpuTemp=`sysctl -a | grep $cpu | awk '{gsub(/[.][0-9]*C/,"");print $2}'` 
 		
 		printf '%+8d %s\n' "$((cpuTemp))" "$cpu" | log_info "$LOGFILE"
 		
