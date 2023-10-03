@@ -443,16 +443,16 @@ main() {
 if ! parseInputParams $ARGUMENTS > "$TMPFILE_ARGS"; then
 	log_info "$LOGFILE" "-------------------------------------"
 	cat "$TMPFILE_ARGS" | log_error "$LOGFILE"
+	$BIN_RM "$TMPFILE_ARGS"
 	get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "$SCRIPT_NAME : Invalid arguments"
 else
+	$BIN_RM "$TMPFILE_ARGS"
 	log_info "$LOGFILE" "-------------------------------------"
-	cat "$TMPFILE_ARGS" | log_info "$LOGFILE"
 	
         # Return the log entries that have been logged during the current
         # execution of the script
 	! main && get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "Sleep management issue"
 fi
 
-$BIN_RM "$TMPFILE_ARGS"
 exit 0
 

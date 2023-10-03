@@ -5,6 +5,30 @@ Please always read this file before installing the package
 
 Download software here: https://github.com/fritz-hh/scripts_NAS4Free/tags
 
+vx.y (yyyy-mm-dd):
+====
+
+New features
+------------
+
+- None 
+
+Changes
+-------
+
+- None
+
+Fixes
+-----
+
+- manageAcpi.sh: Fix an issue where a temporary file never got deleted (because main is end endless loop that shall never return).
+
+Tested with
+-----------
+
+- Xigmanas (formerly NAS4Free) 13.2.0.5 - Heighliner (revision 9876)
+
+
 v2.3 (2023-10-03):
 ====
 
