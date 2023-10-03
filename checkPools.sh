@@ -70,15 +70,15 @@ main() {
 	log_info "$LOGFILE" "Starting checking of pools" 
 	
 	$BIN_ZPOOL list -H -o name | while read pool; do
-		if $BIN_ZPOOL status -x $pool | grep "is healthy">/dev/null; then
-			$BIN_ZPOOL status -x $pool | log_info "$LOGFILE"
+		if ZPOOL_STATUS_NON_NATIVE_ASHIFT_IGNORE=1 $BIN_ZPOOL status -x $pool | grep "is healthy">/dev/null; then
+			ZPOOL_STATUS_NON_NATIVE_ASHIFT_IGNORE=1 $BIN_ZPOOL status -x $pool | log_info "$LOGFILE"
 		else
 			$BIN_ZPOOL status -v $pool | log_error "$LOGFILE"
 		fi 
 	done
 
 	# Check if the pools are healthy
-	if $BIN_ZPOOL status -x | grep "all pools are healthy">/dev/null; then
+	if ZPOOL_STATUS_NON_NATIVE_ASHIFT_IGNORE=1 $BIN_ZPOOL status -x | grep "all pools are healthy">/dev/null; then
 		return 0
 	else
 		return 1
