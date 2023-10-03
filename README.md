@@ -1,9 +1,9 @@
 Hi all,
 
-I am a happy Freenas7/Nas4Free user since more than 2 years.
+I am a happy Freenas7/Nas4Free/Xigmanas user since 2010.
 Time to give something back to the community!!!
 
-During the last 2 years I developped various scripts to complement missing functions of Freenas7/Nas4free (The scripts can probably be used on other FreeBSD distributions like FreeNAS8, but it was not tested)
+Since 2011 I developped various scripts to complement missing functions of Freenas7/Nas4free (The scripts can probably be used on other FreeBSD distributions like FreeNAS8, but it was not tested)
 
 These scripts will probably be usefull for many users having a similar usage profile as myself:
 - NAS access from several computers in a home network

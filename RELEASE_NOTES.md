@@ -5,6 +5,32 @@ Please always read this file before installing the package
 
 Download software here: https://github.com/fritz-hh/scripts_NAS4Free/tags
 
+v2.3 (2023-10-03):
+====
+
+New features
+------------
+
+- None 
+
+Changes
+-------
+
+- None
+
+Fixes
+-----
+
+- checkPools.sh: Silence warnings related to an incorrectly configured block size (ashift)
+  Rationale: This configuration issue has a negative impact on the performance of the pool, but does not require any immediate action.
+  Therefore, it shall not trigger a an email warning
+- checkTemp.sh: Fix regex to extract CPU core temperature as an integer value (lead to a crash under Xigmanas 13.2.0.5)
+
+Tested with
+-----------
+
+- Xigmanas (formerly NAS4Free) 13.2.0.5 - Heighliner (revision 9876)
+
 v2.2 (2018-11-03):
 ====
 
