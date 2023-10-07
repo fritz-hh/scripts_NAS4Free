@@ -93,8 +93,8 @@ main() {
 	log_info "$LOGFILE" "Scrub finished for all pools" 
 
 	# Check if the pools are healthy
-	if $BIN_ZPOOL status -x | grep "all pools are healthy">/dev/null; then
-		$BIN_ZPOOL status -x | log_info "$LOGFILE"
+	if ZPOOL_STATUS_NON_NATIVE_ASHIFT_IGNORE=1 $BIN_ZPOOL status -x | grep "all pools are healthy">/dev/null; then
+		ZPOOL_STATUS_NON_NATIVE_ASHIFT_IGNORE=1 $BIN_ZPOOL status -x | log_info "$LOGFILE"
 		return 0
 	else
 		$BIN_ZPOOL status -v | log_error "$LOGFILE"

@@ -22,6 +22,9 @@ Fixes
 -----
 
 - manageAcpi.sh: Fix an issue where a temporary file never got deleted (because main is end endless loop that shall never return).
+- scrubPools.sh: Silence warnings related to an incorrectly configured block size (ashift)
+  Rationale: This configuration issue has a negative impact on the performance of the pool, but does not require any immediate action.
+  Therefore, it shall not trigger a an email warning
 
 Tested with
 -----------
