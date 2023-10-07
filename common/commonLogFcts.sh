@@ -275,10 +275,10 @@ get_log_entries_ts() {
 	# refine the part of the log should be returned
 	# If firstLine is new enough
 	if [ "$diffFirstLineTimestamp" -le "0" ]; then
-		tail -$(($nbLinesInFile-$firstLine+1)) "$f"
+		tail -n $(($nbLinesInFile-$firstLine+1)) "$f"
 	# If lastLine is new enough 
 	elif [ "$diffLastLineTimestamp" -le "0" ]; then
-		tail -$(($nbLinesInFile-$lastLine+1)) "$f"
+		tail -n $(($nbLinesInFile-$lastLine+1)) "$f"
 	# Even the last line in the log is too old
 	else
 		echo "The data available in the log file are too old"
