@@ -60,7 +60,7 @@ readonly S_IN_DAY=86400        # Number of seconds in a day
 readonly S_IN_WEEK=604800    # Number of seconds in a week
 readonly S_IN_MONTH=2629744    # Number of seconds in a month
 
-readonly HOURLY_TAG="type01"    # It is important that the changing part of the tag are exactly 2 digits    
+readonly HOURLY_TAG="type01"    # It is important that the changing part of the tag are exactly 2 digits
 readonly DAILY_TAG="type02"    # in order to be able to show all tags in the windows shadow copy client
 readonly WEEKLY_TAG="type03"    # Shadow copy should be enable in the NAS4Free GUI under
 readonly MONTHLY_TAG="type04"    # Services|CIFS/SMB|Shares
@@ -75,9 +75,9 @@ readonly MONTHLY_TAG="type04"    # Services|CIFS/SMB|Shares
 ##################################
 parseInputParams() {
     local regex_int keep_all_snap opt fs_without_slash
-    
+
     regex_int='^[+-]{0,1}[0-9]+$'    # regex for integer (positive or negative)
-    
+
     keep_all_snap="0"
 
     # get the mandatory script parameter (Filesystem for which a snapshot shall be created)
@@ -92,13 +92,13 @@ parseInputParams() {
     # Initialization of the log file path
     fs_without_slash=`echo "$I_FILESYSTEM" | sed 's!/!_!g'`    # The fs without '/' that is not allowed in a file name
     LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.$fs_without_slash.log"
-    
+
     # Check if the filesystem for which the snapshots shall be managed is available
     if ! $BIN_ZFS list "$I_FILESYSTEM" 1>/dev/null 2>/dev/null; then
         echo "Unknown file system: \"$I_FILESYSTEM\""
         return 1
-    fi    
-    
+    fi
+
     # parse the optional parameters
     while getopts ":r:nh:d:w:m:k" opt; do
         case $opt in
@@ -158,14 +158,14 @@ parseInputParams() {
 
     # Remove the optional arguments parsed above.
     shift $((OPTIND-1))
-    
+
     # Check if the number of mandatory parameters
     # provided is as expected
     if [ "$#" -ne "1" ]; then
         echo "Exactly one mandatory argument shall be provided"
         return 1
-    fi    
-    
+    fi
+
     return 0
 }
 
@@ -190,7 +190,7 @@ newestSnapshotAge() {
     else
         snapCreationDate=`getSnapTimestamp1970 $newestSnap`
     fi
-    
+
     ageSnap=$((`$BIN_DATE +%s`-$snapCreationDate))
     echo $ageSnap
 }
@@ -205,7 +205,7 @@ newestSnapshotAge() {
 createSnapshot() {
     local filesystem ageMonthlySnap ageWeeklySnap ageDailySnap \
         now newSnapshotName fullNewSnapshotname
-    
+
     filesystem="$1"
 
     ageMonthlySnap=`newestSnapshotAge "$filesystem" "$MONTHLY_TAG"`
@@ -263,7 +263,7 @@ deleteOldSnapshots() {
         log_info "$LOGFILE" "$filesystem: All snapshots with tag \"$tag\" kept"
         return 0
     fi
-    
+
     # Delete the snapshots that are too old in the current sub filesystem
     for snapshot in `sortSnapshots $filesystem $tag | tail -n +$((maxNb+1))`; do
 
@@ -293,15 +293,15 @@ main() {
     if [ "$I_DEPTH" -lt "0" ]; then
         depth_flag="-r"
     else
-        depth_flag="-d $I_DEPTH"    
+        depth_flag="-d $I_DEPTH"
     fi
 
-    # Itterate the filesystems    
+    # Itterate the filesystems
     for subfilesystem in `$BIN_ZFS list -t filesystem,volume -H $depth_flag -o name $I_FILESYSTEM`; do
         # If requested make a snapshot of all file systems within the filesystem $I_FILESYSTEM
-        if [ "$I_GENERATE_SNAPSHOT" -eq "1" ]; then    
+        if [ "$I_GENERATE_SNAPSHOT" -eq "1" ]; then
             if ! createSnapshot $subfilesystem; then
-                returnCode=1    
+                returnCode=1
             fi
         else
             log_info "$LOGFILE" "$subfilesystem: Snapshot creation deactivated (no snapshot created)"
@@ -309,17 +309,17 @@ main() {
 
         # Delete the superfluous snapshots for the filesystem
         if ! deleteOldSnapshots "$subfilesystem" "$HOURLY_TAG" "$I_MAX_NB_HOURLY"; then
-            returnCode=1    
+            returnCode=1
         fi
         if ! deleteOldSnapshots "$subfilesystem" "$DAILY_TAG" "$I_MAX_NB_DAILY"; then
-            returnCode=1    
+            returnCode=1
         fi
         if ! deleteOldSnapshots "$subfilesystem" "$WEEKLY_TAG" "$I_MAX_NB_WEEKLY"; then
-            returnCode=1    
+            returnCode=1
         fi
         if ! deleteOldSnapshots "$subfilesystem" "$MONTHLY_TAG" "$I_MAX_NB_MONTHLY"; then
-            returnCode=1    
-        fi         
+            returnCode=1
+        fi
     done
 
     return $returnCode

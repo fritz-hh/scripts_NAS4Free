@@ -39,10 +39,10 @@ sortSnapshots() {
 ##################################
 getSnapTimestamp1970() {
     local snapshotName creationDate
-    
+
     snapshotName="$1"
     creationDate=`$BIN_ZFS list -t snapshot -H -o creation "$snapshotName"`
-    
+
     $BIN_DATE -j -f "$DATE_FORMAT_ZFS" "$creationDate" +"%s"
 }
 

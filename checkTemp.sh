@@ -54,7 +54,7 @@ parseInputParams() {
 
     # Remove the optional arguments parsed above.
     shift $((OPTIND-1))
-    
+
     # Check if the number of mandatory parameters
     # provided is as expected
     if [ "$#" -ne "2" ]; then
@@ -89,16 +89,16 @@ parseInputParams() {
 ##################################
 main() {
     returnCode=0
-    
+
     log_info "$LOGFILE" "Starting checking temperatures..."
-    
+
     log_info "$LOGFILE" "CPUs (warning threshold: $((I_WARN_THRESHOLD_CPU))C):"
     printf '%8s %s\n' "Temp(C)" "CPU" | log_info "$LOGFILE"
     for cpu in `sysctl -a | grep -E "cpu\.[0-9]+\.temp" | cut -f1 -d:`; do
         cpuTemp=`sysctl -a | grep $cpu | awk '{gsub(/[.][0-9]*C/,"");print $2}'`
-        
+
         printf '%+8d %s\n' "$((cpuTemp))" "$cpu" | log_info "$LOGFILE"
-        
+
         if [ "$((cpuTemp))" -ge "$I_WARN_THRESHOLD_CPU" ] ; then
             log_warning "$LOGFILE" "CPU notification threshold reached !"
             returnCode=1
@@ -111,16 +111,16 @@ main() {
         devTemp=`$BIN_SMARTCTL -a /dev/$hdd | grep "Temperature_Celsius" | awk '{print $10}'`
         devSerNum=`$BIN_SMARTCTL -a /dev/$hdd | grep "^Serial Number:" | sed 's/^Serial Number:[ \t]*\(.*\)[ \t]*$/\1/g'`
         devName=`$BIN_SMARTCTL -a /dev/$hdd | grep "^Device Model:" | sed 's/^Device Model:[ \t]*\(.*\)[ \t]*$/\1/g'`
-        
+
         printf '%+8d %-6s %-25s %s\n' "$((devTemp))" "$hdd" "$devName" "$devSerNum" \
             | log_info "$LOGFILE"
-            
+
         if [ "$((devTemp))" -ge "$I_WARN_THRESHOLD_HDD" ] ; then
             log_warning "$LOGFILE" "HDD notification threshold reached !"
             returnCode=1
         fi
     done
-    
+
     return $returnCode
 }
 

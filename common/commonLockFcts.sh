@@ -27,7 +27,7 @@ acquire_lock() {
     if ! ensure_lock_folder_exits; then
         return 3
     fi
-    
+
     # If no lock is allowed to be acquired
     if [ -f "$CFG_FORBID_ANY_LOCK_ACQUISITION_FILE" ]; then
         return 2
@@ -166,7 +166,7 @@ run_main() {
     lock_id="$2"
 
     errInMain=0
-    
+
     # acquire lock and run main
     acquire_lock "$lock_id"
     retCodeAcquireLock="$?"
@@ -181,7 +181,7 @@ run_main() {
         return 1
     elif [ "$retCodeAcquireLock" -eq "3" ]; then
         log_error "$log_file" "Lock folder \"$CFG_LOCKS_FOLDER\" could not be created"
-        return 2    
+        return 2
     else
         log_error "$log_file" "Could not start script (Unexpected issue)"
         return 2
@@ -191,8 +191,8 @@ run_main() {
     if ! release_lock "$lock_id"; then
         log_error "$log_file" "Could not delete lock at end of execution"
         return 2
-    fi    
-    
+    fi
+
     # return code of main
     if [ "$errInMain" -ne "0" ]; then
         return 2

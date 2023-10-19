@@ -118,7 +118,7 @@ parseInputParams() {
 
     # parse the parameters
     while getopts ":p:w:a:s:c:n:vm" opt; do
-        
+
         case $opt in
             p) echo "$OPTARG" | grep -E "^$regex_dur$" >/dev/null
                 if [ "$?" -eq "0" ] ; then
@@ -136,7 +136,7 @@ parseInputParams() {
                         echo "Replacing the provided value ($I_DELAY_PREVENT_SLEEP_AFTER_WAKE s) with the value $w_min s"
                         echo "Rationale: If other options are not set correctly, the server may always"
                         echo "shutdown/sleep just after booting making the server unusable"
-                        I_DELAY_PREVENT_SLEEP_AFTER_WAKE="$w_min"            
+                        I_DELAY_PREVENT_SLEEP_AFTER_WAKE="$w_min"
                     fi
                 else
                     echo "Invalid parameter \"$OPTARG\" for option: -w. Should be a positive integer"
@@ -144,7 +144,7 @@ parseInputParams() {
                 fi ;;
             a) echo "$OPTARG" | grep -E "$regex_a" >/dev/null
                 if [ "$?" -eq "0" ] ; then
-                    I_CHECK_ALWAYS_ON="1"    
+                    I_CHECK_ALWAYS_ON="1"
                     I_BEG_ALWAYS_ON=`echo "$OPTARG" | cut -f1 -d,`
                     I_END_ALWAYS_ON=`echo "$OPTARG" | cut -f2 -d,`
                 else
@@ -153,7 +153,7 @@ parseInputParams() {
                 fi ;;
             s) echo "$OPTARG" | grep -E "$regex_dur" >/dev/null
                 if [ "$?" -eq "0" ] ; then
-                    I_CHECK_SSH_ACTIVE="1"            
+                    I_CHECK_SSH_ACTIVE="1"
                     I_DELAY_SSH="$OPTARG"
                 else
                     echo "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -s. Should be a positive integer"
@@ -161,10 +161,10 @@ parseInputParams() {
                 fi ;;
             c) echo "$OPTARG" | grep -E "$regex_c" >/dev/null
                 if [ "$?" -eq "0" ] ; then
-                    I_CHECK_CURFEW_ACTIVE="1"    
-                    I_BEG_POLL_CURFEW=`echo "$OPTARG" | cut -f1 -d,`            
-                    I_END_POLL_CURFEW=`echo "$OPTARG" | cut -f2 -d,`            
-                    I_ACPI_STATE_CURFEW=`echo "$OPTARG" | cut -f3 -d,`            
+                    I_CHECK_CURFEW_ACTIVE="1"
+                    I_BEG_POLL_CURFEW=`echo "$OPTARG" | cut -f1 -d,`
+                    I_END_POLL_CURFEW=`echo "$OPTARG" | cut -f2 -d,`
+                    I_ACPI_STATE_CURFEW=`echo "$OPTARG" | cut -f3 -d,`
                 else
                     echo "Invalid parameter \"$OPTARG\" for option: -c. Should be \"hh:mm,hh:mm,acpi_state\""
                     return 1
@@ -192,7 +192,7 @@ parseInputParams() {
 
     # Remove the optional arguments parsed above.
     shift $((OPTIND-1))
-    
+
     # Check if the number of mandatory parameters
     # provided is as expected
     if [ "$#" -ne "0" ]; then
@@ -262,29 +262,29 @@ nasSleep() {
 
             log_info "$LOGFILE" "$msg"
             log_info "$ACPI_STATE_LOGFILE" "S$acpi_state"
-            
-            if [ $I_MAIL_ACPI_CHANGE -eq "1" ]; then    
+
+            if [ $I_MAIL_ACPI_CHANGE -eq "1" ]; then
                 get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "NAS going to sleep to save energy (ACPI state: S$acpi_state)"
             fi
 
             awake="0"
             $BIN_SHUTDOWN -p now "$msg"
-    
+
         elif [ $acpi_state -eq "3" ]; then    # Suspend to RAM
-                
+
             log_info "$LOGFILE" "$msg"
             log_info "$ACPI_STATE_LOGFILE" "S$acpi_state"
 
-            if [ $I_MAIL_ACPI_CHANGE -eq "1" ]; then    
+            if [ $I_MAIL_ACPI_CHANGE -eq "1" ]; then
                 get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "NAS going to sleep to save energy (ACPI state: S$acpi_state)"
-            fi        
+            fi
 
             awake="0"
-            $BIN_ACPICONF -s 3    
+            $BIN_ACPICONF -s 3
         else
             log_error "$LOGFILE" "Shutdown not possible. ACPI state \"$acpi_state\" not supported"
             return 1
-        fi    
+        fi
         return 0
     else
         log_info "$LOGFILE" "Shutdown not possible. The following scripts are running: `get_list_of_locks`"
@@ -301,7 +301,7 @@ nasSleep() {
 main() {
     local ts_last_online_device ts_last_ssh ts_wakeup in_always_on_timeslot curfew_sleep_request \
         noonline_sleep_request any_device_online delta_t awakefor
-    
+
     # initialization of local variables
     ts_last_online_device=`$BIN_DATE +%s`    # Timestamp when the last other device was detected to be online
     ts_last_ssh=`$BIN_DATE +%s`        # Timestamp when the last SSH connection ended
@@ -342,15 +342,15 @@ main() {
         # If the NAS just woke up
         if [ $awake -eq "0" ]; then
             awake="1"
-             ts_wakeup=`$BIN_DATE +%s`           
+             ts_wakeup=`$BIN_DATE +%s`
             ts_last_online_device=`$BIN_DATE +%s`
 
             log_info "$ACPI_STATE_LOGFILE" "S0"
             log_info "$LOGFILE" "NAS just woke up (S0). Preventing sleep during the next $I_DELAY_PREVENT_SLEEP_AFTER_WAKE s"
 
-            if [ $I_MAIL_ACPI_CHANGE -eq "1" ]; then    
+            if [ $I_MAIL_ACPI_CHANGE -eq "1" ]; then
                 get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "NAS just woke up (S0)"
-            fi    
+            fi
         fi
 
         # Check if in always_on timeslot
@@ -368,7 +368,7 @@ main() {
             # Check if an ingoing ssh connection exist
             if $BIN_SOCKSTAT -c | grep "sshd" > /dev/null ; then
                 ts_last_ssh=`$BIN_DATE +%s`
-                ssh_sleep_prevent="1"                
+                ssh_sleep_prevent="1"
                 [ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "Incoming SSH connection detected"
             else
                 delta_t=$((`$BIN_DATE +%s`-$ts_last_ssh))
@@ -378,7 +378,7 @@ main() {
                 fi
             fi
         fi
-        
+
         # Check if curfew is reached
         curfew_sleep_request="0"
         if [ $I_CHECK_CURFEW_ACTIVE -eq "1" ]; then
@@ -389,10 +389,10 @@ main() {
         fi
 
         # Check if no other devices are online for a certain duration
-        noonline_sleep_request="0"    
+        noonline_sleep_request="0"
         if [ $I_CHECK_NOONLINE_ACTIVE -eq "1" ]; then
             any_device_online="0"
-            for ip_addr in $I_IP_ADDRS; do     
+            for ip_addr in $I_IP_ADDRS; do
                 if $BIN_PING -c 1 -t 1 $ip_addr > /dev/null ; then
                     any_device_online="1"
                     [ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "Online device detected: $ip_addr (skipping any other device)"
@@ -400,13 +400,13 @@ main() {
                 fi
             done
 
-            if [ "$any_device_online" -eq "1" ]; then    
+            if [ "$any_device_online" -eq "1" ]; then
                 ts_last_online_device=`$BIN_DATE +%s`
             else
                 delta_t=$((`$BIN_DATE +%s`-$ts_last_online_device))
                 [ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "No devices online for $delta_t s"
                 if [ "$delta_t" -gt "$I_DELAY_NOONLINE" ]; then
-                    noonline_sleep_request="1"    
+                    noonline_sleep_request="1"
                 fi
             fi
         fi
@@ -432,7 +432,7 @@ main() {
             allow_acquire_locks
         fi
 
-        # wait until next poll    
+        # wait until next poll
         sleep $I_POLL_INTERVAL
     done
 }
@@ -448,7 +448,7 @@ if ! parseInputParams $ARGUMENTS > "$TMPFILE_ARGS"; then
 else
     $BIN_RM "$TMPFILE_ARGS"
     log_info "$LOGFILE" "-------------------------------------"
-    
+
         # Return the log entries that have been logged during the current
         # execution of the script
     ! main && get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "Sleep management issue"

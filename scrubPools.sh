@@ -37,7 +37,7 @@ ARGUMENTS="$@"
 ##################################
 parseInputParams() {
     local opt
-    
+
     # parse the optional parameters
     # (there should be none)
     while getopts ":" opt; do
@@ -50,14 +50,14 @@ parseInputParams() {
 
     # Remove the optional arguments parsed above.
     shift $((OPTIND-1))
-    
+
     # Check if the number of mandatory parameters
     # provided is as expected
     if [ "$#" -ne "0" ]; then
         echo "No mandatory arguments should be provided"
         return 1
     fi
-    
+
     return 0
 }
 

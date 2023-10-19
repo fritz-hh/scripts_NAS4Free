@@ -47,7 +47,7 @@ I_WARN_THRESHOLD="80"    # space warning threshold default value
 ##################################
 parseInputParams() {
     local opt fs_without_slash
-    
+
     # parse the parameters
     while getopts ":f:t:" opt; do
             case $opt in
@@ -79,14 +79,14 @@ parseInputParams() {
 
     # Remove the optional arguments parsed above.
     shift $((OPTIND-1))
-    
+
     # Check if the number of mandatory parameters
     # provided is as expected
     if [ "$#" -ne "0" ]; then
         echo "No mandatory arguments should be provided"
         return 1
     fi
-    
+
     return 0
 }
 
@@ -146,7 +146,7 @@ main() {
     printf '%14s %13s %13s %13s %s\n' "Used (percent)" "Used (MiB)" "Available" "Quota" "Filesystem" \
         | log_info "$LOGFILE"
 
-    
+
     # Check the space for the filesystem (and for all sub-fs recursively)
     for subfilesystem in `$BIN_ZFS list -t filesystem,volume -H -r -o name $I_FILESYSTEM`; do
 
@@ -156,12 +156,12 @@ main() {
         percent=$(($used*100/($used+$avail)))
 
         printf '%14s %13s %13s %13s %s\n' "$percent percent" "$((used/mib)) MiB" "$((avail/mib)) MiB" "$((quota/mib)) MiB" "$subfilesystem" \
-            | log_info "$LOGFILE"        
-        
-        # Check if the warning limit is reached        
+            | log_info "$LOGFILE"
+
+        # Check if the warning limit is reached
         if [ $percent -gt $I_WARN_THRESHOLD ] ; then
-            log_warning "$LOGFILE" "Notification threshold reached !"    
-            log_warning "$LOGFILE" "Consider increasing quota or adding disk space"    
+            log_warning "$LOGFILE" "Notification threshold reached !"
+            log_warning "$LOGFILE" "Consider increasing quota or adding disk space"
             returnCode=1
         fi
     done

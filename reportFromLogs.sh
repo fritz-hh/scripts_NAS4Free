@@ -7,7 +7,7 @@
 #############################################################################
 
 # Initialization of the script name
-readonly SCRIPT_NAME=`basename $0`         # The name of this file
+readonly SCRIPT_NAME=`basename $0`  # The name of this file
 
 # set script path as working directory
 cd "`dirname $0`"
@@ -17,8 +17,8 @@ cd "`dirname $0`"
 . "common/commonLogFcts.sh"
 
 # Initialization of the constants
-readonly DURATION=604800            # The entries from the last week (duration in sec)
-readonly LOG_FILES="$CFG_LOG_FOLDER/*.log"    # The log files to be considered
+readonly DURATION=604800  # The entries from the last week (duration in sec)
+readonly LOG_FILES="$CFG_LOG_FOLDER/*.log"  # The log files to be considered
 
 echo "Script package version: $CFG_VERSION"
 time_limit=`$BIN_DATE -j -v-"$DURATION"S`

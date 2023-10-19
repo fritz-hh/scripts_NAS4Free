@@ -9,7 +9,7 @@
 ####################################################################
 sendMail() {
     local host subject body line
-    
+
     # Initialize variables
     host=`$BIN_HOSTNAME -s`
     subject="$1"
@@ -25,7 +25,7 @@ sendMail() {
     # if the mail body is NOT provided though the pipe
     else
         body="$2"
-    fi    
+    fi
 
     # Send the mail
     $BIN_PRINTF "From: $CFG_MAIL_FROM\nTo: $CFG_MAIL_TO\nSubject: $subject\n\n$body" | $BIN_MSMTP --file=$CFG_MSMTP_CONF -t

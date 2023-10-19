@@ -61,14 +61,14 @@ parseInputParams() {
 
     # parse the optional arguments
     while getopts ":p:" opt; do
-    
+
         case $opt in
             p) echo "$OPTARG" | grep -E "^$regex_pows$" >/dev/null
                 if [ "$?" -eq "0" ] ; then
-                    I_COMPUTE_CONSUMPTION="1"    
-                    I_W_S0=`echo "$OPTARG" | cut -f1 -d,`            
-                    I_W_S3=`echo "$OPTARG" | cut -f2 -d,`            
-                    I_W_S5=`echo "$OPTARG" | cut -f3 -d,`            
+                    I_COMPUTE_CONSUMPTION="1"
+                    I_W_S0=`echo "$OPTARG" | cut -f1 -d,`
+                    I_W_S3=`echo "$OPTARG" | cut -f2 -d,`
+                    I_W_S5=`echo "$OPTARG" | cut -f3 -d,`
                 else
                     echo "Invalid parameter \"$OPTARG\" for option: -p. Should be \"pS0,pS3,pS5\", were pSx are integer"
                     return 1
@@ -84,14 +84,14 @@ parseInputParams() {
 
     # Remove the optional arguments parsed above.
     shift $((OPTIND-1))
-    
+
     # Check if the number of mandatory parameters
     # provided is as expected
     if [ "$#" -ne "0" ]; then
         echo "No mandatory arguments should be provided"
         return 1
     fi
-    
+
         return 0
 }
 
@@ -113,12 +113,12 @@ compute_stat() {
     pattern="$2"
 
     date_format=`ts_format`
-    
+
     duration="0"
     duration_tot="0"
-    
+
     current_line="1"
-    
+
     nbLinesInFile=`wc -l "$log_file" | awk ' { print $1 } '`    # find number of lines
 
     # Itterate the file to compute the time spent by the NAS
@@ -127,14 +127,14 @@ compute_stat() {
     do
         old_ts="$current_ts"
         old_pattern="$current_pattern"
-    
+
         log_entry=`sed "$current_line"!d "$log_file"`
 
         # get line data from log file
-        current_date=`echo "$log_entry" | cut -f1`        
-        current_pattern=`echo "$log_entry" | cut -f3`        
+        current_date=`echo "$log_entry" | cut -f1`
+        current_pattern=`echo "$log_entry" | cut -f3`
         current_ts=`$BIN_DATE -j -f "$date_format" "$current_date" +%s`
-        
+
         # compute duration for pattern
         if [ "$current_line" -gt "1" ]; then
             deltat=$(($current_ts-$old_ts))
@@ -149,8 +149,8 @@ compute_stat() {
 
     # Take into account the time between the last
     # timestamp and now
-    old_ts="$current_ts"    
-    current_ts=`$BIN_DATE +%s`    
+    old_ts="$current_ts"
+    current_ts=`$BIN_DATE +%s`
     deltat=$(($current_ts-$old_ts))
     duration_tot=$(($duration_tot+$deltat))
     if [ "$current_pattern" = "$pattern" ]; then
@@ -179,7 +179,7 @@ log_stats() {
     S3p=`compute_stat "$file" "S3"`
     S5p=`compute_stat "$file" "S5"`
 
-    if [ "$I_COMPUTE_CONSUMPTION" -eq "1" ]; then         
+    if [ "$I_COMPUTE_CONSUMPTION" -eq "1" ]; then
         log_info "$LOGFILE" "S0 ($(($I_W_S0/1000)) W) (Working)       : $S0p percent"
         log_info "$LOGFILE" "S3 ($(($I_W_S3/1000)) W) (Suspend to RAM): $S3p percent"
         log_info "$LOGFILE" "S5 ($(($I_W_S5/1000)) W) (Soft off)      : $S5p percent"
@@ -192,7 +192,7 @@ log_stats() {
     fi
 
     # consistency check
-    percentage_tot=$(($S0p+$S3p+$S5p))    
+    percentage_tot=$(($S0p+$S3p+$S5p))
 
     if [ $percentage_tot -ge "98" -a $percentage_tot -le "102" ]; then
         return 0
@@ -216,7 +216,7 @@ main() {
         log_error "$LOGFILE" "Could not read \"$ACPI_STATE_LOGFILE\" that should contain the acpi states history"
         return 1
     fi
-    
+
     if [ $oldest_acpi_ts -le `$BIN_DATE -j -v -"$S_IN_WEEK"S +%s` ]; then
         get_log_entries "$ACPI_STATE_LOGFILE" "$S_IN_WEEK" > $TMPFILE
         log_info "$LOGFILE" "ACPI Statistics for the last week:"
@@ -238,11 +238,11 @@ main() {
     cat "$ACPI_STATE_LOGFILE" > $TMPFILE
     log_info "$LOGFILE" "ACPI Statistics since the beginning of the log (`$BIN_DATE -j -f %s $oldest_acpi_ts`):"
     if ! log_stats $TMPFILE; then return 1; fi
-        
+
     # Delete the temporary file
     $BIN_RM -f "$TMPFILE"
 
-    return 0    
+    return 0
 }
 
 

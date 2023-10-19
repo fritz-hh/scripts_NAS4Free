@@ -97,7 +97,7 @@ run_fct_ssh() {
     cat "config.sh" > $TMP_FILE
     cat "common/commonSnapFcts.sh" >> $TMP_FILE
     echo "$@" >>  $TMP_FILE
-    
+
     # run the code on the remote host
     if [ -z "$I_PATH_KEY" ]; then
         $BIN_SSH -oBatchMode=$SSH_BATCHMODE -t $I_REMOTE_LOGIN "/bin/sh" < $TMP_FILE
@@ -105,10 +105,10 @@ run_fct_ssh() {
         $BIN_SSH -i "$I_PATH_KEY" -oBatchMode=$SSH_BATCHMODE -t $I_REMOTE_LOGIN "/bin/sh" < $TMP_FILE
     fi
     return_code="$?"
-    
+
     # delete the tmp file
     $BIN_RM $TMP_FILE
-    
+
     return $return_code
 }
 
@@ -121,9 +121,9 @@ run_fct_ssh() {
 ##################################
 parseInputParams() {
     local opt current_fs current_src_pool dest_pool regex_rollback host regex_comp comp_num fs_num
-    
+
     regex_comp="^($SUPPORTED_COMPRESSION)([,]($SUPPORTED_COMPRESSION)){0,}$"
-    
+
     # parse the optional parameters
     # (there should be none)
     while getopts ":s:b:c:" opt; do
@@ -133,16 +133,16 @@ parseInputParams() {
                     I_REMOTE_ACTIVE="1"
                     I_REMOTE_LOGIN=`echo "$OPTARG" | cut -f1 -d,`
                     I_PATH_KEY=`echo "$OPTARG" | cut -s -f2 -d,`    # empty if path not specified (i.e. no "," found)
-                    
+
                     # set variables to ensure remote execution of
                     # some parts of the script
                     RUN_FCT_SSH="run_fct_ssh"
                     if [ -z "$I_PATH_KEY" ]; then
                         RUN_CMD_SSH="$BIN_SSH -oBatchMode=$SSH_BATCHMODE $I_REMOTE_LOGIN"
-                    else                
-                        RUN_CMD_SSH="$BIN_SSH -i $I_PATH_KEY -oBatchMode=$SSH_BATCHMODE $I_REMOTE_LOGIN"                
+                    else
+                        RUN_CMD_SSH="$BIN_SSH -i $I_PATH_KEY -oBatchMode=$SSH_BATCHMODE $I_REMOTE_LOGIN"
                     fi
-                    
+
                     # testing ssh connection
                     if $RUN_CMD_SSH exit 0; then
                         echo "SSH connection test successful."
@@ -180,7 +180,7 @@ parseInputParams() {
 
     # Remove the optional arguments parsed above.
     shift $((OPTIND-1))
-    
+
     # Check if the number of mandatory parameters
     # provided is as expected
     if [ "$#" -ne "2" ]; then
@@ -189,22 +189,22 @@ parseInputParams() {
     fi
 
     # Itterate through all source filesystems for which a backup should be done
-    # and check if the current fs exists    
+    # and check if the current fs exists
     I_SRC_FSS=`echo "$1" | sed 's/,/ /g'` # replace commas by space as for loops on new line and space
-    for current_fs in $I_SRC_FSS ; do    
+    for current_fs in $I_SRC_FSS ; do
         if ! $BIN_ZFS list $current_fs 2>/dev/null 1>/dev/null; then
             echo "source filesystem \"$current_fs\" does not exist."
             return 1
         fi
-    done    
-    
+    done
+
     # Check if the destination filesystem exists
     I_DEST_FS="$2"
     if ! $RUN_CMD_SSH $BIN_ZFS list $I_DEST_FS 2>/dev/null 1>/dev/null; then
         echo "destination filesystem \"$I_DEST_FS\" does not exist."
         return 1
     fi
-    
+
     # ensure that the ZPOOL of the destination filesystem is different from the
     # ZPOOL(s) of the source filesystems
     if [ "$I_REMOTE_ACTIVE" -eq "0" ]; then
@@ -217,16 +217,16 @@ parseInputParams() {
             fi
         done
     fi
-    
+
     # Ensure that the number of compression algorithm provided is compatible with
     # the number of source filesystems
     if [ -n "$I_COMPRESSION" ]; then
-        
+
         # number of compression algorithm defined
         comp_num=`echo "$I_COMPRESSION" | tr "," "\n" | wc -l`
         # number of source fs defined
         fs_num=`echo "$I_SRC_FSS" | tr " " "\n" | wc -l`
-        
+
         # if the number of compression algorithm defined is neither 1
         # nor equal to the number number of source fs that were defined
         if [ $comp_num -ne 1 -a $comp_num -ne $fs_num ]; then
@@ -234,7 +234,7 @@ parseInputParams() {
             return 1
         fi
     fi
-    
+
     return 0
 }
 
@@ -249,12 +249,12 @@ ensureRemoteFSExists() {
     local fs pool readonly_mode
     fs="$1"
     pool=`echo "$fs" | cut -f1 -d/`
-    
+
     # Check if the fs already exists
     if $RUN_CMD_SSH $BIN_ZFS list $fs 2>/dev/null 1>/dev/null; then
         return 0
     fi
-    
+
     log_info "$LOGFILE" "Destination filesystem \"$fs\" DOES NOT exist yet. Creating it..."
 
     # Ensures that the destination pool is NOT readonly
@@ -312,7 +312,7 @@ backup() {
     dest_fs="$2"
 
     logPrefix="Backup of \"$src_fs\""
-    
+
     # Get the newest snapshot on dest fs
     newestSnapDestFs=`$RUN_FCT_SSH sortSnapshots "$dest_fs" "" | head -n 1`
     # Get the oldest snapshot on the src fs
@@ -363,7 +363,7 @@ backup() {
 
             # Compute the required rollback duration
             snapSrcFsTimestamp1970=`getSnapTimestamp1970 "$snapSrcFs"`
-            newestSnapDestFsCreation1970=`$RUN_FCT_SSH getSnapTimestamp1970 "$newestSnapDestFs"`        
+            newestSnapDestFsCreation1970=`$RUN_FCT_SSH getSnapTimestamp1970 "$newestSnapDestFs"`
             snapsAgeDiff=$(($newestSnapDestFsCreation1970-$snapSrcFsTimestamp1970))
             if [ $snapsAgeDiff -gt $I_MAX_ROLLBACK_S ]; then
                 log_warning "$LOGFILE" "$logPrefix: A rollback of \"$(($snapsAgeDiff/$S_IN_DAY))\" days would be required to perform the incremental backup !"
@@ -398,7 +398,7 @@ main() {
     local returnCode current_fs currentSubSrcFs currentSubDstFs algo cpt
 
     returnCode=0
-    
+
     log_info "$LOGFILE" "Starting backup of \"$I_SRC_FSS\""
 
     # Itterate through all source filesystems for which a backup should be done
@@ -406,12 +406,12 @@ main() {
     for current_fs in $I_SRC_FSS ; do
 
         cpt=$(($cpt+1))
-    
+
         # for the current fs and all its sub-filesystems
         for currentSubSrcFs in `$BIN_ZFS list -t filesystem,volume -r -H -o name $current_fs`; do
 
             currentSubDstFs="$I_DEST_FS/$currentSubSrcFs"
-        
+
             # create the dest filesystems (recursively)
             # if they do not yet exist and exit if it fails
             if ! ensureRemoteFSExists "$currentSubDstFs"; then

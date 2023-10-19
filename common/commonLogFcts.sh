@@ -64,7 +64,7 @@ log() {
     local criticality logfile text line local_ifs returnCode
     criticality="$1"
     logfile="$2"
-    
+
     # If the text to be logged was provided through as the 3rd argument
     if [ -n "$3" ]; then
         text=`format_log_txt "$criticality" "$3"`
@@ -76,27 +76,27 @@ log() {
             return 1
         elif [ ! -d `dirname "$logfile"` ]; then
             echo "LOG DIR NOT EXISTING ($logfile): $text"
-            return 1        
+            return 1
         else
             echo "$text" >> $logfile
             return 0
         fi
 
     # If the text to be logged was provided through the pipe
-    else    
+    else
         # IFS need to be changed so that the read cmd does not remove leading spaces
         local_ifs="$IFS"
-        IFS=""    
-        
+        IFS=""
+
         returnCode="0"
         while read line; do
             # recursive call with pipe to avoid to handle this case specially
             log "$criticality" "$logfile" "$line" || returnCode="1"
         done
-        
+
         # setting IFS back to its initial value
         IFS="$local_ifs"
-    
+
         return "$returnCode"
     fi
 }
@@ -116,10 +116,10 @@ format_log_txt() {
     tsFormat=`ts_format`
 
     timestamp=`$BIN_DATE +$tsFormat`
-        
+
     echo "$timestamp    $criticality    $text"
 
-    return 0    
+    return 0
 }
 
 
@@ -135,20 +135,20 @@ format_log_txt() {
 get_log_oldest_ts() {
 
     local f timestamp timestamp1970 tsFormat ret_code
-    
+
     f="$1"
     tsFormat=`ts_format`
-    
+
     # Check if the file exists
     if [ ! -s "$f" ]; then
         echo "The file \"$f\" does not exists"
         return 1
     fi
 
-    # get the timestamp of the 1st log entry    
+    # get the timestamp of the 1st log entry
     timestamp=`sed "1"!d "$f" | awk '{ print $1 }'`
      timestamp1970=`$BIN_DATE -j -f "$tsFormat" "$timestamp" +"%s" 2>/dev/null`
-    ret_code="$?"    
+    ret_code="$?"
 
     # check if the timestamp1970 could be extracted
     if [ "$ret_code" -eq "0" ]; then
@@ -184,7 +184,7 @@ get_log_entries() {
 
     get_log_entries_ts "$f" "$targetTimestamp1970"
 
-    return "$?"    
+    return "$?"
 }
 
 ##################################
@@ -203,26 +203,26 @@ get_log_entries_ts() {
     local f targetTimestamp1970 tsFormat nbLinesInFile firstLine lastLine diffLines \
         midLine currentLine timestamp currentTimestamp1970 diffTimestamp \
         firstLineTimestamp1970 diffFirstLineTimestamp lastLineTimestamp1970 diffLastLineTimestamp
-    
+
     f="$1"
     targetTimestamp1970="$2"
 
     tsFormat=`ts_format`
-    
+
     # Check if the file exists
     if [ ! -s "$f" ]; then
         echo "Impossible to retrieve log file, the file \"$f\" does not exists"
         return 1
     fi
 
-    nbLinesInFile=`wc -l "$f" | awk ' { print $1 } '`    # find number of lines    
+    nbLinesInFile=`wc -l "$f" | awk ' { print $1 } '`    # find number of lines
 
     # if the file does not contain at least 1 line
     if [ "$nbLinesInFile" -lt "1" ]; then
         echo "No data available in the log file"
-        return 2    
+        return 2
     fi
-    
+
      firstLine=1
     lastLine=$nbLinesInFile
     diffLines=$(($lastLine-$firstLine))
@@ -235,7 +235,7 @@ get_log_entries_ts() {
         midLine=$((($lastLine+$firstLine)/2))
         currentLine=`sed "$midLine"!d "$f"`
 
-        # get the timestamp of the line    
+        # get the timestamp of the line
         timestamp=`echo "$currentLine" | awk '{ print $1 }'`
         currentTimestamp1970=`$BIN_DATE -j -f "$tsFormat" "$timestamp" +"%s" 2>/dev/null`
 
@@ -265,7 +265,7 @@ get_log_entries_ts() {
     timestamp=`echo "$currentLine" | awk '{ print $1 }'`
     firstLineTimestamp1970=`$BIN_DATE -j -f "$tsFormat" "$timestamp" +"%s" 2>/dev/null`
     diffFirstLineTimestamp=$(($targetTimestamp1970-$firstLineTimestamp1970))
-    
+
     currentLine=`sed "$lastLine"!d "$f"`
     timestamp=`echo "$currentLine" | awk '{ print $1 }'`
     lastLineTimestamp1970=`$BIN_DATE -j -f "$tsFormat" "$timestamp" +"%s" 2>/dev/null`
