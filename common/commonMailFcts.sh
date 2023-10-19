@@ -5,8 +5,7 @@
 # Author: fritz from NAS4Free forum
 #
 # Param 1: Subject of the mail
-# Param 2: Content of the mail (Not required if data are provided
-#       from a pipe
+# Param 2: Content of the mail (Not required if data are provided from a pipe)
 ####################################################################
 sendMail() {
     local host subject body line

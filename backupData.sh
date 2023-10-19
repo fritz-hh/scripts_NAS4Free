@@ -128,7 +128,7 @@ parseInputParams() {
     # (there should be none)
     while getopts ":s:b:c:" opt; do
             case $opt in
-            s)    echo "$OPTARG" | grep -E "^(.+)@(.+)$" >/dev/null
+            s) echo "$OPTARG" | grep -E "^(.+)@(.+)$" >/dev/null
                 if [ "$?" -eq "0" ] ; then
                     I_REMOTE_ACTIVE="1"
                     I_REMOTE_LOGIN=`echo "$OPTARG" | cut -f1 -d,`
@@ -155,14 +155,14 @@ parseInputParams() {
                     echo "Remote login data (\"$OPTARG\") does not have the expected format: username@hostname"
                     return 1
                 fi ;;
-            b)    echo "$OPTARG" | grep -E "^([0-9]+)$" >/dev/null
+            b) echo "$OPTARG" | grep -E "^([0-9]+)$" >/dev/null
                 if [ "$?" -eq "0" ] ; then
                     I_MAX_ROLLBACK_S=$(($OPTARG*$S_IN_DAY))
                 else
                     echo "Wrong maximum rollback value, should be a positive integer or zero (unit: days) !"
                     return 1
                 fi ;;
-            c)    echo "$OPTARG" | grep -E "$regex_comp" >/dev/null
+            c) echo "$OPTARG" | grep -E "$regex_comp" >/dev/null
                 if [ "$?" -eq "0" ] ; then
                     I_COMPRESSION=$OPTARG
                 else

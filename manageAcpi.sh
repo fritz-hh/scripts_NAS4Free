@@ -120,14 +120,14 @@ parseInputParams() {
     while getopts ":p:w:a:s:c:n:vm" opt; do
         
         case $opt in
-            p)    echo "$OPTARG" | grep -E "^$regex_dur$" >/dev/null
+            p) echo "$OPTARG" | grep -E "^$regex_dur$" >/dev/null
                 if [ "$?" -eq "0" ] ; then
                     I_POLL_INTERVAL="$OPTARG"
                 else
                     echo "Invalid parameter \"$OPTARG\" for option: -p. Should be a positive integer"
                     return 1
                 fi ;;
-            w)    echo "$OPTARG" | grep -E "^$regex_dur$" >/dev/null
+            w) echo "$OPTARG" | grep -E "^$regex_dur$" >/dev/null
                 if [ "$?" -eq "0" ] ; then
                     I_DELAY_PREVENT_SLEEP_AFTER_WAKE="$OPTARG"
 
@@ -142,7 +142,7 @@ parseInputParams() {
                     echo "Invalid parameter \"$OPTARG\" for option: -w. Should be a positive integer"
                     return 1
                 fi ;;
-            a)    echo "$OPTARG" | grep -E "$regex_a" >/dev/null
+            a) echo "$OPTARG" | grep -E "$regex_a" >/dev/null
                 if [ "$?" -eq "0" ] ; then
                     I_CHECK_ALWAYS_ON="1"    
                     I_BEG_ALWAYS_ON=`echo "$OPTARG" | cut -f1 -d,`
@@ -151,7 +151,7 @@ parseInputParams() {
                     echo "Invalid parameter \"$OPTARG\" for option: -a. Should be \"hh:mm,hh:mm\""
                     return 1
                 fi ;;
-            s)    echo "$OPTARG" | grep -E "$regex_dur" >/dev/null
+            s) echo "$OPTARG" | grep -E "$regex_dur" >/dev/null
                 if [ "$?" -eq "0" ] ; then
                     I_CHECK_SSH_ACTIVE="1"            
                     I_DELAY_SSH="$OPTARG"
@@ -159,7 +159,7 @@ parseInputParams() {
                     echo "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -s. Should be a positive integer"
                     return 1
                 fi ;;
-            c)    echo "$OPTARG" | grep -E "$regex_c" >/dev/null
+            c) echo "$OPTARG" | grep -E "$regex_c" >/dev/null
                 if [ "$?" -eq "0" ] ; then
                     I_CHECK_CURFEW_ACTIVE="1"    
                     I_BEG_POLL_CURFEW=`echo "$OPTARG" | cut -f1 -d,`            
@@ -169,7 +169,7 @@ parseInputParams() {
                     echo "Invalid parameter \"$OPTARG\" for option: -c. Should be \"hh:mm,hh:mm,acpi_state\""
                     return 1
                 fi ;;
-            n)    echo "$OPTARG" | grep -E "$regex_n" >/dev/null
+            n) echo "$OPTARG" | grep -E "$regex_n" >/dev/null
                 if [ "$?" -eq "0" ] ; then
                     I_CHECK_NOONLINE_ACTIVE="1"
                     I_IP_ADDRS=`echo "$OPTARG" | cut -f1 -d, | sed 's/+/ /g'`
@@ -179,8 +179,8 @@ parseInputParams() {
                     echo "Invalid parameter \"$OPTARG\" for option: -n. Should be \"ips,delay,acpi_state\""
                     return 1
                 fi ;;
-            v)    I_VERBOSE=1 ;;
-            m)    I_MAIL_ACPI_CHANGE=1 ;;
+            v) I_VERBOSE=1 ;;
+            m) I_MAIL_ACPI_CHANGE=1 ;;
             \?)
                 echo "Invalid option: -$OPTARG"
                 return 1 ;;

@@ -102,43 +102,43 @@ parseInputParams() {
     # parse the optional parameters
     while getopts ":r:nh:d:w:m:k" opt; do
         case $opt in
-            n)     I_GENERATE_SNAPSHOT=0 ;;
-            r)     echo "$OPTARG" | grep -E "$regex_int" >/dev/null    # Check if positive or negative integer
+            n) I_GENERATE_SNAPSHOT=0 ;;
+            r) echo "$OPTARG" | grep -E "$regex_int" >/dev/null    # Check if positive or negative integer
                 if [ "$?" -eq "0" ] ; then
                     I_DEPTH="$OPTARG"
                 else
                     echo "Invalid parameter \"$OPTARG\" for option: -r. Should be an integer."
                     return 1
                 fi ;;
-            h)     echo "$OPTARG" | grep -E "$regex_int" >/dev/null    # Check if positive or negative integer
+            h) echo "$OPTARG" | grep -E "$regex_int" >/dev/null    # Check if positive or negative integer
                 if [ "$?" -eq "0" ] ; then
                     I_MAX_NB_HOURLY="$OPTARG"
                 else
                     echo "Invalid parameter \"$OPTARG\" for option: -h. Should be an integer."
                     return 1
                 fi ;;
-            d)     echo "$OPTARG" | grep -E "$regex_int" >/dev/null    # Check if positive or negative integer
+            d) echo "$OPTARG" | grep -E "$regex_int" >/dev/null    # Check if positive or negative integer
                 if [ "$?" -eq "0" ] ; then
                     I_MAX_NB_DAILY="$OPTARG"
                 else
                     echo "Invalid parameter \"$OPTARG\" for option: -h. Should be an integer."
                     return 1
                 fi ;;
-            w)     echo "$OPTARG" | grep -E "$regex_int" >/dev/null    # Check if positive or negative integer
+            w) echo "$OPTARG" | grep -E "$regex_int" >/dev/null    # Check if positive or negative integer
                 if [ "$?" -eq "0" ] ; then
                     I_MAX_NB_WEEKLY="$OPTARG"
                 else
                     echo "Invalid parameter \"$OPTARG\" for option: -h. Should be an integer."
                     return 1
                 fi ;;
-            m)     echo "$OPTARG" | grep -E "$regex_int" >/dev/null    # Check if positive or negative integer
+            m) echo "$OPTARG" | grep -E "$regex_int" >/dev/null    # Check if positive or negative integer
                 if [ "$?" -eq "0" ] ; then
                     I_MAX_NB_MONTHLY="$OPTARG"
                 else
                     echo "Invalid parameter \"$OPTARG\" for option: -h. Should be an integer."
                     return 1
                 fi ;;
-            k)     keep_all_snap="1" ;;
+            k) keep_all_snap="1" ;;
             \?)
                 echo "Invalid option: -$OPTARG"
                 return 1 ;;

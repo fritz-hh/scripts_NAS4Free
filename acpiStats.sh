@@ -63,7 +63,7 @@ parseInputParams() {
     while getopts ":p:" opt; do
     
         case $opt in
-            p)    echo "$OPTARG" | grep -E "^$regex_pows$" >/dev/null
+            p) echo "$OPTARG" | grep -E "^$regex_pows$" >/dev/null
                 if [ "$?" -eq "0" ] ; then
                     I_COMPUTE_CONSUMPTION="1"    
                     I_W_S0=`echo "$OPTARG" | cut -f1 -d,`            
