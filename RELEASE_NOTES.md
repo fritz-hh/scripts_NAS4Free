@@ -11,12 +11,13 @@ v2.4 (2023-10-07):
 New features
 ------------
 
-- None
+- manageAcpi.sh: Add an `-b` option to define that the NAS shall never go to sleep if an SMB connection to the NAS exists.
 
 Changes
 -------
 
 - Remove all trailing spaces in the scripts.
+- Use spaces for indentation instead of tabs (4 spaces per tab)
 
 Fixes
 -----

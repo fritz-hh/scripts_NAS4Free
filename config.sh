@@ -73,3 +73,4 @@ BIN_SMARTCTL="/usr/local/sbin/smartctl"
 
 BIN_SSH="/usr/bin/ssh"
 BIN_SOCKSTAT="/usr/bin/sockstat"
+BIN_SMBSTATUS="/usr/local/bin/smbstatus"
