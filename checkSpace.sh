@@ -14,7 +14,7 @@
 #############################################################################
 
 # Initialization of the script name
-readonly SCRIPT_NAME=`basename $0`         # The name of this file
+readonly SCRIPT_NAME=`basename $0`  # The name of this file
 
 # set script path as working directory
 cd "`dirname $0`"
@@ -36,8 +36,8 @@ LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
 ARGUMENTS="$@"
 
 # Initialization of the optional input variables
-I_FILESYSTEM=""     # default name of the filesystem to be monitored (meaning: all fs)
-I_WARN_THRESHOLD="80"    # space warning threshold default value
+I_FILESYSTEM=""  # default name of the filesystem to be monitored (meaning: all fs)
+I_WARN_THRESHOLD="80"  # space warning threshold default value
 
 ##################################
 # Check script input parameters
@@ -51,9 +51,9 @@ parseInputParams() {
     # parse the parameters
     while getopts ":f:t:" opt; do
             case $opt in
-            f) fs_without_slash=`echo "$OPTARG" | sed 's!/!_!g'`        # value of the fs without '/' that is not allowed in a file name
-                 LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.$fs_without_slash.log"     # value of the log file name
-                 $BIN_ZFS list "$OPTARG" 2>/dev/null 1>/dev/null            # Check if the zfs file system exists
+            f) fs_without_slash=`echo "$OPTARG" | sed 's!/!_!g'`  # value of the fs without '/' that is not allowed in a file name
+                 LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.$fs_without_slash.log"  # value of the log file name
+                 $BIN_ZFS list "$OPTARG" 2>/dev/null 1>/dev/null  # Check if the zfs file system exists
                 if [ "$?" -eq "0" ] ; then
                     I_FILESYSTEM="$OPTARG"
                 else
@@ -180,7 +180,7 @@ else
     cat "$TMPFILE_ARGS" | log_info "$LOGFILE"
 
     # run script if possible (lock not existing)
-    fs_without_slash=`echo "$I_FILESYSTEM" | sed 's!/!_!g'`        # value of the fs without '/' that is not allowed in a file name
+    fs_without_slash=`echo "$I_FILESYSTEM" | sed 's!/!_!g'`  # value of the fs without '/' that is not allowed in a file name
     run_main "$LOGFILE" "$SCRIPT_NAME.$fs_without_slash"
     # in case of error, send mail with extract of log file
     [ "$?" -eq "2" ] && get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "$SCRIPT_NAME : issue occured during execution"

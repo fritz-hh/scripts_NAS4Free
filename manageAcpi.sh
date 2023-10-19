@@ -41,7 +41,7 @@
 #############################################################################
 
 # Initialization of the script name
-readonly SCRIPT_NAME=`basename $0`         # The name of this file
+readonly SCRIPT_NAME=`basename $0`  # The name of this file
 
 # set script path as working directory
 cd "`dirname $0`"
@@ -68,29 +68,29 @@ I_VERBOSE=0
 I_MAIL_ACPI_CHANGE=0
 
 # Initialisation of the default values for the arguments of the script
-I_POLL_INTERVAL=120            # number of seconds to wait between to cycles
+I_POLL_INTERVAL=120  # number of seconds to wait between to cycles
 
-I_DELAY_PREVENT_SLEEP_AFTER_WAKE="600"    # Amount of time during which the NAS will never go to sleep after waking up
+I_DELAY_PREVENT_SLEEP_AFTER_WAKE="600"  # Amount of time during which the NAS will never go to sleep after waking up
 
-I_CHECK_ALWAYS_ON="0"            # 1 if the check shall be performed, 0 otherwise
-I_BEG_ALWAYS_ON="00:00"            # time when the NAS shall never sleep (because of management tasks like backup may start)
-I_END_ALWAYS_ON="00:00"            # If end = beg => 24 hours
+I_CHECK_ALWAYS_ON="0"  # 1 if the check shall be performed, 0 otherwise
+I_BEG_ALWAYS_ON="00:00"  # time when the NAS shall never sleep (because of management tasks like backup may start)
+I_END_ALWAYS_ON="00:00"  # If end = beg => 24 hours
 
-I_CHECK_SSH_ACTIVE="0"            # 1 if the check shall be performed, 0 otherwise
-I_DELAY_SSH="0"                # Delay in seconds between the moment where the SSH connection stops and the moment where the NAS may sleep
+I_CHECK_SSH_ACTIVE="0"  # 1 if the check shall be performed, 0 otherwise
+I_DELAY_SSH="0"  # Delay in seconds between the moment where the SSH connection stops and the moment where the NAS may sleep
 
-I_CHECK_CURFEW_ACTIVE="0"        # 1 if the check shall be performed, 0 otherwise
-I_BEG_POLL_CURFEW="00:00"        # time when the script enters the sleep state (except if tasks like backup are running)
-I_END_POLL_CURFEW="00:00"        # If end = beg => 24 hours
-I_ACPI_STATE_CURFEW="0"            # ACPI state
+I_CHECK_CURFEW_ACTIVE="0"  # 1 if the check shall be performed, 0 otherwise
+I_BEG_POLL_CURFEW="00:00"  # time when the script enters the sleep state (except if tasks like backup are running)
+I_END_POLL_CURFEW="00:00"  # If end = beg => 24 hours
+I_ACPI_STATE_CURFEW="0"  # ACPI state
 
-I_CHECK_NOONLINE_ACTIVE="0"        # 1 if the check shall be performed, 0 otherwise
-I_IP_ADDRS=""                 # IP addresses of the devices to be polled, separated by a space character)
-I_DELAY_NOONLINE="0"            # Delay in seconds between the moment where no devices are online anymore and the moment where the NAS shall sleep
-I_ACPI_STATE_NOONLINE="0"        # ACPI state if no other device is online
+I_CHECK_NOONLINE_ACTIVE="0"  # 1 if the check shall be performed, 0 otherwise
+I_IP_ADDRS=""  # IP addresses of the devices to be polled, separated by a space character)
+I_DELAY_NOONLINE="0"  # Delay in seconds between the moment where no devices are online anymore and the moment where the NAS shall sleep
+I_ACPI_STATE_NOONLINE="0"  # ACPI state if no other device is online
 
 # Initialization the global variables
-awake="0"                # 1=NAS is awake, 0=NAS is about to sleep (resp. just woke up)
+awake="0"  # 1=NAS is awake, 0=NAS is about to sleep (resp. just woke up)
 
 
 ##################################
@@ -258,7 +258,7 @@ nasSleep() {
 
                 msg="Shutting down the system to save energy (ACPI state : S$acpi_state)"
 
-        if [ $acpi_state -eq "5" ]; then    # Soft OFF
+        if [ $acpi_state -eq "5" ]; then  # Soft OFF
 
             log_info "$LOGFILE" "$msg"
             log_info "$ACPI_STATE_LOGFILE" "S$acpi_state"
@@ -270,7 +270,7 @@ nasSleep() {
             awake="0"
             $BIN_SHUTDOWN -p now "$msg"
 
-        elif [ $acpi_state -eq "3" ]; then    # Suspend to RAM
+        elif [ $acpi_state -eq "3" ]; then  # Suspend to RAM
 
             log_info "$LOGFILE" "$msg"
             log_info "$ACPI_STATE_LOGFILE" "S$acpi_state"
@@ -303,13 +303,13 @@ main() {
         noonline_sleep_request any_device_online delta_t awakefor
 
     # initialization of local variables
-    ts_last_online_device=`$BIN_DATE +%s`    # Timestamp when the last other device was detected to be online
-    ts_last_ssh=`$BIN_DATE +%s`        # Timestamp when the last SSH connection ended
-    ts_wakeup=`$BIN_DATE +%s`        # Timestamp when the NAS woke up last time
-    in_always_on_timeslot="0"        # 1=We are currently in the always on timeslot, 0 otherwise
-    ssh_sleep_prevent="0"            # 1=Sleep prevented by SSH, 0 otherwise
-    curfew_sleep_request="0"        # 1=Sleep requested by curfew check, 0 otherwise
-    noonline_sleep_request="0"        # 1=Sleep requested by no-online check, 0 otherwise
+    ts_last_online_device=`$BIN_DATE +%s`  # Timestamp when the last other device was detected to be online
+    ts_last_ssh=`$BIN_DATE +%s`  # Timestamp when the last SSH connection ended
+    ts_wakeup=`$BIN_DATE +%s`  # Timestamp when the NAS woke up last time
+    in_always_on_timeslot="0"  # 1=We are currently in the always on timeslot, 0 otherwise
+    ssh_sleep_prevent="0"  # 1=Sleep prevented by SSH, 0 otherwise
+    curfew_sleep_request="0"  # 1=Sleep requested by curfew check, 0 otherwise
+    noonline_sleep_request="0"  # 1=Sleep requested by no-online check, 0 otherwise
 
     # Remove any existing lock
     reset_locks

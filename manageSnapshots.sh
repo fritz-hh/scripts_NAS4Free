@@ -26,7 +26,7 @@
 #############################################################################
 
 # Initialization of the script name
-readonly SCRIPT_NAME=`basename $0`         # The name of this file
+readonly SCRIPT_NAME=`basename $0`  # The name of this file
 
 # set script path as working directory
 cd "`dirname $0`"
@@ -46,24 +46,24 @@ readonly TMPFILE_ARGS="$CFG_TMP_FOLDER/$SCRIPT_NAME.$$.args.tmp"
 ARGUMENTS="$@"
 
 # Initialization of the constants
-I_GENERATE_SNAPSHOT=1    # By default, the script shall generate snapshots (1=true)
+I_GENERATE_SNAPSHOT=1  # By default, the script shall generate snapshots (1=true)
 
-I_MAX_NB_HOURLY=24    # Default number of hourly snapshots to be kept
-I_MAX_NB_DAILY=15    # Default number of daily snapshots to be kept
-I_MAX_NB_WEEKLY=8    # Default number of weekly snapshots to be kept
-I_MAX_NB_MONTHLY=12    # Default number of monthly snapshots to be kept
+I_MAX_NB_HOURLY=24  # Default number of hourly snapshots to be kept
+I_MAX_NB_DAILY=15  # Default number of daily snapshots to be kept
+I_MAX_NB_WEEKLY=8  # Default number of weekly snapshots to be kept
+I_MAX_NB_MONTHLY=12  # Default number of monthly snapshots to be kept
 
-I_DEPTH="-1"        # Default recursion depth
+I_DEPTH="-1"  # Default recursion depth
 
-readonly S_IN_HOUR=36000    # Number of seconds in an hour
-readonly S_IN_DAY=86400        # Number of seconds in a day
-readonly S_IN_WEEK=604800    # Number of seconds in a week
-readonly S_IN_MONTH=2629744    # Number of seconds in a month
+readonly S_IN_HOUR=36000  # Number of seconds in an hour
+readonly S_IN_DAY=86400  # Number of seconds in a day
+readonly S_IN_WEEK=604800  # Number of seconds in a week
+readonly S_IN_MONTH=2629744  # Number of seconds in a month
 
-readonly HOURLY_TAG="type01"    # It is important that the changing part of the tag are exactly 2 digits
-readonly DAILY_TAG="type02"    # in order to be able to show all tags in the windows shadow copy client
-readonly WEEKLY_TAG="type03"    # Shadow copy should be enable in the NAS4Free GUI under
-readonly MONTHLY_TAG="type04"    # Services|CIFS/SMB|Shares
+readonly HOURLY_TAG="type01"  # It is important that the changing part of the tag are exactly 2 digits
+readonly DAILY_TAG="type02"  # in order to be able to show all tags in the windows shadow copy client
+readonly WEEKLY_TAG="type03"  # Shadow copy should be enable in the NAS4Free GUI under
+readonly MONTHLY_TAG="type04"  # Services|CIFS/SMB|Shares
 
 
 
@@ -76,21 +76,21 @@ readonly MONTHLY_TAG="type04"    # Services|CIFS/SMB|Shares
 parseInputParams() {
     local regex_int keep_all_snap opt fs_without_slash
 
-    regex_int='^[+-]{0,1}[0-9]+$'    # regex for integer (positive or negative)
+    regex_int='^[+-]{0,1}[0-9]+$'  # regex for integer (positive or negative)
 
     keep_all_snap="0"
 
     # get the mandatory script parameter (Filesystem for which a snapshot shall be created)
     # this argument is parsed at first because it is required to compute the log file name
     if [ $# -gt 0 ]; then
-        eval I_FILESYSTEM=\${$#}            # Filesystem to snapshot
+        eval I_FILESYSTEM=\${$#}  # Filesystem to snapshot
     else
         echo "Name of the filesystem to snapshot not provided when calling \"$SCRIPT_NAME\"" | sendMail "Snapshot management issue"
         exit 1
     fi
 
     # Initialization of the log file path
-    fs_without_slash=`echo "$I_FILESYSTEM" | sed 's!/!_!g'`    # The fs without '/' that is not allowed in a file name
+    fs_without_slash=`echo "$I_FILESYSTEM" | sed 's!/!_!g'`  # The fs without '/' that is not allowed in a file name
     LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.$fs_without_slash.log"
 
     # Check if the filesystem for which the snapshots shall be managed is available
@@ -103,35 +103,35 @@ parseInputParams() {
     while getopts ":r:nh:d:w:m:k" opt; do
         case $opt in
             n) I_GENERATE_SNAPSHOT=0 ;;
-            r) echo "$OPTARG" | grep -E "$regex_int" >/dev/null    # Check if positive or negative integer
+            r) echo "$OPTARG" | grep -E "$regex_int" >/dev/null  # Check if positive or negative integer
                 if [ "$?" -eq "0" ] ; then
                     I_DEPTH="$OPTARG"
                 else
                     echo "Invalid parameter \"$OPTARG\" for option: -r. Should be an integer."
                     return 1
                 fi ;;
-            h) echo "$OPTARG" | grep -E "$regex_int" >/dev/null    # Check if positive or negative integer
+            h) echo "$OPTARG" | grep -E "$regex_int" >/dev/null  # Check if positive or negative integer
                 if [ "$?" -eq "0" ] ; then
                     I_MAX_NB_HOURLY="$OPTARG"
                 else
                     echo "Invalid parameter \"$OPTARG\" for option: -h. Should be an integer."
                     return 1
                 fi ;;
-            d) echo "$OPTARG" | grep -E "$regex_int" >/dev/null    # Check if positive or negative integer
+            d) echo "$OPTARG" | grep -E "$regex_int" >/dev/null  # Check if positive or negative integer
                 if [ "$?" -eq "0" ] ; then
                     I_MAX_NB_DAILY="$OPTARG"
                 else
                     echo "Invalid parameter \"$OPTARG\" for option: -h. Should be an integer."
                     return 1
                 fi ;;
-            w) echo "$OPTARG" | grep -E "$regex_int" >/dev/null    # Check if positive or negative integer
+            w) echo "$OPTARG" | grep -E "$regex_int" >/dev/null  # Check if positive or negative integer
                 if [ "$?" -eq "0" ] ; then
                     I_MAX_NB_WEEKLY="$OPTARG"
                 else
                     echo "Invalid parameter \"$OPTARG\" for option: -h. Should be an integer."
                     return 1
                 fi ;;
-            m) echo "$OPTARG" | grep -E "$regex_int" >/dev/null    # Check if positive or negative integer
+            m) echo "$OPTARG" | grep -E "$regex_int" >/dev/null  # Check if positive or negative integer
                 if [ "$?" -eq "0" ] ; then
                     I_MAX_NB_MONTHLY="$OPTARG"
                 else
@@ -337,7 +337,7 @@ else
     cat "$TMPFILE_ARGS" | log_info "$LOGFILE"
 
     # run script if possible (lock not existing)
-    fs_without_slash=`echo "$I_FILESYSTEM" | sed 's!/!_!g'`    # The fs without '/' that is not allowed in a file name
+    fs_without_slash=`echo "$I_FILESYSTEM" | sed 's!/!_!g'`  # The fs without '/' that is not allowed in a file name
     run_main "$LOGFILE" "$SCRIPT_NAME.$fs_without_slash"
     # in case of error, send mail with extract of log file
     [ "$?" -eq "2" ] && get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "$SCRIPT_NAME : issue occured during execution"

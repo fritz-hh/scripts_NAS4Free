@@ -6,9 +6,9 @@
 #############################################################################
 
 # Initialisation of constants
-readonly DATE_FORMAT_ZFS="%a %b %d %H:%M %Y"     # format of the snapshot creation date as provided by the 'zfs list -o creation' function
-                        # example: Wed Dec 29 22:59 2010
-readonly DATE_FORMAT_SNAP_NAME="%Y%m%d_%H%M"    # format of the creation date in the snapshot name
+readonly DATE_FORMAT_ZFS="%a %b %d %H:%M %Y"  # format of the snapshot creation date as provided by the 'zfs list -o creation' function
+                                              # example: Wed Dec 29 22:59 2010
+readonly DATE_FORMAT_SNAP_NAME="%Y%m%d_%H%M"  # format of the creation date in the snapshot name
 
 ##################################
 # Return the sorted list of the snaptshots for

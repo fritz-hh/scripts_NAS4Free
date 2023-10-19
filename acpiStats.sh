@@ -14,7 +14,7 @@
 #############################################################################
 
 # Initialization of the script name
-readonly SCRIPT_NAME=`basename $0`         # The name of this file
+readonly SCRIPT_NAME=`basename $0`  # The name of this file
 
 # set script path as working directory
 cd "`dirname $0`"
@@ -42,9 +42,9 @@ readonly S_IN_YEAR=31536000
 
 # Initialisation of the default values for the arguments of the script
 I_COMPUTE_CONSUMPTION="0"
-I_W_S0="0"            # Power consumed by the NAS in S0 (in mW)
-I_W_S3="0"            # Power consumed by the NAS in S3 (in mW)
-I_W_S5="0"            # Power consumed by the NAS in S5 (in mW)
+I_W_S0="0"  # Power consumed by the NAS in S0 (in mW)
+I_W_S3="0"  # Power consumed by the NAS in S3 (in mW)
+I_W_S5="0"  # Power consumed by the NAS in S5 (in mW)
 
 
 ##################################
@@ -119,7 +119,7 @@ compute_stat() {
 
     current_line="1"
 
-    nbLinesInFile=`wc -l "$log_file" | awk ' { print $1 } '`    # find number of lines
+    nbLinesInFile=`wc -l "$log_file" | awk ' { print $1 } '`  # find number of lines
 
     # Itterate the file to compute the time spent by the NAS
     # in the state described by the pattern

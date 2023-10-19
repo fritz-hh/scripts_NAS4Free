@@ -215,7 +215,7 @@ get_log_entries_ts() {
         return 1
     fi
 
-    nbLinesInFile=`wc -l "$f" | awk ' { print $1 } '`    # find number of lines
+    nbLinesInFile=`wc -l "$f" | awk ' { print $1 } '`  # find number of lines
 
     # if the file does not contain at least 1 line
     if [ "$nbLinesInFile" -lt "1" ]; then

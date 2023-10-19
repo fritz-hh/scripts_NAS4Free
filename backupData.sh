@@ -46,7 +46,7 @@
 #############################################################################
 
 # Initialization of the script name
-readonly SCRIPT_NAME=`basename $0`         # The name of this file
+readonly SCRIPT_NAME=`basename $0`  # The name of this file
 
 # set script path as working directory
 cd "`dirname $0`"
@@ -64,17 +64,17 @@ readonly SUPPORTED_COMPRESSION='on|off|lzjb|gzip|gzip-[1-9]|zle|lz4'
 readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
 readonly TMP_FILE="$CFG_TMP_FOLDER/run_fct_ssh.sh"
 readonly TMPFILE_ARGS="$CFG_TMP_FOLDER/$SCRIPT_NAME.$$.args.tmp"
-readonly S_IN_DAY=86400            # Number of seconds in a day
-readonly SSH_BATCHMODE="yes"        # Only public key authentication is allowed in batch mode
+readonly S_IN_DAY=86400  # Number of seconds in a day
+readonly SSH_BATCHMODE="yes"  # Only public key authentication is allowed in batch mode
                     # (should only change to "no" for test purposes)
 
 # Initialization of inputs corresponding to optional args of the script
-I_REMOTE_ACTIVE="0"            # By default the destination filesystem is local
-RUN_FCT_SSH=""                # This should be put in front of FUNCTIONS that may have to be executed remotely
-                    # By default (i.e. local backup) "RUN_FCT_SSH" does not have any effect
-RUN_CMD_SSH=""                # This should be put in front of COMMANDS that may have to be executed remotely
-                    # By default (i.e. local backup) "RUN_CMD_SSH" does not have any effect
-I_MAX_ROLLBACK_S=$((10*$S_IN_DAY))    # Default value of max rollback
+I_REMOTE_ACTIVE="0"  # By default the destination filesystem is local
+RUN_FCT_SSH=""  # This should be put in front of FUNCTIONS that may have to be executed remotely
+                # By default (i.e. local backup) "RUN_FCT_SSH" does not have any effect
+RUN_CMD_SSH=""  # This should be put in front of COMMANDS that may have to be executed remotely
+                # By default (i.e. local backup) "RUN_CMD_SSH" does not have any effect
+I_MAX_ROLLBACK_S=$((10*$S_IN_DAY))  # Default value of max rollback
 
 # Set variables corresponding to the input parameters
 ARGUMENTS="$@"
@@ -132,7 +132,7 @@ parseInputParams() {
                 if [ "$?" -eq "0" ] ; then
                     I_REMOTE_ACTIVE="1"
                     I_REMOTE_LOGIN=`echo "$OPTARG" | cut -f1 -d,`
-                    I_PATH_KEY=`echo "$OPTARG" | cut -s -f2 -d,`    # empty if path not specified (i.e. no "," found)
+                    I_PATH_KEY=`echo "$OPTARG" | cut -s -f2 -d,`  # empty if path not specified (i.e. no "," found)
 
                     # set variables to ensure remote execution of
                     # some parts of the script
