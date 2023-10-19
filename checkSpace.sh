@@ -25,7 +25,7 @@ cd "`dirname $0`"
 . "common/commonMailFcts.sh"
 . "common/commonLockFcts.sh"
 
-# Initialization of the constants 
+# Initialization of the constants
 readonly START_TIMESTAMP=`$BIN_DATE +"%s"`
 readonly TMPFILE_ARGS="$CFG_TMP_FOLDER/$SCRIPT_NAME.$$.args.tmp"
 
@@ -35,15 +35,15 @@ LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
 # Set variables corresponding to the input parameters
 ARGUMENTS="$@"
 
-# Initialization of the optional input variables 
+# Initialization of the optional input variables
 I_FILESYSTEM="" 	# default name of the filesystem to be monitored (meaning: all fs)
 I_WARN_THRESHOLD="80"	# space warning threshold default value
 
-################################## 
+##################################
 # Check script input parameters
 #
 # Params: all parameters of the shell script
-# return : 1 if an error occured, 0 otherwise 
+# return : 1 if an error occured, 0 otherwise
 ##################################
 parseInputParams() {
 	local opt fs_without_slash
@@ -62,8 +62,8 @@ parseInputParams() {
 				fi ;;
 			t) 	# check if the threshold value is valid
 				echo "$OPTARG" | grep -E '^[0-9]{1,2}$' >/dev/null
-				if [ "$?" -eq "0" ] ; then 
-					I_WARN_THRESHOLD="$OPTARG" 
+				if [ "$?" -eq "0" ] ; then
+					I_WARN_THRESHOLD="$OPTARG"
 				else
 					echo "Invalid parameter \"$OPTARG\" for option: -t. Should be an integer between 0 and 99."
 					return 1
@@ -80,8 +80,8 @@ parseInputParams() {
 	# Remove the optional arguments parsed above.
 	shift $((OPTIND-1))
 	
-	# Check if the number of mandatory parameters 
-	# provided is as expected 
+	# Check if the number of mandatory parameters
+	# provided is as expected
 	if [ "$#" -ne "0" ]; then
 		echo "No mandatory arguments should be provided"
 		return 1
@@ -91,8 +91,8 @@ parseInputParams() {
 }
 
 ##################################
-# Get the quota for a given filesystem 
-# param 1: filesystem name 
+# Get the quota for a given filesystem
+# param 1: filesystem name
 # Return : quota in byte (0 if no quota was set)
 ##################################
 getQuota() {
@@ -102,13 +102,13 @@ getQuota() {
 	# compute the quota of the filesystem in byte
 	q=`$BIN_ZFS get -o value -Hp quota $fs`
 	# check if quota is not a number, for volumes it migh be "-"
-	! [ "$q" -eq "$q" ] 2>/dev/null && q="0"   
+	! [ "$q" -eq "$q" ] 2>/dev/null && q="0"
 	echo $q
 }
 
 ##################################
 # Get the used space for a given filesystem
-# param 1: filesystem name 
+# param 1: filesystem name
 # Return : used space in byte
 ##################################
 getUsed() {
@@ -121,7 +121,7 @@ getUsed() {
 
 ##################################
 # Get the available space for a given filesystem
-# param 1: filesystem name 
+# param 1: filesystem name
 # Return : available space in byte
 ##################################
 getAvailable() {
@@ -132,8 +132,8 @@ getAvailable() {
 	$BIN_ZFS get -o value -Hp avail $fs
 }
 
-################################## 
-# Main 
+##################################
+# Main
 ##################################
 main() {
 	local returnCode quota used avail percent mib
@@ -168,7 +168,7 @@ main() {
 
 	return $returnCode
 }
- 
+
 
 # Parse and validate the input parameters
 if ! parseInputParams $ARGUMENTS > "$TMPFILE_ARGS"; then

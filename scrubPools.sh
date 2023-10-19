@@ -21,7 +21,7 @@ cd "`dirname $0`"
 # Record the timestamp corresponding to the start of the script execution
 readonly START_TIMESTAMP=`$BIN_DATE +"%s"`
 
-# Initialization of the constants 
+# Initialization of the constants
 readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
 readonly TMPFILE_ARGS="$CFG_TMP_FOLDER/$SCRIPT_NAME.$$.args.tmp"
 
@@ -29,11 +29,11 @@ readonly TMPFILE_ARGS="$CFG_TMP_FOLDER/$SCRIPT_NAME.$$.args.tmp"
 ARGUMENTS="$@"
 
 
-################################## 
+##################################
 # Check script input parameters
 #
 # Params: all parameters of the shell script
-# return : 1 if an error occured, 0 otherwise 
+# return : 1 if an error occured, 0 otherwise
 ##################################
 parseInputParams() {
 	local opt
@@ -51,8 +51,8 @@ parseInputParams() {
 	# Remove the optional arguments parsed above.
 	shift $((OPTIND-1))
 	
-	# Check if the number of mandatory parameters 
-	# provided is as expected 
+	# Check if the number of mandatory parameters
+	# provided is as expected
 	if [ "$#" -ne "0" ]; then
 		echo "No mandatory arguments should be provided"
 		return 1
@@ -82,15 +82,15 @@ scrubInProgress() {
 main() {
 
 	# Starting scrubbing
-	log_info "$LOGFILE" "Starting scrubbing" 
+	log_info "$LOGFILE" "Starting scrubbing"
 	$BIN_ZPOOL list -H -o name | while read pool; do
 		$BIN_ZPOOL scrub $pool
-		log_info "$LOGFILE" "Starting scrubbing of pool: $pool" 
+		log_info "$LOGFILE" "Starting scrubbing of pool: $pool"
 	done
 
 	# Waiting for the end of the scrubbing
 	while scrubInProgress; do sleep 10; done;
-	log_info "$LOGFILE" "Scrub finished for all pools" 
+	log_info "$LOGFILE" "Scrub finished for all pools"
 
 	# Check if the pools are healthy
 	if ZPOOL_STATUS_NON_NATIVE_ASHIFT_IGNORE=1 $BIN_ZPOOL status -x | grep "all pools are healthy">/dev/null; then

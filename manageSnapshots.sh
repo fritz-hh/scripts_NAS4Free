@@ -1,23 +1,23 @@
 #!/bin/sh
 #############################################################################
 # Script aimed performing a snapshot of a ZFS filesystem (and of the
-# sub-filesystems recursively) and aimed at removing old and superfluous 
+# sub-filesystems recursively) and aimed at removing old and superfluous
 # snapshots of that filesystem
 #
 # This script shall be called hourly.
-# It ensures itself that a configured number of hourly, daily, weekly 
+# It ensures itself that a configured number of hourly, daily, weekly
 # and monthly snapshots are kept.
 #
 # Author: fritz from NAS4Free forum
 #
 # Usage: manageSnapshots.sh [-r depth] [-n] [-h num] [-d num] [-w num] [-m num] [-k] filesystem
 #
-#	-r depth : recursion depth. Recursively process any children of the filesystem, 
-#		limiting the recursion to depth.  
+#	-r depth : recursion depth. Recursively process any children of the filesystem,
+#		limiting the recursion to depth.
 #		 A depth of 1 will process only the fs and its direct children.
 #		 A negative depth will process the fs and all its children recursively
 # 	-n : Do not create a new snapshot of the file system
-#	-h num : Keep 'num' hourly snapshots (by default: 24) (<0 for all) 
+#	-h num : Keep 'num' hourly snapshots (by default: 24) (<0 for all)
 #	-d num : Keep 'num' daily snapshots (by default: 15) (<0 for all)
 #	-w num : Keep 'num' weekly snapshots (by default: 8) (<0 for all)
 #	-m num : Keep 'num' monthly snapshots (by default: 12) (<0 for all)
@@ -38,7 +38,7 @@ cd "`dirname $0`"
 . "common/commonMailFcts.sh"
 . "common/commonLockFcts.sh"
 
-# Initialization of the constants 
+# Initialization of the constants
 readonly START_TIMESTAMP=`$BIN_DATE +"%s"`
 readonly TMPFILE_ARGS="$CFG_TMP_FOLDER/$SCRIPT_NAME.$$.args.tmp"
 
@@ -67,11 +67,11 @@ readonly MONTHLY_TAG="type04"	# Services|CIFS/SMB|Shares
 
 
 
-################################## 
+##################################
 # Check script input parameters
 #
 # Params: all parameters of the shell script
-# return : 1 if an error occured, 0 otherwise 
+# return : 1 if an error occured, 0 otherwise
 ##################################
 parseInputParams() {
 	local regex_int keep_all_snap opt fs_without_slash
@@ -104,36 +104,36 @@ parseInputParams() {
 		case $opt in
 			n) 	I_GENERATE_SNAPSHOT=0 ;;
 			r) 	echo "$OPTARG" | grep -E "$regex_int" >/dev/null	# Check if positive or negative integer
-				if [ "$?" -eq "0" ] ; then 
-					I_DEPTH="$OPTARG" 
+				if [ "$?" -eq "0" ] ; then
+					I_DEPTH="$OPTARG"
 				else
 					echo "Invalid parameter \"$OPTARG\" for option: -r. Should be an integer."
 					return 1
 				fi ;;
 			h) 	echo "$OPTARG" | grep -E "$regex_int" >/dev/null	# Check if positive or negative integer
-				if [ "$?" -eq "0" ] ; then 
-					I_MAX_NB_HOURLY="$OPTARG" 
+				if [ "$?" -eq "0" ] ; then
+					I_MAX_NB_HOURLY="$OPTARG"
 				else
 					echo "Invalid parameter \"$OPTARG\" for option: -h. Should be an integer."
 					return 1
 				fi ;;
 			d) 	echo "$OPTARG" | grep -E "$regex_int" >/dev/null	# Check if positive or negative integer
-				if [ "$?" -eq "0" ] ; then 
-					I_MAX_NB_DAILY="$OPTARG" 
+				if [ "$?" -eq "0" ] ; then
+					I_MAX_NB_DAILY="$OPTARG"
 				else
 					echo "Invalid parameter \"$OPTARG\" for option: -h. Should be an integer."
 					return 1
 				fi ;;
 			w) 	echo "$OPTARG" | grep -E "$regex_int" >/dev/null	# Check if positive or negative integer
-				if [ "$?" -eq "0" ] ; then 
-					I_MAX_NB_WEEKLY="$OPTARG" 
+				if [ "$?" -eq "0" ] ; then
+					I_MAX_NB_WEEKLY="$OPTARG"
 				else
 					echo "Invalid parameter \"$OPTARG\" for option: -h. Should be an integer."
 					return 1
 				fi ;;
 			m) 	echo "$OPTARG" | grep -E "$regex_int" >/dev/null	# Check if positive or negative integer
-				if [ "$?" -eq "0" ] ; then 
-					I_MAX_NB_MONTHLY="$OPTARG" 
+				if [ "$?" -eq "0" ] ; then
+					I_MAX_NB_MONTHLY="$OPTARG"
 				else
 					echo "Invalid parameter \"$OPTARG\" for option: -h. Should be an integer."
 					return 1
@@ -159,8 +159,8 @@ parseInputParams() {
 	# Remove the optional arguments parsed above.
 	shift $((OPTIND-1))
 	
-	# Check if the number of mandatory parameters 
-	# provided is as expected 
+	# Check if the number of mandatory parameters
+	# provided is as expected
 	if [ "$#" -ne "1" ]; then
 		echo "Exactly one mandatory argument shall be provided"
 		return 1
@@ -169,10 +169,10 @@ parseInputParams() {
 	return 0
 }
 
-################################## 
+##################################
 # Compute the age in s of the newest snapshot of a filesystem
 # having a given tag
-# If no snapshot is available, return the seconds since 1970 
+# If no snapshot is available, return the seconds since 1970
 #
 # Param 1: filesystem
 # Param 2: tag
@@ -195,10 +195,10 @@ newestSnapshotAge() {
 	echo $ageSnap
 }
 
-################################## 
-# Create a new snapshot of the filesystem (not recursively) 
+##################################
+# Create a new snapshot of the filesystem (not recursively)
 # This will either create a monthly, weekly, daily or hourly snapshot
-# depending how old the last respective snapshot is 
+# depending how old the last respective snapshot is
 #
 # Param 1: filesystem
 ##################################
@@ -219,7 +219,7 @@ createSnapshot() {
 		tag="$WEEKLY_TAG"
 	elif [ $I_MAX_NB_DAILY -ne 0 -a $ageDailySnap -ge $S_IN_DAY ]; then
 		tag="$DAILY_TAG"
-	elif [ $I_MAX_NB_HOURLY -ne 0 ]; then  
+	elif [ $I_MAX_NB_HOURLY -ne 0 ]; then
 		tag="$HOURLY_TAG"
 	else
 		log_info "$LOGFILE" "$filesystem: Currently, no need to create any snapshot"
@@ -232,7 +232,7 @@ createSnapshot() {
 
 	fullNewSnapshotname="$filesystem@$newSnapshotName"
 	log_info "$LOGFILE" "$filesystem: Creating new snapshot \"$fullNewSnapshotname\""
-	if `$BIN_ZFS snapshot $fullNewSnapshotname>/dev/null`; then 
+	if `$BIN_ZFS snapshot $fullNewSnapshotname>/dev/null`; then
 		return 0
 	else
 		log_error "$LOGFILE" "$filesystem: Problem while creating snapshot $fullNewSnapshotname (A snapshot having the same name may already exist)"
@@ -251,7 +251,7 @@ createSnapshot() {
 ##################################
 deleteOldSnapshots() {
 	local filesystem tag maxNb returnCode
-        
+
 	filesystem="$1"
 	tag="$2"
 	maxNb="$3"
@@ -262,7 +262,7 @@ deleteOldSnapshots() {
 	if [ "$maxNb" -lt "0" ]; then
 		log_info "$LOGFILE" "$filesystem: All snapshots with tag \"$tag\" kept"
 		return 0
-	fi 
+	fi
 	
 	# Delete the snapshots that are too old in the current sub filesystem
 	for snapshot in `sortSnapshots $filesystem $tag | tail -n +$((maxNb+1))`; do
@@ -279,15 +279,15 @@ deleteOldSnapshots() {
 	return $returnCode
 }
 
-################################## 
-# Main 
+##################################
+# Main
 ##################################
 main() {
 	local returnCode depth_flag
 	returnCode=0
 
 	log_info "$LOGFILE" "Starting snapshot script for dataset \"$I_FILESYSTEM\" (depth: $I_DEPTH)"
-	log_info "$LOGFILE" "Keeping up to $I_MAX_NB_HOURLY hourly / $I_MAX_NB_DAILY daily / $I_MAX_NB_WEEKLY weekly / $I_MAX_NB_MONTHLY monthly snapshots (<0 = all)" 
+	log_info "$LOGFILE" "Keeping up to $I_MAX_NB_HOURLY hourly / $I_MAX_NB_DAILY daily / $I_MAX_NB_WEEKLY weekly / $I_MAX_NB_MONTHLY monthly snapshots (<0 = all)"
 
 	# Compute the arguments required to process the fs ar the requested depth
 	if [ "$I_DEPTH" -lt "0" ]; then
@@ -310,13 +310,13 @@ main() {
 		# Delete the superfluous snapshots for the filesystem
 		if ! deleteOldSnapshots "$subfilesystem" "$HOURLY_TAG" "$I_MAX_NB_HOURLY"; then
 			returnCode=1	
-		fi 
+		fi
 		if ! deleteOldSnapshots "$subfilesystem" "$DAILY_TAG" "$I_MAX_NB_DAILY"; then
 			returnCode=1	
-		fi 
+		fi
 		if ! deleteOldSnapshots "$subfilesystem" "$WEEKLY_TAG" "$I_MAX_NB_WEEKLY"; then
 			returnCode=1	
-		fi 
+		fi
 		if ! deleteOldSnapshots "$subfilesystem" "$MONTHLY_TAG" "$I_MAX_NB_MONTHLY"; then
 			returnCode=1	
 		fi 		

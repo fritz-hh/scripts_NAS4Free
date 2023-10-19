@@ -18,7 +18,7 @@ cd "`dirname $0`"
 . "common/commonMailFcts.sh"
 . "common/commonLockFcts.sh"
 
-# Initialization of the constants 
+# Initialization of the constants
 readonly START_TIMESTAMP=`$BIN_DATE +"%s"`
 readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
 readonly TMPFILE_ARGS="$CFG_TMP_FOLDER/$SCRIPT_NAME.$$.args.tmp"
@@ -27,11 +27,11 @@ readonly TMPFILE_ARGS="$CFG_TMP_FOLDER/$SCRIPT_NAME.$$.args.tmp"
 ARGUMENTS="$@"
 
 
-################################## 
+##################################
 # Check script input parameters
 #
 # Params: all parameters of the shell script
-# return : 1 if an error occured, 0 otherwise 
+# return : 1 if an error occured, 0 otherwise
 ##################################
 parseInputParams() {
 	local opt
@@ -49,8 +49,8 @@ parseInputParams() {
 	# Remove the optional arguments parsed above.
 	shift $((OPTIND-1))
 	
-	# Check if the number of mandatory parameters 
-	# provided is as expected 
+	# Check if the number of mandatory parameters
+	# provided is as expected
 	if [ "$#" -ne "0" ]; then
 		echo "No mandatory arguments should be provided"
 		return 1
@@ -67,14 +67,14 @@ parseInputParams() {
 main() {
 	local pool
 
-	log_info "$LOGFILE" "Starting checking of pools" 
+	log_info "$LOGFILE" "Starting checking of pools"
 	
 	$BIN_ZPOOL list -H -o name | while read pool; do
 		if ZPOOL_STATUS_NON_NATIVE_ASHIFT_IGNORE=1 $BIN_ZPOOL status -x $pool | grep "is healthy">/dev/null; then
 			ZPOOL_STATUS_NON_NATIVE_ASHIFT_IGNORE=1 $BIN_ZPOOL status -x $pool | log_info "$LOGFILE"
 		else
 			$BIN_ZPOOL status -v $pool | log_error "$LOGFILE"
-		fi 
+		fi
 	done
 
 	# Check if the pools are healthy

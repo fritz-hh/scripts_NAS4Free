@@ -1,14 +1,14 @@
 #!/bin/sh
 #############################################################################
-# Script aimed at performing a backup of a ZFS filesystem (fs) and of all 
+# Script aimed at performing a backup of a ZFS filesystem (fs) and of all
 # sub-filesystems recursively to another filesystem located on another ZPOOL
-# The other filesystem can be either on the local host or on a remote host 
+# The other filesystem can be either on the local host or on a remote host
 #
 # Author: fritz from NAS4Free forum
 #
 # Usage: backupData.sh [-s user@host[,path2privatekey]] [-b maxRollbck] [-c compression[,...]] fsSource[,...] fsDest
 #
-#	-s user@host[,path2privatekey]:	Specify a remote host on which the destination filesystem 
+#	-s user@host[,path2privatekey]:	Specify a remote host on which the destination filesystem
 #			is located
 #			Prerequisite: An ssh server shall be running on the host and
 #			public key authentication shall be available
@@ -19,15 +19,15 @@
 #				login. (This is required either if you are logged under another user
 #				in the local host, or if you run the script from cron)
 #	-b maxRollbck :	Biggest allowed rollback (in days) on the destination fs.
-#			A rollback is necessary if the snapshots available on the 
+#			A rollback is necessary if the snapshots available on the
 #			destination fs are not available anymore on the source fs
 #			Default value: 10 days
 #	-c compression[,...] : compression algorithm to be used for the respective
 #			destination filesystem.
-#			If only one compression algorithm is provided, this algorithm applies to each 
+#			If only one compression algorithm is provided, this algorithm applies to each
 #			destination filesystem.
 #			If more then one compression algorithm is provided (exactly the same number
-#			of algorithm shall be provided as the number of source filesystems), 
+#			of algorithm shall be provided as the number of source filesystems),
 #			compressionN is the algorithm that will be set for the destination filesystem
 #			corresponding to fsSourceN.
 #	fsSource[,...] :  zfs filesystems to be backed-up (source).
@@ -38,8 +38,8 @@
 #			Note: The ZPOOL in which this filesystem is located should be different
 #			      from the ZPOOL(s) of the source filesystems
 #
-# Example: 
-#	"backupData.sh tank/nas_scripts tank_backup" will create a backup of the ZFS fs 
+# Example:
+#	"backupData.sh tank/nas_scripts tank_backup" will create a backup of the ZFS fs
 #	"tank/nas_scripts" (and of all its sub-filesystems) in the ZFS fs "tank_backup".
 #	I.e. After the backup (at least) an fs "tank_backup/tank/nas_scripts" will exist.
 #
@@ -58,14 +58,14 @@ cd "`dirname $0`"
 . "common/commonMailFcts.sh"
 . "common/commonLockFcts.sh"
 
-# Initialization of constants 
-readonly START_TIMESTAMP=`$BIN_DATE +"%s"` 
+# Initialization of constants
+readonly START_TIMESTAMP=`$BIN_DATE +"%s"`
 readonly SUPPORTED_COMPRESSION='on|off|lzjb|gzip|gzip-[1-9]|zle|lz4'
 readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
 readonly TMP_FILE="$CFG_TMP_FOLDER/run_fct_ssh.sh"
 readonly TMPFILE_ARGS="$CFG_TMP_FOLDER/$SCRIPT_NAME.$$.args.tmp"
 readonly S_IN_DAY=86400			# Number of seconds in a day
-readonly SSH_BATCHMODE="yes"		# Only public key authentication is allowed in batch mode 
+readonly SSH_BATCHMODE="yes"		# Only public key authentication is allowed in batch mode
 					# (should only change to "no" for test purposes)
 
 # Initialization of inputs corresponding to optional args of the script
@@ -83,8 +83,8 @@ ARGUMENTS="$@"
 ##########################
 # Run a function on a remote server
 # functions available the following local files are supported:
-# - commonSnapFcts.sh 
-# 
+# - commonSnapFcts.sh
+#
 # This function does not support to get data through PIPES
 #
 # Params: The command as well as all arguments of the command
@@ -95,7 +95,7 @@ run_fct_ssh() {
 
 	# generating the tmp file containing the code to be executed
 	cat "config.sh" > $TMP_FILE
-	cat "common/commonSnapFcts.sh" >> $TMP_FILE 
+	cat "common/commonSnapFcts.sh" >> $TMP_FILE
 	echo "$@" >>  $TMP_FILE
 	
 	# run the code on the remote host
@@ -113,11 +113,11 @@ run_fct_ssh() {
 }
 
 
-################################## 
+##################################
 # Check script input parameters
 #
 # Params: all parameters of the shell script
-# return : 1 if an error occured, 0 otherwise 
+# return : 1 if an error occured, 0 otherwise
 ##################################
 parseInputParams() {
 	local opt current_fs current_src_pool dest_pool regex_rollback host regex_comp comp_num fs_num
@@ -128,7 +128,7 @@ parseInputParams() {
 	# (there should be none)
 	while getopts ":s:b:c:" opt; do
         	case $opt in
-			s)	echo "$OPTARG" | grep -E "^(.+)@(.+)$" >/dev/null 
+			s)	echo "$OPTARG" | grep -E "^(.+)@(.+)$" >/dev/null
 				if [ "$?" -eq "0" ] ; then
 					I_REMOTE_ACTIVE="1"
 					I_REMOTE_LOGIN=`echo "$OPTARG" | cut -f1 -d,`
@@ -155,14 +155,14 @@ parseInputParams() {
 					echo "Remote login data (\"$OPTARG\") does not have the expected format: username@hostname"
 					return 1
 				fi ;;
-			b)	echo "$OPTARG" | grep -E "^([0-9]+)$" >/dev/null 
+			b)	echo "$OPTARG" | grep -E "^([0-9]+)$" >/dev/null
 				if [ "$?" -eq "0" ] ; then
 					I_MAX_ROLLBACK_S=$(($OPTARG*$S_IN_DAY))
 				else
 					echo "Wrong maximum rollback value, should be a positive integer or zero (unit: days) !"
 					return 1
 				fi ;;
-			c)	echo "$OPTARG" | grep -E "$regex_comp" >/dev/null 
+			c)	echo "$OPTARG" | grep -E "$regex_comp" >/dev/null
 				if [ "$?" -eq "0" ] ; then
 					I_COMPRESSION=$OPTARG
 				else
@@ -181,8 +181,8 @@ parseInputParams() {
 	# Remove the optional arguments parsed above.
 	shift $((OPTIND-1))
 	
-	# Check if the number of mandatory parameters 
-	# provided is as expected 
+	# Check if the number of mandatory parameters
+	# provided is as expected
 	if [ "$#" -ne "2" ]; then
 		echo "Exactly 2 mandatory argument shall be provided"
 		return 1
@@ -241,7 +241,7 @@ parseInputParams() {
 ##################################
 # Ensures the availability of the filesystem given as parameter
 # Param 1: filesystem name
-# Return : 0 if the filesystem is existing or could be created, 
+# Return : 0 if the filesystem is existing or could be created,
 #	   1 otherwise
 ##################################
 ensureRemoteFSExists() {
@@ -294,12 +294,12 @@ ensureRemoteFSExists() {
 
 
 ##################################
-# Backup the source filesystem 
+# Backup the source filesystem
 # (but NOT recursively the sub-filesystems)
 #
 # Param 1: source filesystem
 # Param 2: destination filesystem
-# Return : 0 if the backup could be performed successfully or 
+# Return : 0 if the backup could be performed successfully or
 #	     if there is nothing to backup
 #	   1 if the backup failed
 ##################################
@@ -345,7 +345,7 @@ backup() {
 	newestSnapDestFs=`$RUN_FCT_SSH sortSnapshots $dest_fs "" | head -n 1`
 
 	# find the newest snapshot on the dest fs that is still
-	# available in the src fs and then perform an incremental 
+	# available in the src fs and then perform an incremental
 	# backup starting from the latter snapshot
 	for snapDestFs in `$RUN_FCT_SSH sortSnapshots "$dest_fs" ""`; do
 
@@ -391,8 +391,8 @@ backup() {
 	done
 }
 
-################################## 
-# Main 
+##################################
+# Main
 ##################################
 main() {
 	local returnCode current_fs currentSubSrcFs currentSubDstFs algo cpt
@@ -412,7 +412,7 @@ main() {
 
 			currentSubDstFs="$I_DEST_FS/$currentSubSrcFs"
 		
-			# create the dest filesystems (recursively) 
+			# create the dest filesystems (recursively)
 			# if they do not yet exist and exit if it fails
 			if ! ensureRemoteFSExists "$currentSubDstFs"; then
 				returnCode=1
@@ -421,7 +421,7 @@ main() {
 				# set compression algorithm for the current destination fs
 				if [ -n "$I_COMPRESSION" ]; then
 					# compute compress algorithm for the current fs, or unique algorithm if only one was defined
-					algo=`echo "$I_COMPRESSION" | cut -f$cpt -d,` 
+					algo=`echo "$I_COMPRESSION" | cut -f$cpt -d,`
 					if $RUN_CMD_SSH $BIN_ZFS set compression="$algo" "$currentSubDstFs" 2>/dev/null 1>/dev/null; then
 						log_info "$LOGFILE" "Compression algorithm set to \"$algo\" for \"$currentSubDstFs\""
 					else

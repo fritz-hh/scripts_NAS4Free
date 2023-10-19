@@ -26,7 +26,7 @@ CFG_MAIL_TO="admin@example.com"	# Enter the email of the NAS administrator here
 ################################################
 
 CFG_TMP_FOLDER="./tmp"		# Folder used to write temporary file
-CFG_LOG_FOLDER="./log"		# Folder containing all log files 
+CFG_LOG_FOLDER="./log"		# Folder containing all log files
 
 
 

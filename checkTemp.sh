@@ -1,7 +1,7 @@
 #!/bin/sh
 #############################################################################
-# Check the CPU and HDD temperatures, and send e-mail 
-# if desired limits are exceeded  
+# Check the CPU and HDD temperatures, and send e-mail
+# if desired limits are exceeded
 #
 # Author: miGi from NAS4Free Forum
 #
@@ -23,7 +23,7 @@ cd "`dirname $0`"
 . "common/commonMailFcts.sh"
 . "common/commonLockFcts.sh"
 
-# Initialization of the constants 
+# Initialization of the constants
 readonly START_TIMESTAMP=`$BIN_DATE +"%s"`
 readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
 readonly TMPFILE_ARGS="$CFG_TMP_FOLDER/$SCRIPT_NAME.$$.args.tmp"
@@ -33,14 +33,14 @@ ARGUMENTS="$@"
 
 
 
-################################## 
+##################################
 # Check script input parameters
 #
 # Params: all parameters of the shell script
-# return : 1 if an error occured, 0 otherwise 
+# return : 1 if an error occured, 0 otherwise
 ##################################
 parseInputParams() {
-	local opt regex_temp 
+	local opt regex_temp
 
 	# parse the optional parameters
 	# (there should be none)
@@ -55,8 +55,8 @@ parseInputParams() {
 	# Remove the optional arguments parsed above.
 	shift $((OPTIND-1))
 	
-	# Check if the number of mandatory parameters 
-	# provided is as expected 
+	# Check if the number of mandatory parameters
+	# provided is as expected
 	if [ "$#" -ne "2" ]; then
 		echo "$LOGFILE" "Exactly two mandatory argument shall be provided"
 		return 1
@@ -94,8 +94,8 @@ main() {
 	
 	log_info "$LOGFILE" "CPUs (warning threshold: $((I_WARN_THRESHOLD_CPU))C):"
 	printf '%8s %s\n' "Temp(C)" "CPU" | log_info "$LOGFILE"
-	for cpu in `sysctl -a | grep -E "cpu\.[0-9]+\.temp" | cut -f1 -d:`; do 
-		cpuTemp=`sysctl -a | grep $cpu | awk '{gsub(/[.][0-9]*C/,"");print $2}'` 
+	for cpu in `sysctl -a | grep -E "cpu\.[0-9]+\.temp" | cut -f1 -d:`; do
+		cpuTemp=`sysctl -a | grep $cpu | awk '{gsub(/[.][0-9]*C/,"");print $2}'`
 		
 		printf '%+8d %s\n' "$((cpuTemp))" "$cpu" | log_info "$LOGFILE"
 		

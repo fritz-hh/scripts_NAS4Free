@@ -5,7 +5,7 @@
 # Author: fritz from NAS4Free forum
 #############################################################################
 
-# Log message type 
+# Log message type
 readonly LOG_INFO="INFO"
 readonly LOG_WARNING="WARN"
 readonly LOG_ERROR="ERROR"
@@ -14,7 +14,7 @@ readonly LOG_ERROR="ERROR"
 # Format of the timestamp used in the log files
 ##################################
 ts_format() {
-	echo "%Y%m%d_%H%M%S" 
+	echo "%Y%m%d_%H%M%S"
 }
 
 ##################################
@@ -25,7 +25,7 @@ ts_format() {
 # Param 2: text to be logged
 ##################################
 log_info() {
-	log "$LOG_INFO" "$@" 
+	log "$LOG_INFO" "$@"
 }
 
 ##################################
@@ -36,7 +36,7 @@ log_info() {
 # Param 2: text to be logged
 ##################################
 log_warning() {
-	log "$LOG_WARNING" "$@" 
+	log "$LOG_WARNING" "$@"
 }
 
 ##################################
@@ -47,14 +47,14 @@ log_warning() {
 # Param 2: text to be logged
 ##################################
 log_error() {
-	log "$LOG_ERROR" "$@" 
+	log "$LOG_ERROR" "$@"
 }
 
 ##################################
 # Append a line into a log file
 # 	The 3rd argument is optional, the function can also
 #	read data from the pipe
-# Param 1: message criticality 
+# Param 1: message criticality
 # Param 2: path to the log file
 # Param 3: message to be logged (optional)
 # return: 1 if a bad log file path was provided
@@ -91,7 +91,7 @@ log() {
 		returnCode="0"
 		while read line; do
 			# recursive call with pipe to avoid to handle this case specially
-			log "$criticality" "$logfile" "$line" || returnCode="1" 
+			log "$criticality" "$logfile" "$line" || returnCode="1"
 		done
 		
 		# setting IFS back to its initial value
@@ -103,8 +103,8 @@ log() {
 
 ##################################
 # Append the date to the line to be logged
-# Param 1: message criticality 
-# Param 2: text to be logged 
+# Param 1: message criticality
+# Param 2: text to be logged
 ##################################
 format_log_txt() {
 
@@ -115,16 +115,16 @@ format_log_txt() {
 
 	tsFormat=`ts_format`
 
-	timestamp=`$BIN_DATE +$tsFormat` 
+	timestamp=`$BIN_DATE +$tsFormat`
 		
-	echo "$timestamp	$criticality	$text" 
+	echo "$timestamp	$criticality	$text"
 
 	return 0	
 }
 
 
 ##################################
-# Echo the timestamp (in sec since 1970) 
+# Echo the timestamp (in sec since 1970)
 # of the oldest entry in the log file
 #
 # Param 1: file path
@@ -190,10 +190,10 @@ get_log_entries() {
 ##################################
 # Returns an extract of a log file
 # The functions returns the log entries generated
-# during since the timestamp (see args) 
+# during since the timestamp (see args)
 #
-# Param 1: file path 
-# Param 2: timestamp (in seconds since 1970) 
+# Param 1: file path
+# Param 2: timestamp (in seconds since 1970)
 # Return : 0 if no error occurs
 #	   1 if the log file does not exist
 #	   2 if the log file does not contain any entry that is newer than
@@ -202,7 +202,7 @@ get_log_entries() {
 get_log_entries_ts() {
 	local f targetTimestamp1970 tsFormat nbLinesInFile firstLine lastLine diffLines \
 		midLine currentLine timestamp currentTimestamp1970 diffTimestamp \
-		firstLineTimestamp1970 diffFirstLineTimestamp lastLineTimestamp1970 diffLastLineTimestamp 
+		firstLineTimestamp1970 diffFirstLineTimestamp lastLineTimestamp1970 diffLastLineTimestamp
 	
 	f="$1"
 	targetTimestamp1970="$2"
@@ -276,7 +276,7 @@ get_log_entries_ts() {
 	# If firstLine is new enough
 	if [ "$diffFirstLineTimestamp" -le "0" ]; then
 		tail -n $(($nbLinesInFile-$firstLine+1)) "$f"
-	# If lastLine is new enough 
+	# If lastLine is new enough
 	elif [ "$diffLastLineTimestamp" -le "0" ]; then
 		tail -n $(($nbLinesInFile-$lastLine+1)) "$f"
 	# Even the last line in the log is too old

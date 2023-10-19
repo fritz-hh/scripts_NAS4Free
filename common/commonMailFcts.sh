@@ -5,7 +5,7 @@
 # Author: fritz from NAS4Free forum
 #
 # Param 1: Subject of the mail
-# Param 2: Content of the mail (Not required if data are provided 
+# Param 2: Content of the mail (Not required if data are provided
 #	   from a pipe
 ####################################################################
 sendMail() {
@@ -25,7 +25,7 @@ sendMail() {
 		done
 	# if the mail body is NOT provided though the pipe
 	else
-		body="$2" 
+		body="$2"
 	fi	
 
 	# Send the mail

@@ -11,7 +11,31 @@ v2.4 (2023-10-07):
 New features
 ------------
 
-- None 
+- None
+
+Changes
+-------
+
+- Remove all trailing spaces in the scripts.
+
+Fixes
+-----
+
+- None
+
+Tested with
+-----------
+
+- Xigmanas (formerly NAS4Free) 13.2.0.5 - Heighliner (revision 9876)
+
+
+v2.4 (2023-10-07):
+====
+
+New features
+------------
+
+- None
 
 Changes
 -------
@@ -38,7 +62,7 @@ v2.3 (2023-10-03):
 New features
 ------------
 
-- None 
+- None
 
 Changes
 -------
@@ -64,7 +88,7 @@ v2.2 (2018-11-03):
 New features
 ------------
 
-- None 
+- None
 
 Changes
 -------
@@ -74,7 +98,7 @@ Changes
 Fixes
 -----
 
-- backupData.sh: (closes #21) Fix a bug that leads the backupData.sh script to set the whole destination pool to 
+- backupData.sh: (closes #21) Fix a bug that leads the backupData.sh script to set the whole destination pool to
   read only a the end of the backup.
   This is not a good idea if at least 1 filesystem of the destination pool is used for other purposes than backup.
   Now the script puts the zpool to readonly at the end of the script, only if it was readonly, when the script started.
@@ -92,7 +116,7 @@ New features
 
 - checkPools.sh and scrubPools.sh: In case of pool error, provide
   a more verbose status message in the log, so that it is possible to located the
-  impacted files. 
+  impacted files.
 
 Changes
 -------
@@ -278,7 +302,7 @@ Changes
 
 - improved readability of data logged (display as tables whenever possible: e.g.: for checkSpace.sh)
 - checkSpace.sh: arguments "filesystem" and "threshold" are now optional (-f and -t)
-- backupData.sh: argument "max_rollback" is now optional (-b) 
+- backupData.sh: argument "max_rollback" is now optional (-b)
 - commonLockFcts.sh (impact on all scripts): Do not warn if a script cannot be started because the NAS is about to shut down (normal information message instead)
 - library of funtions moved to subfolder "common"
 - config.sh: default path to "log" and "tmp" folder changed
@@ -289,7 +313,7 @@ Fixes
 - all scripts: improved validation of mandatory and optional arguments
 - commonLogFcts.sh: leading spaces of message now also logged if data are provided through a pipe
 - commonLogFcts.sh: When logging, if no log file path is provided, echo text on std out instead
-- commonLogFcts.sh: When returning a log file extract: Handle case of empty file 
+- commonLogFcts.sh: When returning a log file extract: Handle case of empty file
 
 Tested with
 -----------

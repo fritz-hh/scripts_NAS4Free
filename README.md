@@ -84,7 +84,7 @@ manageAcpi.sh:
     - If no computer that may access the NAS is online during a certain time (based on the IP address)
     - If the curfew is reached!
 - (if requested) prevents a shutdown / sleep during a configurable timeslot
-- (if requested) Prevents a shutdown / sleep if another machine is accessing to the NAS using SSH 
+- (if requested) Prevents a shutdown / sleep if another machine is accessing to the NAS using SSH
 - Prevents a shutdown / sleep to be issued when one of the above administrative scripts is running
 - Reports the results in a log file.
 - Script to be started at NAS startup. The script runs as an endless loop

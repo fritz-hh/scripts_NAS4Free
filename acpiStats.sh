@@ -25,7 +25,7 @@ cd "`dirname $0`"
 . "common/commonMailFcts.sh"
 . "common/commonLockFcts.sh"
 
-# Initialization of the constants 
+# Initialization of the constants
 readonly START_TIMESTAMP=`$BIN_DATE +"%s"`
 readonly LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.log"
 readonly TMPFILE="$CFG_TMP_FOLDER/$SCRIPT_NAME.$$.stat.tmp"
@@ -51,7 +51,7 @@ I_W_S5="0"			# Power consumed by the NAS in S5 (in mW)
 # Check script input parameters
 #
 # Params: all parameters of the shell script
-# return : 1 if an error occured, 0 otherwise 
+# return : 1 if an error occured, 0 otherwise
 ##################################
 parseInputParams() {
 	local regex_pow regex_pows opt
@@ -63,7 +63,7 @@ parseInputParams() {
 	while getopts ":p:" opt; do
 	
 		case $opt in
-			p)	echo "$OPTARG" | grep -E "^$regex_pows$" >/dev/null 
+			p)	echo "$OPTARG" | grep -E "^$regex_pows$" >/dev/null
 				if [ "$?" -eq "0" ] ; then
 					I_COMPUTE_CONSUMPTION="1"	
 					I_W_S0=`echo "$OPTARG" | cut -f1 -d,`			
@@ -85,8 +85,8 @@ parseInputParams() {
 	# Remove the optional arguments parsed above.
 	shift $((OPTIND-1))
 	
-	# Check if the number of mandatory parameters 
-	# provided is as expected 
+	# Check if the number of mandatory parameters
+	# provided is as expected
 	if [ "$#" -ne "0" ]; then
 		echo "No mandatory arguments should be provided"
 		return 1
@@ -96,8 +96,8 @@ parseInputParams() {
 }
 
 
-################################## 
-# Compute ACPI state stastistics 
+##################################
+# Compute ACPI state stastistics
 #
 # Param 1: Log file containing the data to analyze
 # Param 2: String to be search for in the 3rd column of the log file
@@ -162,15 +162,15 @@ compute_stat() {
 
 
 
-################################## 
+##################################
 # Log the statistics for the file
 # provided as parameter
-# 
+#
 # param 1: file name (inkl. path)
-# return : 1 if an error occured, 0 otherwise 
+# return : 1 if an error occured, 0 otherwise
 ##################################
 log_stats() {
-	local S0p S3p S5p file percentage_tot 
+	local S0p S3p S5p file percentage_tot
 
 	file=$1
 
@@ -203,11 +203,11 @@ log_stats() {
 }
 
 
-################################## 
-# Main 
+##################################
+# Main
 ##################################
 main() {
-	local oldest_acpi_ts 
+	local oldest_acpi_ts
 
 	log_info "$LOGFILE" "Starting computation of ACPI statistics"
 

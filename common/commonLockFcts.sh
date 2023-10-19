@@ -3,8 +3,8 @@
 # Toolbox containing several functions aimed at:
 # - recording that a script is running
 # - detecting that a script is running
-# - preventing several instances of the same script from running 
-# - preventing any script from running 
+# - preventing several instances of the same script from running
+# - preventing any script from running
 #
 # Author: fritz from NAS4Free forum
 #############################################################################
@@ -26,14 +26,14 @@ acquire_lock() {
 	# Ensure that the folder that shall contain all locks exists
 	if ! ensure_lock_folder_exits; then
 		return 3
-	fi 
+	fi
 	
 	# If no lock is allowed to be acquired
 	if [ -f "$CFG_FORBID_ANY_LOCK_ACQUISITION_FILE" ]; then
 		return 2
 	fi
 
-	# acquire the lock 
+	# acquire the lock
 	if $BIN_MKDIR "`get_lock_path $lock_id`" 2>/dev/null; then
 		return 0
 	else
@@ -44,7 +44,7 @@ acquire_lock() {
 ##################################
 # Release a lock that was acquired before
 #
-# Param 1: lock id (must be the same id, as the id 
+# Param 1: lock id (must be the same id, as the id
 #	   provided when the lock was acquired)
 # Return : 0 if the lock could be released
 #          1 otherwise
@@ -57,7 +57,7 @@ release_lock() {
 	if ! ensure_lock_folder_exits; then
  		return 1
 	fi
- 
+
 	# Release the lock
 	if $BIN_RM -r "`get_lock_path $lock_id`" 2>/dev/null; then
 		return 0
@@ -79,7 +79,7 @@ does_any_lock_exist() {
 	# (this case should not happen)
 	if ! ensure_lock_folder_exits; then
  		return 1
-	fi 
+	fi
 
 	# check if any lock exists
 	if [ "`$BIN_LS -A $CFG_LOCKS_FOLDER`" != "" ]; then
@@ -108,8 +108,8 @@ prevent_acquire_locks() {
 }
 
 ##################################
-# Allows any lock to be acquired 
-# unless it was already acquired 
+# Allows any lock to be acquired
+# unless it was already acquired
 ##################################
 allow_acquire_locks() {
 	$BIN_RM -f "$CFG_FORBID_ANY_LOCK_ACQUISITION_FILE"
@@ -125,7 +125,7 @@ reset_locks() {
 }
 
 ##################################
-# Ensure that the folder that should 
+# Ensure that the folder that should
 # contain the lock files exists
 #
 # Return : 0 if the folder existed or could be created
@@ -149,20 +149,20 @@ get_lock_path() {
 	echo "$CFG_LOCKS_FOLDER/$lock_id.lock"
 }
 
-################################## 
-# Run the "main" function unless the lock could not be acquired 
+##################################
+# Run the "main" function unless the lock could not be acquired
 # remove the lock at the end of the execution
 #
 # Param 1: log file name
-# Param 2: lock id (should be a folder name without its path) 
+# Param 2: lock id (should be a folder name without its path)
 # Return : 0 : no error
 #          1 : could not start script because the system is (probably) about to shutdown
-#	   2 : any other error 
+#	   2 : any other error
 ##################################
 run_main() {
 	local log_file lock_id retCodeAcquireLock errInMain
 
-	log_file="$1" 
+	log_file="$1"
 	lock_id="$2"
 
 	errInMain=0
