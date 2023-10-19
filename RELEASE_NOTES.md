@@ -156,7 +156,7 @@ Fixes
 Tested with
 -----------
 
-- NAS4Free  	9.2.0.1 - Shigawire (revision 972) - Embedded
+- NAS4Free 9.2.0.1 - Shigawire (revision 972) - Embedded
 
 v2.0-beta1 (2013-03-25):
 ====

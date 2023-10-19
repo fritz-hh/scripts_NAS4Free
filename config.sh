@@ -16,17 +16,17 @@
 # Mail configuration
 ################################################
 
-CFG_MAIL_FROM="nas@example.com"	# Enter the mail address of the NAS here (should be the same address than in NAS GUI: System|Advanced|Email)
-CFG_MAIL_TO="admin@example.com"	# Enter the email of the NAS administrator here
+CFG_MAIL_FROM="nas@example.com"    # Enter the mail address of the NAS here (should be the same address than in NAS GUI: System|Advanced|Email)
+CFG_MAIL_TO="admin@example.com"    # Enter the email of the NAS administrator here
 
 # Paths to log folder, temp folder...
 #
-# ATTENTION: 	THESE FOLDERS MUST EXIST !!!
-# 		IF THEY DON'T, PLEASE CREATE THEM
+# ATTENTION: THESE FOLDERS MUST EXIST !!!
+#            IF THEY DON'T, PLEASE CREATE THEM
 ################################################
 
-CFG_TMP_FOLDER="./tmp"		# Folder used to write temporary file
-CFG_LOG_FOLDER="./log"		# Folder containing all log files
+CFG_TMP_FOLDER="./tmp"        # Folder used to write temporary file
+CFG_LOG_FOLDER="./log"        # Folder containing all log files
 
 
 
@@ -43,8 +43,8 @@ CFG_VERSION="v2.4"
 # Paths to specific temp files / folders ...
 ################################################
 
-CFG_LOCKS_FOLDER="$CFG_TMP_FOLDER/locks"					# Folder containing all locks (indicating that a script is running)
-CFG_FORBID_ANY_LOCK_ACQUISITION_FILE="$CFG_TMP_FOLDER/forbid_acquisition.lock"	# File aimed at notifying that no lock is allowed to be acquired
+CFG_LOCKS_FOLDER="$CFG_TMP_FOLDER/locks"                    # Folder containing all locks (indicating that a script is running)
+CFG_FORBID_ANY_LOCK_ACQUISITION_FILE="$CFG_TMP_FOLDER/forbid_acquisition.lock"    # File aimed at notifying that no lock is allowed to be acquired
 
 # Path to used utilities
 ################################################
