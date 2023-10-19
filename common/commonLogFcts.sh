@@ -117,7 +117,7 @@ format_log_txt() {
 
     timestamp=`$BIN_DATE +$tsFormat`
 
-    echo "$timestamp    $criticality    $text"
+    printf "$timestamp\t$criticality\t$text\n"
 
     return 0
 }
