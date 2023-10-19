@@ -6,9 +6,9 @@
 #############################################################################
 
 # Initialisation of constants
-readonly DATE_FORMAT_ZFS="%a %b %d %H:%M %Y" 	# format of the snapshot creation date as provided by the 'zfs list -o creation' function
-						# example: Wed Dec 29 22:59 2010
-readonly DATE_FORMAT_SNAP_NAME="%Y%m%d_%H%M"	# format of the creation date in the snapshot name
+readonly DATE_FORMAT_ZFS="%a %b %d %H:%M %Y"  # format of the snapshot creation date as provided by the 'zfs list -o creation' function
+                                              # example: Wed Dec 29 22:59 2010
+readonly DATE_FORMAT_SNAP_NAME="%Y%m%d_%H%M"  # format of the creation date in the snapshot name
 
 ##################################
 # Return the sorted list of the snaptshots for
@@ -20,14 +20,14 @@ readonly DATE_FORMAT_SNAP_NAME="%Y%m%d_%H%M"	# format of the creation date in th
 # Return : The sorted list of snapshots
 ##################################
 sortSnapshots() {
-	local filesystem snapshotTag
+    local filesystem snapshotTag
 
-	filesystem="$1"
-	snapshotTag="$2"
+    filesystem="$1"
+    snapshotTag="$2"
 
-	# sort the snapshot based on the "creation" attribute
-	$BIN_ZFS list -H -o name -S creation -t snapshot -d 1 $filesystem \
-		| grep ".*@.*$snapshotTag"
+    # sort the snapshot based on the "creation" attribute
+    $BIN_ZFS list -H -o name -S creation -t snapshot -d 1 $filesystem \
+        | grep ".*@.*$snapshotTag"
 }
 
 ##################################
@@ -38,12 +38,12 @@ sortSnapshots() {
 # Return : creation date in s since 1970
 ##################################
 getSnapTimestamp1970() {
-	local snapshotName creationDate
-	
-	snapshotName="$1"
-	creationDate=`$BIN_ZFS list -t snapshot -H -o creation "$snapshotName"`
-	
-	$BIN_DATE -j -f "$DATE_FORMAT_ZFS" "$creationDate" +"%s"
+    local snapshotName creationDate
+
+    snapshotName="$1"
+    creationDate=`$BIN_ZFS list -t snapshot -H -o creation "$snapshotName"`
+
+    $BIN_DATE -j -f "$DATE_FORMAT_ZFS" "$creationDate" +"%s"
 }
 
 ##################################
@@ -57,13 +57,13 @@ getSnapTimestamp1970() {
 # Return : the snapshot name
 ##################################
 generateSnapshotName() {
-	local tag ts tsFormatted
+    local tag ts tsFormatted
 
-	tag="$1"
-	ts="$2"
+    tag="$1"
+    ts="$2"
 
-	tsFormatted=`$BIN_DATE -j -f "%s" "$ts" +"$DATE_FORMAT_SNAP_NAME"`
+    tsFormatted=`$BIN_DATE -j -f "%s" "$ts" +"$DATE_FORMAT_SNAP_NAME"`
 
-	echo "$tsFormatted"_autosnap_"$tag"
+    echo "$tsFormatted"_autosnap_"$tag"
 }
 
