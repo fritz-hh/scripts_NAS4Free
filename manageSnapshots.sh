@@ -14,9 +14,9 @@
 #
 #    -r depth : recursion depth. Recursively process any children of the filesystem,
 #        limiting the recursion to depth.
-#         A depth of 1 will process only the fs and its direct children.
-#         A negative depth will process the fs and all its children recursively
-#     -n : Do not create a new snapshot of the file system
+#        A depth of 1 will process only the fs and its direct children.
+#        A negative depth will process the fs and all its children recursively
+#    -n : Do not create a new snapshot of the file system
 #    -h num : Keep 'num' hourly snapshots (by default: 24) (<0 for all)
 #    -d num : Keep 'num' daily snapshots (by default: 15) (<0 for all)
 #    -w num : Keep 'num' weekly snapshots (by default: 8) (<0 for all)
