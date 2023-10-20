@@ -11,32 +11,32 @@
 #
 # Usage: manageAcpi.sh [-p duration] [-w duration] [-a beg,end] [-s delay] [-b delay] [-c beg,end,acpi] [-n ips,delay,acpi] [-vm]
 #
-#    - p duration : Define the duration (in seconds) between each respective poll (by default: 120)
-#    - w duration : Define the duration (in seconds) for which the NAS should never sleep after it wakes up (by default: 600)
-#    - a beg,end : Define a timeslot in which the NAS shall never go sleeping (e.g. because admin
+#    -p duration : Define the duration (in seconds) between each respective poll (by default: 120)
+#    -w duration : Define the duration (in seconds) for which the NAS should never sleep after it wakes up (by default: 600)
+#    -a beg,end : Define a timeslot in which the NAS shall never go sleeping (e.g. because admin
 #                tasks are scheduled during this slot)
 #                (This option superseeds a sleep order originating from -c and -n)
 #                + beg: time of the beginning of the slot (format: hh:mm)
 #                + end: time of the end of the slot (format: hh:mm)
-#    - s delay : Define that the NAS shall never go to sleep if an incoming SSH connection exists.
+#    -s delay : Define that the NAS shall never go to sleep if an incoming SSH connection exists.
 #                This function may be required in case the NAS is used as a destination of a remote backup.
 #                (This option superseeds a sleep order originating from -c and -n)
 #                + delay: delay in seconds between the end of the connection and start of sleep
-#    - b delay : Define that the NAS shall never go to sleep if an SMB connection to the NAS exists.
+#    -b delay : Define that the NAS shall never go to sleep if an SMB connection to the NAS exists.
 #                (Note: Some clients (i.e. Windows 10) might not close properly their SMB connection before shutdown.
 #                In that case, you can instruct your samba server, to check regularly for stale connections use the following
 #                configuration options in cmb.conf: "socket options = TCP_NODELAY SO_KEEPALIVE TCP_KEEPIDLE=30 TCP_KEEPCNT=3 TCP_KEEPINTVL=3"
 #                + delay: delay in seconds between the end of the connection and start of sleep
-#    - c beg,end,acpi : Define a curfew timeslot in which the NAS shall go sleeping.
+#    -c beg,end,acpi : Define a curfew timeslot in which the NAS shall go sleeping.
 #                + beg: time of the beginning of the slot (format: hh:mm)
 #                + end: time of the end of the slot (format: hh:mm)
 #                + acpi: the ACPI state selected for the sleep (3 or 5)
-#    - n ips,delay,acpi : Define that the NAS shall sleep if none of the other devices are online
+#    -n ips,delay,acpi : Define that the NAS shall sleep if none of the other devices are online
 #                + ips: IP addresses of the devices to poll (at least one), separated by "+" (Note: IP shall be static)
 #                + delay: delay in seconds between last device going offline and start of sleep
 #                + acpi: the ACPI state selected for the sleep (3 or 5)
-#    - v: Requests the log to be more verbose (Note: This is likely to prevent the disks to spin down)
-#    - m: Send mail on ACPI state change
+#    -v: Requests the log to be more verbose (Note: This is likely to prevent the disks to spin down)
+#    -m: Send mail on ACPI state change
 #
 # Author: fritz from NAS4Free forum
 #
