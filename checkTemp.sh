@@ -66,19 +66,19 @@ parseInputParams() {
     I_WARN_THRESHOLD_CPU="$1"
     I_WARN_THRESHOLD_HDD="$2"
 
-        regex_temp="([0-9]+)"
+    regex_temp="([0-9]+)"
 
-        echo "$I_WARN_THRESHOLD_CPU" | grep -E "^$regex_temp$" >/dev/null
-        if [ "$?" -ne "0" ]; then
-                echo "$LOGFILE" "Wrong CPU temperature notification threshold definition !"
-                return 1
-        fi
+    echo "$I_WARN_THRESHOLD_CPU" | grep -E "^$regex_temp$" >/dev/null
+    if [ "$?" -ne "0" ]; then
+        echo "$LOGFILE" "Wrong CPU temperature notification threshold definition !"
+        return 1
+    fi
 
-        echo "$I_WARN_THRESHOLD_HDD" | grep -E "^$regex_temp$" >/dev/null
-        if [ "$?" -ne "0" ]; then
-                echo "$LOGFILE" "Wrong HDD temperature notification threshold definition !"
-                return 1
-        fi
+    echo "$I_WARN_THRESHOLD_HDD" | grep -E "^$regex_temp$" >/dev/null
+    if [ "$?" -ne "0" ]; then
+        echo "$LOGFILE" "Wrong HDD temperature notification threshold definition !"
+        return 1
+    fi
 
     return 0
 }

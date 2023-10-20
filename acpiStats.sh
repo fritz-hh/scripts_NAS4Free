@@ -79,8 +79,8 @@ parseInputParams() {
             :)
                 echo "Option -$OPTARG requires an argument"
                 return 1 ;;
-                esac
-        done
+        esac
+    done
 
     # Remove the optional arguments parsed above.
     shift $((OPTIND-1))

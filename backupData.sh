@@ -127,7 +127,7 @@ parseInputParams() {
     # parse the optional parameters
     # (there should be none)
     while getopts ":s:b:c:" opt; do
-            case $opt in
+        case $opt in
             s) echo "$OPTARG" | grep -E "^(.+)@(.+)$" >/dev/null
                 if [ "$?" -eq "0" ] ; then
                     I_REMOTE_ACTIVE="1"
@@ -172,10 +172,10 @@ parseInputParams() {
             \?)
                 echo "Invalid option: -$OPTARG"
                 return 1 ;;
-                        :)
+            :)
                 echo "Option -$OPTARG requires an argument"
                 return 1 ;;
-            esac
+        esac
     done
 
     # Remove the optional arguments parsed above.

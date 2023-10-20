@@ -41,11 +41,11 @@ parseInputParams() {
     # parse the optional parameters
     # (there should be none)
     while getopts ":" opt; do
-            case $opt in
+        case $opt in
             \?)
                 echo "Invalid option: -$OPTARG"
                 return 1 ;;
-            esac
+        esac
     done
 
     # Remove the optional arguments parsed above.

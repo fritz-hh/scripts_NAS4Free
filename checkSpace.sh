@@ -50,7 +50,7 @@ parseInputParams() {
 
     # parse the parameters
     while getopts ":f:t:" opt; do
-            case $opt in
+        case $opt in
             f) fs_without_slash=`echo "$OPTARG" | sed 's!/!_!g'`  # value of the fs without '/' that is not allowed in a file name
                  LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.$fs_without_slash.log"  # value of the log file name
                  $BIN_ZFS list "$OPTARG" 2>/dev/null 1>/dev/null  # Check if the zfs file system exists
@@ -74,7 +74,7 @@ parseInputParams() {
             :)
                 echo "Option -$OPTARG requires an argument"
                 return 1 ;;
-            esac
+        esac
     done
 
     # Remove the optional arguments parsed above.
