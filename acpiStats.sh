@@ -194,7 +194,7 @@ log_stats() {
 
     # consistency check
     percentage_tot=$(($S0p+$S3p+$S5p))
-    if [ $percentage_tot -le "98" ] || [ $percentage_tot -ge "102" ]; then
+    if [ $percentage_tot -lt "98" ] || [ $percentage_tot -gt "102" ]; then
         log_warning "$LOGFILE" "The sum of the percentages is not equal to 100, but equals $percentage_tot"
         return 1
     fi
