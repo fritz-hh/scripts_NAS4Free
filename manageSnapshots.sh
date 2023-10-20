@@ -14,9 +14,9 @@
 #
 #    -r depth : recursion depth. Recursively process any children of the filesystem,
 #        limiting the recursion to depth.
-#         A depth of 1 will process only the fs and its direct children.
-#         A negative depth will process the fs and all its children recursively
-#     -n : Do not create a new snapshot of the file system
+#        A depth of 1 will process only the fs and its direct children.
+#        A negative depth will process the fs and all its children recursively
+#    -n : Do not create a new snapshot of the file system
 #    -h num : Keep 'num' hourly snapshots (by default: 24) (<0 for all)
 #    -d num : Keep 'num' daily snapshots (by default: 15) (<0 for all)
 #    -w num : Keep 'num' weekly snapshots (by default: 8) (<0 for all)
@@ -103,41 +103,46 @@ parseInputParams() {
     while getopts ":r:nh:d:w:m:k" opt; do
         case $opt in
             n) I_GENERATE_SNAPSHOT=0 ;;
-            r) echo "$OPTARG" | grep -E "$regex_int" >/dev/null  # Check if positive or negative integer
-                if [ "$?" -eq "0" ] ; then
-                    I_DEPTH="$OPTARG"
-                else
+            r)
+                if ! echo "$OPTARG" | grep -E "$regex_int" >/dev/null; then  # Check if positive or negative integer
                     echo "Invalid parameter \"$OPTARG\" for option: -r. Should be an integer."
                     return 1
-                fi ;;
-            h) echo "$OPTARG" | grep -E "$regex_int" >/dev/null  # Check if positive or negative integer
-                if [ "$?" -eq "0" ] ; then
-                    I_MAX_NB_HOURLY="$OPTARG"
-                else
+                fi
+
+                I_DEPTH="$OPTARG"
+                ;;
+            h)
+                if ! echo "$OPTARG" | grep -E "$regex_int" >/dev/null; then  # Check if positive or negative integer
                     echo "Invalid parameter \"$OPTARG\" for option: -h. Should be an integer."
                     return 1
-                fi ;;
-            d) echo "$OPTARG" | grep -E "$regex_int" >/dev/null  # Check if positive or negative integer
-                if [ "$?" -eq "0" ] ; then
-                    I_MAX_NB_DAILY="$OPTARG"
-                else
+                fi
+
+                I_MAX_NB_HOURLY="$OPTARG"
+                ;;
+            d)
+                if ! echo "$OPTARG" | grep -E "$regex_int" >/dev/null; then  # Check if positive or negative integer
                     echo "Invalid parameter \"$OPTARG\" for option: -h. Should be an integer."
                     return 1
-                fi ;;
-            w) echo "$OPTARG" | grep -E "$regex_int" >/dev/null  # Check if positive or negative integer
-                if [ "$?" -eq "0" ] ; then
-                    I_MAX_NB_WEEKLY="$OPTARG"
-                else
+                fi
+
+                I_MAX_NB_DAILY="$OPTARG"
+                ;;
+            w)
+                if ! echo "$OPTARG" | grep -E "$regex_int" >/dev/null; then  # Check if positive or negative integer
                     echo "Invalid parameter \"$OPTARG\" for option: -h. Should be an integer."
                     return 1
-                fi ;;
-            m) echo "$OPTARG" | grep -E "$regex_int" >/dev/null  # Check if positive or negative integer
-                if [ "$?" -eq "0" ] ; then
-                    I_MAX_NB_MONTHLY="$OPTARG"
-                else
+                fi
+
+                I_MAX_NB_WEEKLY="$OPTARG"
+                ;;
+            m)
+                if ! echo "$OPTARG" | grep -E "$regex_int" >/dev/null; then  # Check if positive or negative integer
                     echo "Invalid parameter \"$OPTARG\" for option: -h. Should be an integer."
                     return 1
-                fi ;;
+                fi
+
+                I_MAX_NB_MONTHLY="$OPTARG"
+                ;;
             k) keep_all_snap="1" ;;
             \?)
                 echo "Invalid option: -$OPTARG"
@@ -213,11 +218,11 @@ createSnapshot() {
     ageDailySnap=`newestSnapshotAge "$filesystem" "$DAILY_TAG"`
 
     # Find out which snapshot tag shall be used
-    if [ $I_MAX_NB_MONTHLY -ne 0 -a $ageMonthlySnap -ge $S_IN_MONTH ]; then
+    if [ $I_MAX_NB_MONTHLY -ne 0 ] && [ $ageMonthlySnap -ge $S_IN_MONTH ]; then
         tag="$MONTHLY_TAG"
-    elif [ $I_MAX_NB_WEEKLY -ne 0 -a $ageWeeklySnap -ge $S_IN_WEEK ]; then
+    elif [ $I_MAX_NB_WEEKLY -ne 0 ] && [ $ageWeeklySnap -ge $S_IN_WEEK ]; then
         tag="$WEEKLY_TAG"
-    elif [ $I_MAX_NB_DAILY -ne 0 -a $ageDailySnap -ge $S_IN_DAY ]; then
+    elif [ $I_MAX_NB_DAILY -ne 0 ] && [ $ageDailySnap -ge $S_IN_DAY ]; then
         tag="$DAILY_TAG"
     elif [ $I_MAX_NB_HOURLY -ne 0 ]; then
         tag="$HOURLY_TAG"
@@ -232,12 +237,11 @@ createSnapshot() {
 
     fullNewSnapshotname="$filesystem@$newSnapshotName"
     log_info "$LOGFILE" "$filesystem: Creating new snapshot \"$fullNewSnapshotname\""
-    if `$BIN_ZFS snapshot $fullNewSnapshotname>/dev/null`; then
-        return 0
-    else
+    if ! $BIN_ZFS snapshot $fullNewSnapshotname>/dev/null; then
         log_error "$LOGFILE" "$filesystem: Problem while creating snapshot $fullNewSnapshotname (A snapshot having the same name may already exist)"
         return 1
     fi
+    return 0
 }
 
 

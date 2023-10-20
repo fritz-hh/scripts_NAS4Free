@@ -157,7 +157,7 @@ get_lock_path() {
 # Param 2: lock id (should be a folder name without its path)
 # Return : 0 : no error
 #          1 : could not start script because the system is (probably) about to shutdown
-#       2 : any other error
+#          2 : any other error
 ##################################
 run_main() {
     local log_file lock_id retCodeAcquireLock errInMain

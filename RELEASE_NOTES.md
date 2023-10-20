@@ -5,6 +5,30 @@ Please always read this file before installing the package
 
 Download software here: https://github.com/fritz-hh/scripts_NAS4Free/tags
 
+v2.5.1 (2023-10-20):
+====
+
+New features
+------------
+
+- None
+
+Changes
+-------
+
+- Code cleanup to increase readability and maintainability.
+
+Fixes
+-----
+
+- None
+
+Tested with
+-----------
+
+- Xigmanas (formerly NAS4Free) 13.2.0.5 - Heighliner (revision 9876)
+
+
 v2.5.0 (2023-10-20):
 ====
 

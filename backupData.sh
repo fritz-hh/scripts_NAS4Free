@@ -128,47 +128,49 @@ parseInputParams() {
     # (there should be none)
     while getopts ":s:b:c:" opt; do
         case $opt in
-            s) echo "$OPTARG" | grep -E "^(.+)@(.+)$" >/dev/null
-                if [ "$?" -eq "0" ] ; then
-                    I_REMOTE_ACTIVE="1"
-                    I_REMOTE_LOGIN=`echo "$OPTARG" | cut -f1 -d,`
-                    I_PATH_KEY=`echo "$OPTARG" | cut -s -f2 -d,`  # empty if path not specified (i.e. no "," found)
-
-                    # set variables to ensure remote execution of
-                    # some parts of the script
-                    RUN_FCT_SSH="run_fct_ssh"
-                    if [ -z "$I_PATH_KEY" ]; then
-                        RUN_CMD_SSH="$BIN_SSH -oBatchMode=$SSH_BATCHMODE $I_REMOTE_LOGIN"
-                    else
-                        RUN_CMD_SSH="$BIN_SSH -i $I_PATH_KEY -oBatchMode=$SSH_BATCHMODE $I_REMOTE_LOGIN"
-                    fi
-
-                    # testing ssh connection
-                    if $RUN_CMD_SSH exit 0; then
-                        echo "SSH connection test successful."
-                    else
-                        echo "SSH connection failed. Please check username / hostname,"
-                        echo "ensure that public key authentication is configured, and that you have access to the private key file"
-                        return 1
-                    fi
-                else
+            s)
+                if ! echo "$OPTARG" | grep -E "^(.+)@(.+)$" >/dev/null; then
                     echo "Remote login data (\"$OPTARG\") does not have the expected format: username@hostname"
                     return 1
-                fi ;;
-            b) echo "$OPTARG" | grep -E "^([0-9]+)$" >/dev/null
-                if [ "$?" -eq "0" ] ; then
-                    I_MAX_ROLLBACK_S=$(($OPTARG*$S_IN_DAY))
+                fi
+
+                I_REMOTE_ACTIVE="1"
+                I_REMOTE_LOGIN=`echo "$OPTARG" | cut -f1 -d,`
+                I_PATH_KEY=`echo "$OPTARG" | cut -s -f2 -d,`  # empty if path not specified (i.e. no "," found)
+
+                # set variables to ensure remote execution of some parts of the script
+                RUN_FCT_SSH="run_fct_ssh"
+                if [ -z "$I_PATH_KEY" ]; then
+                    RUN_CMD_SSH="$BIN_SSH -oBatchMode=$SSH_BATCHMODE $I_REMOTE_LOGIN"
                 else
+                    RUN_CMD_SSH="$BIN_SSH -i $I_PATH_KEY -oBatchMode=$SSH_BATCHMODE $I_REMOTE_LOGIN"
+                fi
+
+                # testing ssh connection
+                if $RUN_CMD_SSH exit 0; then
+                    echo "SSH connection test successful."
+                else
+                    echo "SSH connection failed. Please check username / hostname,"
+                    echo "ensure that public key authentication is configured, and that you have access to the private key file"
+                    return 1
+                fi
+                ;;
+            b)
+                if ! echo "$OPTARG" | grep -E "^([0-9]+)$" >/dev/null; then
                     echo "Wrong maximum rollback value, should be a positive integer or zero (unit: days) !"
                     return 1
-                fi ;;
-            c) echo "$OPTARG" | grep -E "$regex_comp" >/dev/null
-                if [ "$?" -eq "0" ] ; then
-                    I_COMPRESSION=$OPTARG
-                else
+                fi
+
+                I_MAX_ROLLBACK_S=$(($OPTARG*$S_IN_DAY))
+                ;;
+            c)
+                if ! echo "$OPTARG" | grep -E "$regex_comp" >/dev/null; then
                     echo "Bad compression definition, should be a set of compression algorithms (supported by ZFS) separated by comma \",\" characters"
-                    return 1
-                fi ;;
+                    return 1            
+                fi
+
+                I_COMPRESSION=$OPTARG
+                ;;
             \?)
                 echo "Invalid option: -$OPTARG"
                 return 1 ;;
@@ -229,7 +231,7 @@ parseInputParams() {
 
         # if the number of compression algorithm defined is neither 1
         # nor equal to the number number of source fs that were defined
-        if [ $comp_num -ne 1 -a $comp_num -ne $fs_num ]; then
+        if [ $comp_num -ne 1 ] && [ $comp_num -ne $fs_num ]; then
             echo "Bad compression definition, the number of compression algorithm should either equal 1 or should be equal to the number of source filesystems"
             return 1
         fi

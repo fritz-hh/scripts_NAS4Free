@@ -19,8 +19,7 @@ ts_format() {
 
 ##################################
 # Append an information message in a log file
-#     The 2nd argument is optional, the function can also
-#    read data from the pipe
+#     The 2nd argument is optional, the function can also read data from the pipe
 # Param 1: log file name (incl. path)
 # Param 2: text to be logged
 ##################################
@@ -30,8 +29,7 @@ log_info() {
 
 ##################################
 # Append a warning message in a log file
-#     The 2nd argument is optional, the function can also
-#    read data from the pipe
+#     The 2nd argument is optional, the function can also read data from the pipe
 # Param 1: log file name (incl. path)
 # Param 2: text to be logged
 ##################################
@@ -41,8 +39,7 @@ log_warning() {
 
 ##################################
 # Append an information message in a log file
-#     The 2nd argument is optional, the function can also
-#    read data from the pipe
+#    The 2nd argument is optional, the function can also read data from the pipe
 # Param 1: log file name (incl. path)
 # Param 2: text to be logged
 ##################################
@@ -52,8 +49,7 @@ log_error() {
 
 ##################################
 # Append a line into a log file
-#     The 3rd argument is optional, the function can also
-#    read data from the pipe
+#    The 3rd argument is optional, the function can alsov read data from the pipe
 # Param 1: message criticality
 # Param 2: path to the log file
 # Param 3: message to be logged (optional)
@@ -147,17 +143,17 @@ get_log_oldest_ts() {
 
     # get the timestamp of the 1st log entry
     timestamp=`sed "1"!d "$f" | awk '{ print $1 }'`
-     timestamp1970=`$BIN_DATE -j -f "$tsFormat" "$timestamp" +"%s" 2>/dev/null`
+    timestamp1970=`$BIN_DATE -j -f "$tsFormat" "$timestamp" +"%s" 2>/dev/null`
     ret_code="$?"
 
     # check if the timestamp1970 could be extracted
-    if [ "$ret_code" -eq "0" ]; then
-        echo $timestamp1970
-        return 0
-    else
+    if [ "$ret_code" -ne "0" ]; then
         echo "Timestamp could not be extracted of the log file"
         return 2
     fi
+
+    echo $timestamp1970
+    return 0
 }
 
 
