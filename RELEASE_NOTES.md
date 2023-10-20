@@ -18,6 +18,7 @@ Changes
 
 - Remove all trailing spaces in the scripts.
 - Use spaces for indentation instead of tabs (4 spaces per tab)
+- manageAcpi.sh: Refactoring to improve maintainability
 
 Fixes
 -----

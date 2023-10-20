@@ -125,73 +125,80 @@ parseInputParams() {
     while getopts ":p:w:a:s:b:c:n:vm" opt; do
 
         case $opt in
-            p) echo "$OPTARG" | grep -E "^$REGEX_DUR$" >/dev/null
-                if [ "$?" -eq "0" ] ; then
-                    I_POLL_INTERVAL="$OPTARG"
-                else
+            p)
+                if ! `echo "$OPTARG" | grep -E "^$REGEX_DUR$" >/dev/null`; then
                     echo "Invalid parameter \"$OPTARG\" for option: -p. Should be a positive integer"
                     return 1
-                fi ;;
-            w) echo "$OPTARG" | grep -E "^$REGEX_DUR$" >/dev/null
-                if [ "$?" -eq "0" ] ; then
-                    I_DELAY_PREVENT_SLEEP_AFTER_WAKE="$OPTARG"
-
-                    if [ "$I_DELAY_PREVENT_SLEEP_AFTER_WAKE" -lt "$w_min" ] ; then
-                        echo "The value passed to the -w option must be at least $w_min s."
-                        echo "Replacing the provided value ($I_DELAY_PREVENT_SLEEP_AFTER_WAKE s) with the value $w_min s"
-                        echo "Rationale: If other options are not set correctly, the server may always"
-                        echo "shutdown/sleep just after booting making the server unusable"
-                        I_DELAY_PREVENT_SLEEP_AFTER_WAKE="$w_min"
-                    fi
-                else
+                fi
+                
+                I_POLL_INTERVAL="$OPTARG"
+                ;;
+            w)
+                if ! `echo "$OPTARG" | grep -E "^$REGEX_DUR$" >/dev/null`; then
                     echo "Invalid parameter \"$OPTARG\" for option: -w. Should be a positive integer"
                     return 1
-                fi ;;
-            a) echo "$OPTARG" | grep -E "$regex_a" >/dev/null
-                if [ "$?" -eq "0" ] ; then
-                    I_CHECK_ALWAYS_ON="1"
-                    I_BEG_ALWAYS_ON=`echo "$OPTARG" | cut -f1 -d,`
-                    I_END_ALWAYS_ON=`echo "$OPTARG" | cut -f2 -d,`
-                else
+                fi
+
+                I_DELAY_PREVENT_SLEEP_AFTER_WAKE="$OPTARG"
+
+                if [ "$I_DELAY_PREVENT_SLEEP_AFTER_WAKE" -lt "$w_min" ] ; then
+                    echo "The value passed to the -w option must be at least $w_min s."
+                    echo "Replacing the provided value ($I_DELAY_PREVENT_SLEEP_AFTER_WAKE s) with the value $w_min s"
+                    echo "Rationale: If other options are not set correctly, the server may always"
+                    echo "shutdown/sleep just after booting making the server unusable"
+                    I_DELAY_PREVENT_SLEEP_AFTER_WAKE="$w_min"
+                fi
+                ;;
+            a)
+                if ! `echo "$OPTARG" | grep -E "$regex_a" >/dev/null`; then
                     echo "Invalid parameter \"$OPTARG\" for option: -a. Should be \"hh:mm,hh:mm\""
-                    return 1
-                fi ;;
-            s) echo "$OPTARG" | grep -E "$REGEX_DUR" >/dev/null
-                if [ "$?" -eq "0" ] ; then
-                    I_CHECK_SSH_ACTIVE="1"
-                    I_DELAY_SSH="$OPTARG"
-                else
+                    return 1                
+                fi
+
+                I_CHECK_ALWAYS_ON="1"
+                I_BEG_ALWAYS_ON=`echo "$OPTARG" | cut -f1 -d,`
+                I_END_ALWAYS_ON=`echo "$OPTARG" | cut -f2 -d,`
+                ;;
+            s)
+                if ! `echo "$OPTARG" | grep -E "^$REGEX_DUR$" >/dev/null`; then
                     echo "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -s. Should be a positive integer"
                     return 1
-                fi ;;
-            b) echo "$OPTARG" | grep -E "$REGEX_DUR" >/dev/null
-                if [ "$?" -eq "0" ] ; then
-                    I_CHECK_SMB_ACTIVE="1"
-                    I_DELAY_SMB="$OPTARG"
-                else
+                fi
+
+                I_CHECK_SSH_ACTIVE="1"
+                I_DELAY_SSH="$OPTARG"
+                ;;
+            b)
+                if ! `echo "$OPTARG" | grep -E "^$REGEX_DUR$" >/dev/null`; then
                     echo "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -b. Should be a positive integer"
                     return 1
-                fi ;;
-            c) echo "$OPTARG" | grep -E "$regex_c" >/dev/null
-                if [ "$?" -eq "0" ] ; then
-                    I_CHECK_CURFEW_ACTIVE="1"
-                    I_BEG_POLL_CURFEW=`echo "$OPTARG" | cut -f1 -d,`
-                    I_END_POLL_CURFEW=`echo "$OPTARG" | cut -f2 -d,`
-                    I_ACPI_STATE_CURFEW=`echo "$OPTARG" | cut -f3 -d,`
-                else
+                fi
+
+                I_CHECK_SMB_ACTIVE="1"
+                I_DELAY_SMB="$OPTARG"
+                ;;
+            c)
+                if ! `echo "$OPTARG" | grep -E "$regex_c" >/dev/null`; then
                     echo "Invalid parameter \"$OPTARG\" for option: -c. Should be \"hh:mm,hh:mm,acpi_state\""
                     return 1
-                fi ;;
-            n) echo "$OPTARG" | grep -E "$regex_n" >/dev/null
-                if [ "$?" -eq "0" ] ; then
-                    I_CHECK_NOONLINE_ACTIVE="1"
-                    I_IP_ADDRS=`echo "$OPTARG" | cut -f1 -d, | sed 's/+/ /g'`
-                    I_DELAY_NOONLINE=`echo "$OPTARG" | cut -f2 -d,`
-                    I_ACPI_STATE_NOONLINE=`echo "$OPTARG" | cut -f3 -d,`
-                else
+                fi
+
+                I_CHECK_CURFEW_ACTIVE="1"
+                I_BEG_POLL_CURFEW=`echo "$OPTARG" | cut -f1 -d,`
+                I_END_POLL_CURFEW=`echo "$OPTARG" | cut -f2 -d,`
+                I_ACPI_STATE_CURFEW=`echo "$OPTARG" | cut -f3 -d,`
+                ;;
+            n)
+                if ! `echo "$OPTARG" | grep -E "$regex_n" >/dev/null`; then
                     echo "Invalid parameter \"$OPTARG\" for option: -n. Should be \"ips,delay,acpi_state\""
                     return 1
-                fi ;;
+                fi
+
+                I_CHECK_NOONLINE_ACTIVE="1"
+                I_IP_ADDRS=`echo "$OPTARG" | cut -f1 -d, | sed 's/+/ /g'`
+                I_DELAY_NOONLINE=`echo "$OPTARG" | cut -f2 -d,`
+                I_ACPI_STATE_NOONLINE=`echo "$OPTARG" | cut -f3 -d,`
+                ;;
             v) I_VERBOSE=1 ;;
             m) I_MAIL_ACPI_CHANGE=1 ;;
             \?)
