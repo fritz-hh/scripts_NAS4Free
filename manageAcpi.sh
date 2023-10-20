@@ -119,7 +119,7 @@ parseInputParams() {
     regex_c="^($REGEX_TIME[,]){2,2}[35]$"
     regex_n="^$REGEX_IP([+]$REGEX_IP){0,}[,]$REGEX_DUR[,][35]$"
 
-    w_min="300"
+    w_min=300
 
     # parse the parameters
     while getopts ":p:w:a:s:b:c:n:vm" opt; do
@@ -314,7 +314,7 @@ nasSleep() {
 main() {
     local ts_last_online_device ts_last_ssh ts_last_smb ts_wakeup in_always_on_timeslot \
         ssh_sleep_prevent smb_sleep_prevent curfew_sleep_request \
-        noonline_sleep_request any_device_online delta_t awakefor
+        ip_online_sleep_prevent any_device_online delta_t awakefor
 
     # initialization of local variables
     ts_last_online_device=`$BIN_DATE +%s`  # Timestamp when the last other device was detected to be online
@@ -325,7 +325,7 @@ main() {
     ssh_sleep_prevent="0"  # 1=Sleep prevented by SSH, 0 otherwise
     smb_sleep_prevent="0"  # 1=Sleep prevented by SMB, 0 otherwise
     curfew_sleep_request="0"  # 1=Sleep requested by curfew check, 0 otherwise
-    noonline_sleep_request="0"  # 1=Sleep requested by no-online check, 0 otherwise
+    ip_online_sleep_prevent="0"  # 1=Sleep requested by no-online check, 0 otherwise
 
     # Remove any existing lock
     reset_locks
@@ -355,6 +355,10 @@ main() {
 
     # Loop until the NAS is switched off
     while true; do
+    
+        # wait until next poll
+        sleep $I_POLL_INTERVAL
+    
         [ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "-----------------"
 
         # If the NAS just woke up
@@ -406,7 +410,7 @@ main() {
                 ts_last_smb=`$BIN_DATE +%s`
                 smb_sleep_prevent="1"
                 smb_host=`$BIN_SMBSTATUS --processes | grep -o -E "$REGEX_IP" | head -n 1` 
-                [ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "SMB client detected: $smb_host"
+                [ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "SMB client detected: $smb_host (skipping any other device)"
             else
                 delta_t=$((`$BIN_DATE +%s`-$ts_last_smb))
                 [ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "No SMB client detected for $delta_t s"
@@ -426,9 +430,8 @@ main() {
         fi
 
         # Check if no other devices are online for a certain duration
-        noonline_sleep_request="1"
+        ip_online_sleep_prevent="0"
         if [ $I_CHECK_NOONLINE_ACTIVE -eq "1" ]; then
-            noonline_sleep_request="0"
             any_device_online="0"
             for ip_addr in $I_IP_ADDRS; do
                 if $BIN_PING -c 1 -t 1 $ip_addr > /dev/null ; then
@@ -440,39 +443,49 @@ main() {
 
             if [ "$any_device_online" -eq "1" ]; then
                 ts_last_online_device=`$BIN_DATE +%s`
+                ip_online_sleep_prevent="1"
             else
                 delta_t=$((`$BIN_DATE +%s`-$ts_last_online_device))
                 [ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "No devices online for $delta_t s"
-                if [ "$delta_t" -gt "$I_DELAY_NOONLINE" ]; then
-                    noonline_sleep_request="1"
+                if [ "$delta_t" -lt "$I_DELAY_NOONLINE" ]; then
+                    ip_online_sleep_prevent="1"
                 fi
             fi
         fi
 
-        # Sleep if requested, but never if:
-        # - The NAS woke-up shortly
-        # - We are in the always on timeslot
-        # - An SSH connection exists (or existed recently)
-        # - An SMB connection exists (or existed recently)
+        # Logic to control sleep (from highest precedance to lowest precedance)
+        # - Do not sleep if:
+        #    - The NAS woke-up shortly
+        #    - We are in the always on timeslot (see '-a')
+        #    - An SSH connection exists (or existed recently) (see '-s')
+        # - Sleep if within the curfew timeslot (see '-c')
+        # - Do not sleep if:
+        #    - A device is online (or was recently) (see '-n')
+        #    - An SMB connection exists (or existed recently) (see '-b')
+        # - Sleep in any other case
         awakefor=$((`$BIN_DATE +"%s"`-$ts_wakeup))
-        if [ $in_always_on_timeslot -eq "0" -a $ssh_sleep_prevent -eq "0" -a $smb_sleep_prevent -eq "0" -a $awakefor -gt $I_DELAY_PREVENT_SLEEP_AFTER_WAKE ]; then
-            if [ $curfew_sleep_request -eq "1" ]; then
-                log_info "$LOGFILE" "Curfew: Sleep requested"
-                prevent_acquire_locks
-                nasSleep $I_ACPI_STATE_CURFEW
-            elif [ $noonline_sleep_request -eq "1" ]; then
-                log_info "$LOGFILE" "No other device online: sleep requested"
-                prevent_acquire_locks
-                nasSleep $I_ACPI_STATE_NOONLINE
-            else
-                allow_acquire_locks
-            fi
-        else
+        if [ $in_always_on_timeslot -eq "1" ] || [ $ssh_sleep_prevent -eq "1" ] || [ $awakefor -lt $I_DELAY_PREVENT_SLEEP_AFTER_WAKE ]; then
+            [ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "Preventing to go to sleep due to always-on timeslot, SSH or because the NAS woke-up shortly"
             allow_acquire_locks
+            continue
         fi
 
-        # wait until next poll
-        sleep $I_POLL_INTERVAL
+        if [ $curfew_sleep_request -eq "1" ]; then
+            log_info "$LOGFILE" "Curfew: Sleep requested"
+            prevent_acquire_locks
+            nasSleep $I_ACPI_STATE_CURFEW
+            continue
+        fi
+
+        if [ $smb_sleep_prevent -eq "1" ] || [ $ip_online_sleep_prevent -eq "1" ]; then
+            [ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "Preventing to go to sleep due to SMB connection or because a configured machine is online"
+            allow_acquire_locks
+            continue
+        fi
+
+        prevent_acquire_locks
+        nasSleep $I_ACPI_STATE_NOONLINE
+
     done
 }
 
