@@ -5,7 +5,7 @@ Please always read this file before installing the package
 
 Download software here: https://github.com/fritz-hh/scripts_NAS4Free/tags
 
-vx.x (yyyy-mm-dd):
+v2.5.0 (2023-10-20):
 ====
 
 New features
@@ -16,6 +16,7 @@ New features
 Changes
 -------
 
+- From now on, use semantic versioning (see https://semver.org/)
 - Remove all trailing spaces in the scripts.
 - Use spaces for indentation instead of tabs (4 spaces per tab)
 - manageAcpi.sh: Refactoring to improve maintainability
