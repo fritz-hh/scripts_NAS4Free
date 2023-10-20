@@ -1,39 +1,41 @@
 #!/bin/sh
 #############################################################################
 # Script aimed at setting the NAS in sleep state whenever possible
-# in order to save energy.
-# - The script enables to define a curfew timeslot,
-# - A timeslot where the NAS shall sleep if no other device is online,
-# - A timeslot where the system shall never sleep.
-# - And allows to force the NAS to stay awake if an incoming SSH connection exists
+# in order to save energy. 
+#
+# The script enables to define:
+# - A timeslot where the system shall never sleep (-a),
+# - A list of machines that shall prevent the NAS from going to sleep, if they are online (-n),
+# - A curfew timeslot (-c),
+# - The the NAS shall not go zo sleep if SSH /SMB connections exists (-s and -b)
 #
 # The script shall be launched at system startup
 #
-# Usage: manageAcpi.sh [-p duration] [-w duration] [-a beg,end] [-s delay] [-b delay] [-c beg,end,acpi] [-n ips,delay,acpi] [-vm]
+# Usage: manageAcpi.sh [-p duration] [-w duration] [-a beg,end] [-n ips,delay,acpi] [-s delay] [-b delay] [-c beg,end,acpi] [-vm]
 #
 #    -p duration : Define the duration (in seconds) between each respective poll (by default: 120)
 #    -w duration : Define the duration (in seconds) for which the NAS should never sleep after it wakes up (by default: 600)
-#    -a beg,end : Define a timeslot in which the NAS shall never go sleeping (e.g. because admin
-#                tasks are scheduled during this slot)
-#                (This option superseeds a sleep order originating from -c and -n)
+#    -a beg,end : Define a timeslot in which the NAS shall never go sleeping 
+#                (e.g. because admin tasks are scheduled during this slot)
+#                (This option superseeds a sleep order originating from -c)
 #                + beg: time of the beginning of the slot (format: hh:mm)
 #                + end: time of the end of the slot (format: hh:mm)
+#    -n ips,delay,acpi : Define that the NAS shall not go to sleep if any of the devices are online
+#                + ips: IP addresses of the devices to poll, separated by "+" (Note: IP addresses shall be static)
+#                + delay: delay in seconds between last device going offline and start of sleep
+#                + acpi: the ACPI state selected for the sleep (3 or 5)
 #    -s delay : Define that the NAS shall never go to sleep if an incoming SSH connection exists.
 #                This function may be required in case the NAS is used as a destination of a remote backup.
-#                (This option superseeds a sleep order originating from -c and -n)
+#                (This option superseeds a sleep order originating from -c)
 #                + delay: delay in seconds between the end of the connection and start of sleep
-#    -b delay : Define that the NAS shall never go to sleep if an SMB connection to the NAS exists.
+#    -b delay : Define that the NAS shall not go to sleep if an SMB connection to the NAS exists.
 #                (Note: Some clients (i.e. Windows 10) might not close properly their SMB connection before shutdown.
 #                In that case, you can instruct your samba server, to check regularly for stale connections use the following
-#                configuration options in cmb.conf: "socket options = TCP_NODELAY SO_KEEPALIVE TCP_KEEPIDLE=30 TCP_KEEPCNT=3 TCP_KEEPINTVL=3"
+#                configuration options in cmb.conf: "socket options = TCP_NODELAY SO_KEEPALIVE TCP_KEEPIDLE=30 TCP_KEEPCNT=3 TCP_KEEPINTVL=3")
 #                + delay: delay in seconds between the end of the connection and start of sleep
 #    -c beg,end,acpi : Define a curfew timeslot in which the NAS shall go sleeping.
 #                + beg: time of the beginning of the slot (format: hh:mm)
 #                + end: time of the end of the slot (format: hh:mm)
-#                + acpi: the ACPI state selected for the sleep (3 or 5)
-#    -n ips,delay,acpi : Define that the NAS shall sleep if none of the other devices are online
-#                + ips: IP addresses of the devices to poll (at least one), separated by "+" (Note: IP shall be static)
-#                + delay: delay in seconds between last device going offline and start of sleep
 #                + acpi: the ACPI state selected for the sleep (3 or 5)
 #    -v: Requests the log to be more verbose (Note: This is likely to prevent the disks to spin down)
 #    -m: Send mail on ACPI state change
@@ -312,15 +314,13 @@ nasSleep() {
 }
 
 
-
-
 ##################################
 # Main
 ##################################
 main() {
     local ts_last_online_device ts_last_ssh ts_last_smb ts_wakeup in_always_on_timeslot \
         ssh_sleep_prevent smb_sleep_prevent curfew_sleep_request \
-        ip_online_sleep_prevent any_device_online delta_t awakefor
+        ip_online_sleep_prevent delta_t awakefor
 
     # initialization of local variables
     ts_last_online_device=`$BIN_DATE +%s`  # Timestamp when the last other device was detected to be online
@@ -393,37 +393,26 @@ main() {
         # Check if an incoming SSH connection existed recently
         ssh_sleep_prevent="0"
         if [ $I_CHECK_SSH_ACTIVE -eq "1" ]; then
-            # Check if an ingoing ssh connection exist
+            # Check if an incoming ssh connection exists
             if $BIN_SOCKSTAT -c | grep "sshd" > /dev/null ; then
                 ts_last_ssh=`$BIN_DATE +%s`
-                ssh_sleep_prevent="1"
                 [ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "Incoming SSH connection detected"
-            else
-                delta_t=$((`$BIN_DATE +%s`-$ts_last_ssh))
-                [ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "No incoming SSH connection for $delta_t s"
-                if [ "$delta_t" -le "$I_DELAY_SSH" ]; then
-                    ssh_sleep_prevent="1"
-                fi
             fi
+            delta_t=$((`$BIN_DATE +%s`-$ts_last_ssh))
+            [ "$delta_t" -le "$I_DELAY_SSH" ] && ssh_sleep_prevent="1"
         fi
 
         # Check if an incoming SMB connection existed recently
         smb_sleep_prevent="0"
         if [ $I_CHECK_SMB_ACTIVE -eq "1" ]; then
-            # Check if an ingoing smb connection exist
-            $BIN_SMBSTATUS --processes | grep -E "$REGEX_IP" > /dev/null
-            if [ "$?" -eq "0" ] ; then
+            # Check if an incoming smb connection exists
+            if $BIN_SMBSTATUS --processes | grep -E "$REGEX_IP" > /dev/null; then
                 ts_last_smb=`$BIN_DATE +%s`
-                smb_sleep_prevent="1"
                 smb_host=`$BIN_SMBSTATUS --processes | grep -o -E "$REGEX_IP" | head -n 1` 
-                [ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "SMB client detected: $smb_host (skipping any other device)"
-            else
-                delta_t=$((`$BIN_DATE +%s`-$ts_last_smb))
-                [ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "No SMB client detected for $delta_t s"
-                if [ "$delta_t" -le "$I_DELAY_SMB" ]; then
-                    smb_sleep_prevent="1"
-                fi
+                [ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "SMB client detected: $smb_host (other devices may be connected too)"
             fi
+            delta_t=$((`$BIN_DATE +%s`-$ts_last_smb))
+            [ "$delta_t" -le "$I_DELAY_SMB" ] && smb_sleep_prevent="1"
         fi
 
         # Check if curfew is reached
@@ -435,33 +424,23 @@ main() {
             fi
         fi
 
-        # Check if no other devices are online for a certain duration
+        # Check if any listed IP address was online recently
         ip_online_sleep_prevent="0"
         if [ $I_CHECK_NOONLINE_ACTIVE -eq "1" ]; then
-            any_device_online="0"
             for ip_addr in $I_IP_ADDRS; do
                 if $BIN_PING -c 1 -t 1 $ip_addr > /dev/null ; then
-                    any_device_online="1"
-                    [ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "Online device detected: $ip_addr (skipping any other device)"
+                    ts_last_online_device=`$BIN_DATE +%s`
+                    [ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "Online IP address detected: $ip_addr (other devices may be online too)"
                     break
                 fi
             done
-
-            if [ "$any_device_online" -eq "1" ]; then
-                ts_last_online_device=`$BIN_DATE +%s`
-                ip_online_sleep_prevent="1"
-            else
-                delta_t=$((`$BIN_DATE +%s`-$ts_last_online_device))
-                [ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "No devices online for $delta_t s"
-                if [ "$delta_t" -lt "$I_DELAY_NOONLINE" ]; then
-                    ip_online_sleep_prevent="1"
-                fi
-            fi
+            delta_t=$((`$BIN_DATE +%s`-$ts_last_online_device))
+            [ "$delta_t" -lt "$I_DELAY_NOONLINE" ] && ip_online_sleep_prevent="1"
         fi
 
         # Logic to control sleep (from highest precedance to lowest precedance)
         # - Do not sleep if:
-        #    - The NAS woke-up shortly
+        #    - The NAS woke-up recently
         #    - We are in the always on timeslot (see '-a')
         #    - An SSH connection exists (or existed recently) (see '-s')
         # - Sleep if within the curfew timeslot (see '-c')
@@ -471,7 +450,7 @@ main() {
         # - Sleep in any other case
         awakefor=$((`$BIN_DATE +"%s"`-$ts_wakeup))
         if [ $in_always_on_timeslot -eq "1" ] || [ $ssh_sleep_prevent -eq "1" ] || [ $awakefor -lt $I_DELAY_PREVENT_SLEEP_AFTER_WAKE ]; then
-            [ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "Preventing to go to sleep due to always-on timeslot, SSH or because the NAS woke-up shortly"
+            [ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "Preventing to go to sleep due to always-on timeslot, SSH or because the NAS woke-up recently"
             allow_acquire_locks
             continue
         fi
@@ -496,7 +475,6 @@ main() {
 }
 
 
-
 # Parse and validate the input parameters
 if ! parseInputParams $ARGUMENTS > "$TMPFILE_ARGS"; then
     log_info "$LOGFILE" "-------------------------------------"
@@ -513,4 +491,3 @@ else
 fi
 
 exit 0
-
