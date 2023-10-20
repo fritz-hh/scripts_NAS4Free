@@ -99,7 +99,7 @@ I_ACPI_STATE_CURFEW="0"  # ACPI state
 I_CHECK_NOONLINE_ACTIVE="0"  # 1 if the check shall be performed, 0 otherwise
 I_IP_ADDRS=""  # IP addresses of the devices to be polled, separated by a space character)
 I_DELAY_NOONLINE="0"  # Delay in seconds between the moment where no devices are online anymore and the moment where the NAS shall sleep
-I_ACPI_STATE_NOONLINE="0"  # ACPI state if no other device is online
+I_ACPI_STATE_NOONLINE="3"  # ACPI state if no other device is online
 
 # Initialization the global variables
 awake="0"  # 1=NAS is awake, 0=NAS is about to sleep (resp. just woke up)
