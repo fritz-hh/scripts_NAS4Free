@@ -81,28 +81,28 @@ I_POLL_INTERVAL=120  # number of seconds to wait between to cycles
 
 I_DELAY_PREVENT_SLEEP_AFTER_WAKE="600"  # Amount of time during which the NAS will never go to sleep after waking up
 
-I_CHECK_ALWAYS_ON="0"  # 1 if the check shall be performed, 0 otherwise
+I_CHECK_ALWAYS_ON=0  # 1 if the check shall be performed, 0 otherwise
 I_BEG_ALWAYS_ON="00:00"  # time when the NAS shall never sleep (because of management tasks like backup may start)
 I_END_ALWAYS_ON="00:00"  # If end = beg => 24 hours
 
-I_CHECK_SSH_ACTIVE="0"  # 1 if the check shall be performed, 0 otherwise
-I_DELAY_SSH="0"  # Delay in seconds between the moment where the SSH connection stops and the moment where the NAS may sleep
+I_CHECK_SSH_ACTIVE=0  # 1 if the check shall be performed, 0 otherwise
+I_DELAY_SSH=0  # Delay in seconds between the moment where the SSH connection stops and the moment where the NAS may sleep
 
-I_CHECK_SMB_ACTIVE="0"  # 1 if the check shall be performed, 0 otherwise
-I_DELAY_SMB="0"  # Delay in seconds between the moment where the SMB connection stops and the moment where the NAS may sleep
+I_CHECK_SMB_ACTIVE=0  # 1 if the check shall be performed, 0 otherwise
+I_DELAY_SMB=0  # Delay in seconds between the moment where the SMB connection stops and the moment where the NAS may sleep
 
-I_CHECK_CURFEW_ACTIVE="0"  # 1 if the check shall be performed, 0 otherwise
+I_CHECK_CURFEW_ACTIVE=0  # 1 if the check shall be performed, 0 otherwise
 I_BEG_POLL_CURFEW="00:00"  # time when the script enters the sleep state (except if tasks like backup are running)
 I_END_POLL_CURFEW="00:00"  # If end = beg => 24 hours
-I_ACPI_STATE_CURFEW="0"  # ACPI state
+I_ACPI_STATE_CURFEW=0  # ACPI state
 
-I_CHECK_NOONLINE_ACTIVE="0"  # 1 if the check shall be performed, 0 otherwise
+I_CHECK_NOONLINE_ACTIVE=0  # 1 if the check shall be performed, 0 otherwise
 I_IP_ADDRS=""  # IP addresses of the devices to be polled, separated by a space character)
-I_DELAY_NOONLINE="0"  # Delay in seconds between the moment where no devices are online anymore and the moment where the NAS shall sleep
-I_ACPI_STATE_NOONLINE="3"  # ACPI state if no other device is online
+I_DELAY_NOONLINE=0  # Delay in seconds between the moment where no devices are online anymore and the moment where the NAS shall sleep
+I_ACPI_STATE_NOONLINE=3  # ACPI state if no other device is online
 
 # Initialization the global variables
-awake="0"  # 1=NAS is awake, 0=NAS is about to sleep (resp. just woke up)
+awake=0  # 1=NAS is awake, 0=NAS is about to sleep (resp. just woke up)
 
 
 ##################################
@@ -200,8 +200,8 @@ parseInputParams() {
             :)
                 echo "Option -$OPTARG requires an argument"
                 return 1 ;;
-                esac
-        done
+        esac
+    done
 
     # Remove the optional arguments parsed above.
     shift $((OPTIND-1))
@@ -230,7 +230,7 @@ isInTimeSlot() {
     local startTime endTime nbSecInDay currentTimestamp startTimestamp endTimestamp
 
     startTime="$1"
-        endTime="$2"
+    endTime="$2"
 
     nbSecInDay="86400"
 
@@ -246,7 +246,7 @@ isInTimeSlot() {
         fi
     fi
 
-    if [ "$currentTimestamp" -gt "$startTimestamp" -a "$currentTimestamp" -le "$endTimestamp" ]; then
+    if [ "$currentTimestamp" -gt "$startTimestamp" ] && [ "$currentTimestamp" -le "$endTimestamp" ]; then
         return 0
     else
         return 1
@@ -267,9 +267,9 @@ nasSleep() {
 
     acpi_state="$1"
 
-        if ! does_any_lock_exist; then
+    if ! does_any_lock_exist; then
 
-                msg="Shutting down the system to save energy (ACPI state : S$acpi_state)"
+        msg="Shutting down the system to save energy (ACPI state : S$acpi_state)"
 
         if [ $acpi_state -eq "5" ]; then  # Soft OFF
 
