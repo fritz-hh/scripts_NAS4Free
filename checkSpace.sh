@@ -51,23 +51,24 @@ parseInputParams() {
     # parse the parameters
     while getopts ":f:t:" opt; do
         case $opt in
-            f) fs_without_slash=`echo "$OPTARG" | sed 's!/!_!g'`  # value of the fs without '/' that is not allowed in a file name
-                 LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.$fs_without_slash.log"  # value of the log file name
-                 $BIN_ZFS list "$OPTARG" 2>/dev/null 1>/dev/null  # Check if the zfs file system exists
-                if [ "$?" -eq "0" ] ; then
-                    I_FILESYSTEM="$OPTARG"
-                else
+            f)
+                fs_without_slash=`echo "$OPTARG" | sed 's!/!_!g'`  # value of the fs without '/' that is not allowed in a file name
+                LOGFILE="$CFG_LOG_FOLDER/$SCRIPT_NAME.$fs_without_slash.log"  # value of the log file name
+                I_FILESYSTEM="$OPTARG"
+             
+                if ! $BIN_ZFS list "$OPTARG" 2>/dev/null 1>/dev/null; then  # Check if the zfs file system exists
                     echo "Invalid parameter \"$OPTARG\" for option: -f. The ZFS filesystem does not exist."
                     return 1
-                fi ;;
-            t) # check if the threshold value is valid
-                echo "$OPTARG" | grep -E '^[0-9]{1,2}$' >/dev/null
-                if [ "$?" -eq "0" ] ; then
-                    I_WARN_THRESHOLD="$OPTARG"
-                else
+                fi
+                ;;
+            t)
+                if ! echo "$OPTARG" | grep -E '^[0-9]{1,2}$' >/dev/null; then
                     echo "Invalid parameter \"$OPTARG\" for option: -t. Should be an integer between 0 and 99."
                     return 1
-                fi ;;
+                fi
+
+                I_WARN_THRESHOLD="$OPTARG"
+                ;;
             \?)
                 echo "Invalid option: -$OPTARG"
                 return 1 ;;

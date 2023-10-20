@@ -45,11 +45,11 @@ parseInputParams() {
     # parse the optional parameters
     # (there should be none)
     while getopts ":" opt; do
-            case $opt in
+        case $opt in
             \?)
                 echo "Invalid option: -$OPTARG"
                 return 1 ;;
-            esac
+        esac
     done
 
     # Remove the optional arguments parsed above.
@@ -68,14 +68,12 @@ parseInputParams() {
 
     regex_temp="([0-9]+)"
 
-    echo "$I_WARN_THRESHOLD_CPU" | grep -E "^$regex_temp$" >/dev/null
-    if [ "$?" -ne "0" ]; then
+    if ! echo "$I_WARN_THRESHOLD_CPU" | grep -E "^$regex_temp$" >/dev/null; then
         echo "$LOGFILE" "Wrong CPU temperature notification threshold definition !"
         return 1
     fi
 
-    echo "$I_WARN_THRESHOLD_HDD" | grep -E "^$regex_temp$" >/dev/null
-    if [ "$?" -ne "0" ]; then
+    if ! echo "$I_WARN_THRESHOLD_HDD" | grep -E "^$regex_temp$" >/dev/null; then
         echo "$LOGFILE" "Wrong HDD temperature notification threshold definition !"
         return 1
     fi

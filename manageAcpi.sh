@@ -126,7 +126,7 @@ parseInputParams() {
 
         case $opt in
             p)
-                if ! `echo "$OPTARG" | grep -E "^$REGEX_DUR$" >/dev/null`; then
+                if ! echo "$OPTARG" | grep -E "^$REGEX_DUR$" >/dev/null; then
                     echo "Invalid parameter \"$OPTARG\" for option: -p. Should be a positive integer"
                     return 1
                 fi
@@ -134,7 +134,7 @@ parseInputParams() {
                 I_POLL_INTERVAL="$OPTARG"
                 ;;
             w)
-                if ! `echo "$OPTARG" | grep -E "^$REGEX_DUR$" >/dev/null`; then
+                if ! echo "$OPTARG" | grep -E "^$REGEX_DUR$" >/dev/null; then
                     echo "Invalid parameter \"$OPTARG\" for option: -w. Should be a positive integer"
                     return 1
                 fi
@@ -150,7 +150,7 @@ parseInputParams() {
                 fi
                 ;;
             a)
-                if ! `echo "$OPTARG" | grep -E "$regex_a" >/dev/null`; then
+                if ! echo "$OPTARG" | grep -E "$regex_a" >/dev/null; then
                     echo "Invalid parameter \"$OPTARG\" for option: -a. Should be \"hh:mm,hh:mm\""
                     return 1                
                 fi
@@ -160,7 +160,7 @@ parseInputParams() {
                 I_END_ALWAYS_ON=`echo "$OPTARG" | cut -f2 -d,`
                 ;;
             s)
-                if ! `echo "$OPTARG" | grep -E "^$REGEX_DUR$" >/dev/null`; then
+                if ! echo "$OPTARG" | grep -E "^$REGEX_DUR$" >/dev/null; then
                     echo "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -s. Should be a positive integer"
                     return 1
                 fi
@@ -169,7 +169,7 @@ parseInputParams() {
                 I_DELAY_SSH="$OPTARG"
                 ;;
             b)
-                if ! `echo "$OPTARG" | grep -E "^$REGEX_DUR$" >/dev/null`; then
+                if ! echo "$OPTARG" | grep -E "^$REGEX_DUR$" >/dev/null; then
                     echo "$LOGFILE" "Invalid parameter \"$OPTARG\" for option: -b. Should be a positive integer"
                     return 1
                 fi
@@ -178,7 +178,7 @@ parseInputParams() {
                 I_DELAY_SMB="$OPTARG"
                 ;;
             c)
-                if ! `echo "$OPTARG" | grep -E "$regex_c" >/dev/null`; then
+                if ! echo "$OPTARG" | grep -E "$regex_c" >/dev/null; then
                     echo "Invalid parameter \"$OPTARG\" for option: -c. Should be \"hh:mm,hh:mm,acpi_state\""
                     return 1
                 fi
@@ -189,7 +189,7 @@ parseInputParams() {
                 I_ACPI_STATE_CURFEW=`echo "$OPTARG" | cut -f3 -d,`
                 ;;
             n)
-                if ! `echo "$OPTARG" | grep -E "$regex_n" >/dev/null`; then
+                if ! echo "$OPTARG" | grep -E "$regex_n" >/dev/null; then
                     echo "Invalid parameter \"$OPTARG\" for option: -n. Should be \"ips,delay,acpi_state\""
                     return 1
                 fi
@@ -274,42 +274,41 @@ nasSleep() {
 
     acpi_state="$1"
 
-    if ! does_any_lock_exist; then
-
-        msg="Shutting down the system to save energy (ACPI state : S$acpi_state)"
-
-        if [ $acpi_state -eq "5" ]; then  # Soft OFF
-
-            log_info "$LOGFILE" "$msg"
-            log_info "$ACPI_STATE_LOGFILE" "S$acpi_state"
-
-            if [ $I_MAIL_ACPI_CHANGE -eq "1" ]; then
-                get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "NAS going to sleep to save energy (ACPI state: S$acpi_state)"
-            fi
-
-            awake="0"
-            $BIN_SHUTDOWN -p now "$msg"
-
-        elif [ $acpi_state -eq "3" ]; then  # Suspend to RAM
-
-            log_info "$LOGFILE" "$msg"
-            log_info "$ACPI_STATE_LOGFILE" "S$acpi_state"
-
-            if [ $I_MAIL_ACPI_CHANGE -eq "1" ]; then
-                get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "NAS going to sleep to save energy (ACPI state: S$acpi_state)"
-            fi
-
-            awake="0"
-            $BIN_ACPICONF -s 3
-        else
-            log_error "$LOGFILE" "Shutdown not possible. ACPI state \"$acpi_state\" not supported"
-            return 1
-        fi
-        return 0
-    else
+    if does_any_lock_exist; then
         log_info "$LOGFILE" "Shutdown not possible. The following scripts are running: `get_list_of_locks`"
         return 1
     fi
+
+    msg="Shutting down the system to save energy (ACPI state : S$acpi_state)"
+
+    if [ $acpi_state -eq "5" ]; then  # Soft OFF
+
+        log_info "$LOGFILE" "$msg"
+        log_info "$ACPI_STATE_LOGFILE" "S$acpi_state"
+
+        if [ $I_MAIL_ACPI_CHANGE -eq "1" ]; then
+            get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "NAS going to sleep to save energy (ACPI state: S$acpi_state)"
+        fi
+
+        awake="0"
+        $BIN_SHUTDOWN -p now "$msg"
+
+    elif [ $acpi_state -eq "3" ]; then  # Suspend to RAM
+
+        log_info "$LOGFILE" "$msg"
+        log_info "$ACPI_STATE_LOGFILE" "S$acpi_state"
+
+        if [ $I_MAIL_ACPI_CHANGE -eq "1" ]; then
+            get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "NAS going to sleep to save energy (ACPI state: S$acpi_state)"
+        fi
+
+        awake="0"
+        $BIN_ACPICONF -s 3
+    else
+        log_error "$LOGFILE" "Shutdown not possible. ACPI state \"$acpi_state\" not supported"
+        return 1
+    fi
+    return 0
 }
 
 

@@ -63,16 +63,17 @@ parseInputParams() {
     while getopts ":p:" opt; do
 
         case $opt in
-            p) echo "$OPTARG" | grep -E "^$regex_pows$" >/dev/null
-                if [ "$?" -eq "0" ] ; then
-                    I_COMPUTE_CONSUMPTION="1"
-                    I_W_S0=`echo "$OPTARG" | cut -f1 -d,`
-                    I_W_S3=`echo "$OPTARG" | cut -f2 -d,`
-                    I_W_S5=`echo "$OPTARG" | cut -f3 -d,`
-                else
+            p)
+                if ! echo "$OPTARG" | grep -E "^$regex_pows$" >/dev/null; then
                     echo "Invalid parameter \"$OPTARG\" for option: -p. Should be \"pS0,pS3,pS5\", were pSx are integer"
-                    return 1
-                fi ;;
+                    return 1                
+                fi
+                
+                I_COMPUTE_CONSUMPTION="1"
+                I_W_S0=`echo "$OPTARG" | cut -f1 -d,`
+                I_W_S3=`echo "$OPTARG" | cut -f2 -d,`
+                I_W_S5=`echo "$OPTARG" | cut -f3 -d,`
+                ;;
             \?)
                 echo "Invalid option: -$OPTARG"
                 return 1 ;;
@@ -92,7 +93,7 @@ parseInputParams() {
         return 1
     fi
 
-        return 0
+    return 0
 }
 
 
@@ -193,13 +194,12 @@ log_stats() {
 
     # consistency check
     percentage_tot=$(($S0p+$S3p+$S5p))
-
-    if [ $percentage_tot -ge "98" -a $percentage_tot -le "102" ]; then
-        return 0
-    else
+    if [ $percentage_tot -le "98" ] || [ $percentage_tot -ge "102" ]; then
         log_warning "$LOGFILE" "The sum of the percentages is not equal to 100, but equals $percentage_tot"
         return 1
     fi
+    
+    return 0
 }
 
 
