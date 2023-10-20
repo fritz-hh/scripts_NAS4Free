@@ -80,20 +80,19 @@ backupData.sh:
 manageAcpi.sh:
 --------------
 
-- Controls shutdown (S5) or sleep (S3) of the NAS based on various parameters
+- Controls shutdown (S5) or sleep (S3) of the NAS based on various parameters. E.g.:
     - If no computer that may access the NAS is online during a certain time (based on the IP address)
     - If the curfew is reached!
 - (if requested) prevents a shutdown / sleep during a configurable timeslot
-- (if requested) Prevents a shutdown / sleep if another machine is accessing to the NAS using SSH
+- (if requested) prevents a shutdown / sleep if another machine is accessing the NAS using SSH
+- (if requested) prevents a shutdown / sleep if another machine is accessing the NAS using SMB
 - Prevents a shutdown / sleep to be issued when one of the above administrative scripts is running
 - Reports the results in a log file.
 - Script to be started at NAS startup. The script runs as an endless loop
 
 Note 1: Depending on your motherboard and on your BIOS settings, the script may or may not work on your NAS.
-
 Note 2: This script requires static IP addresses (of course static DHCP is OK too) on your NAS and other any other computer.
-
-Note 3: I use Wake on LAN to wake the NAS. The WOL paket is sent by my DD-WRT router automatically when one of my computers is online (see script here: https://github.com/fritz-hh/autowake_NAS)
+Note 3: I use Wake on LAN to wake the NAS. The WOL paket can be sent by a DD-WRT router or a Raspberry Pi automatically when one of my computers is online (see script here: https://github.com/fritz-hh/autowake_NAS)
 
 acpiStats.sh:
 -------------
