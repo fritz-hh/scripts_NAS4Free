@@ -20,7 +20,7 @@
 #                (This option superseeds a sleep order originating from -c)
 #                + beg: time of the beginning of the slot (format: hh:mm)
 #                + end: time of the end of the slot (format: hh:mm)
-#    -n ips,delay,acpi : Define that the NAS shall not go to sleep if any of the devices are online
+#    -n ips,delay,acpi : Define that the NAS shall not go to sleep if any of the IP addresses are online
 #                + ips: IP addresses of the devices to poll, separated by "+" (Note: IP addresses shall be static)
 #                + delay: delay in seconds between last device going offline and start of sleep
 #                + acpi: the ACPI state selected for the sleep (3 or 5)
@@ -318,20 +318,20 @@ nasSleep() {
 # Main
 ##################################
 main() {
-    local ts_last_online_device ts_last_ssh ts_last_smb ts_wakeup in_always_on_timeslot \
+    local ts_last_online_ip ts_last_ssh ts_last_smb ts_wakeup in_always_on_timeslot \
         ssh_sleep_prevent smb_sleep_prevent curfew_sleep_request \
         ip_online_sleep_prevent delta_t awakefor
 
     # initialization of local variables
-    ts_last_online_device=`$BIN_DATE +%s`  # Timestamp when the last other device was detected to be online
+    ts_last_online_ip=`$BIN_DATE +%s`  # Timestamp when the last device was detected to be online
     ts_last_ssh=`$BIN_DATE +%s`  # Timestamp when the last SSH connection ended
     ts_last_smb=`$BIN_DATE +%s`  # Timestamp when the last SMB connection ended
     ts_wakeup=`$BIN_DATE +%s`  # Timestamp when the NAS woke up last time
     in_always_on_timeslot="0"  # 1=We are currently in the always on timeslot, 0 otherwise
+    ip_online_sleep_prevent="0"  # 1=Sleep prevented because an IP address is reachable, 0 otherwise
     ssh_sleep_prevent="0"  # 1=Sleep prevented by SSH, 0 otherwise
     smb_sleep_prevent="0"  # 1=Sleep prevented by SMB, 0 otherwise
     curfew_sleep_request="0"  # 1=Sleep requested by curfew check, 0 otherwise
-    ip_online_sleep_prevent="0"  # 1=Sleep requested by no-online check, 0 otherwise
 
     # Remove any existing lock
     reset_locks
@@ -371,7 +371,7 @@ main() {
         if [ $awake -eq "0" ]; then
             awake="1"
             ts_wakeup=`$BIN_DATE +%s`
-            ts_last_online_device=`$BIN_DATE +%s`
+            ts_last_online_ip=`$BIN_DATE +%s`
 
             log_info "$ACPI_STATE_LOGFILE" "S0"
             log_info "$LOGFILE" "NAS just woke up (S0). Preventing sleep during the next $I_DELAY_PREVENT_SLEEP_AFTER_WAKE s"
@@ -429,12 +429,12 @@ main() {
         if [ $I_CHECK_NOONLINE_ACTIVE -eq "1" ]; then
             for ip_addr in $I_IP_ADDRS; do
                 if $BIN_PING -c 1 -t 1 $ip_addr > /dev/null ; then
-                    ts_last_online_device=`$BIN_DATE +%s`
+                    ts_last_online_ip=`$BIN_DATE +%s`
                     [ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "Online IP address detected: $ip_addr (other devices may be online too)"
                     break
                 fi
             done
-            delta_t=$((`$BIN_DATE +%s`-$ts_last_online_device))
+            delta_t=$((`$BIN_DATE +%s`-$ts_last_online_ip))
             [ "$delta_t" -lt "$I_DELAY_NOONLINE" ] && ip_online_sleep_prevent="1"
         fi
 
