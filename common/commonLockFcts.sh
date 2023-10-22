@@ -167,6 +167,9 @@ run_main() {
 
     errInMain=0
 
+    # release the lock if the script is terminated externally
+    trap 'release_lock "$lock_id"; exit 0' INT TERM
+
     # acquire lock and run main
     acquire_lock "$lock_id"
     retCodeAcquireLock="$?"
