@@ -14,6 +14,8 @@ New features
 
 - manageAcpi.sh: Record the timeslots where the ACPI state of the NAS was not tracked by manageAcpi.sh.
   (e.g. because the script was terminated or manually shutdown by the administrator) (#33)
+- In case a script crashes, or if it is terminated by the user (e.g. CTRL-C), 
+  release the lock, so that will start properly next time (#2)
 
 Changes
 -------
