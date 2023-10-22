@@ -23,7 +23,7 @@ Changes
 Fixes
 -----
 
-- None
+- acpiStats.sh: Improve formatting of the log
 
 Tested with
 -----------

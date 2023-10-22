@@ -183,17 +183,17 @@ log_stats() {
     UNTRACKEDp=`compute_stat "$file" "UNTRACKED"`
 
     if [ "$I_COMPUTE_CONSUMPTION" -eq "1" ]; then
-        log_info "$LOGFILE" "S0 ($(($I_W_S0/1000)) W) (Working)       : $S0p percent"
-        log_info "$LOGFILE" "S3 ($(($I_W_S3/1000)) W) (Suspend to RAM): $S3p percent"
-        log_info "$LOGFILE" "S5 ($(($I_W_S5/1000)) W) (Soft off)      : $S5p percent"
-        log_info "$LOGFILE" "UNKNOWN ($(($I_W_UNTRACKED/1000)) W)            : $UNTRACKEDp percent"
+        printf 'S0      (%3s W) (Working)        : %3s percent\n' "$(($I_W_S0/1000))" "$S0p" | log_info "$LOGFILE"
+        printf 'S3      (%3s W) (Suspend to RAM) : %3s percent\n' "$(($I_W_S3/1000))" "$S3p" | log_info "$LOGFILE"
+        printf 'S5      (%3s W) (Soft off)       : %3s percent\n' "$(($I_W_S5/1000))" "$S5p" | log_info "$LOGFILE"
+        printf 'UNKNOWN (%3s W) (Soft off)       : %3s percent\n' "$(($I_W_UNTRACKED/1000))" "$UNTRACKEDp" | log_info "$LOGFILE"
         W_average=$((($I_W_S0*$S0p+$I_W_S3*$S3p+$I_W_S5*$S5p+$I_W_UNTRACKED*$UNTRACKEDp)/100/1000))
         log_info "$LOGFILE" "Average power comsumption: $W_average W"
     else
-        log_info "$LOGFILE" "S0 (Working)       : $S0p percent"
-        log_info "$LOGFILE" "S3 (Suspend to RAM): $S3p percent"
-        log_info "$LOGFILE" "S5 (Soft off)      : $S5p percent"
-        log_info "$LOGFILE" "UNKNOWN            : $UNTRACKEDp percent"
+        printf 'S0 (Working)       : %3s percent\n' "$S0p" | log_info "$LOGFILE"
+        printf 'S3 (Suspend to RAM): %3s percent\n' "$S3p" | log_info "$LOGFILE"
+        printf 'S5 (Soft off)      : %3s percent\n' "$S5p" | log_info "$LOGFILE"
+        printf 'UNKNOWN            : %3s percent\n' "$UNTRACKEDp" | log_info "$LOGFILE"
     fi
 
     # consistency check
