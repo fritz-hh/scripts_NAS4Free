@@ -365,8 +365,10 @@ main() {
 
     # Loop until the NAS is switched off
     while true; do
-    
-    
+
+        # wait until next poll
+        sleep $I_POLL_INTERVAL
+
         [ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "-----------------"
 
         # If the NAS just woke up
@@ -382,9 +384,6 @@ main() {
                 get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "NAS just woke up (S0)"
             fi
         fi
-
-        # wait until next poll
-        sleep $I_POLL_INTERVAL
 
         # Check if in always_on timeslot
         in_always_on_timeslot="0"

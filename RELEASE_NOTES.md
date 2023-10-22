@@ -6,6 +6,31 @@ Please always read this file before installing the package
 Download software here: https://github.com/fritz-hh/scripts_NAS4Free/tags
 
 
+vx.x.x (2023-10-22):
+====
+
+New features
+------------
+
+- None
+
+Changes
+-------
+
+- None
+
+Fixes
+-----
+
+- manageAcpi.sh: Fix an issue where just after a resume, the acpi.log file contained the same timestamp than just before starting to sleep (in S3).
+  FreeBSD, seems to need a bit of time before synchronize the clock after resuming.
+
+Tested with
+-----------
+
+- Xigmanas (formerly NAS4Free) 13.2.0.5 - Heighliner (revision 9876)
+
+
 v2.5.2 (2023-10-22):
 ====
 
@@ -14,8 +39,6 @@ New features
 
 - manageAcpi.sh: Record the timeslots where the ACPI state of the NAS was not tracked by manageAcpi.sh.
   (e.g. because the script was terminated or manually shutdown by the administrator) (#33)
-- In case a script crashes, or if it is terminated by the user (e.g. CTRL-C), 
-  release the lock, so that will start properly next time (#2)
 
 Changes
 -------
@@ -25,6 +48,8 @@ Changes
 Fixes
 -----
 
+- All scripts: In case a script is is terminated by the user (e.g. CTRL-C), or if the NAS is shutdown by the user,
+  release the lock, so that will start properly next time (#2)
 - acpiStats.sh: Improve formatting of the log
 
 Tested with
