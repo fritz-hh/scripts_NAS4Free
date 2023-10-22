@@ -359,11 +359,13 @@ main() {
     printf '%-35s %s\n' "- IP_ADDRS:" "$I_IP_ADDRS" | log_info "$LOGFILE"
 
 
+    # record in the ACPI state log, that the script is not running anymore
+    trap 'log_info "$ACPI_STATE_LOGFILE" "UNTRACKED"; exit 0' INT TERM
+    
+
     # Loop until the NAS is switched off
     while true; do
     
-        # wait until next poll
-        sleep $I_POLL_INTERVAL
     
         [ $I_VERBOSE -eq "1" ] && log_info "$LOGFILE" "-----------------"
 
@@ -380,6 +382,9 @@ main() {
                 get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "NAS just woke up (S0)"
             fi
         fi
+
+        # wait until next poll
+        sleep $I_POLL_INTERVAL
 
         # Check if in always_on timeslot
         in_always_on_timeslot="0"
@@ -481,13 +486,9 @@ if ! parseInputParams $ARGUMENTS > "$TMPFILE_ARGS"; then
     cat "$TMPFILE_ARGS" | log_error "$LOGFILE"
     $BIN_RM "$TMPFILE_ARGS"
     get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "$SCRIPT_NAME : Invalid arguments"
-else
-    $BIN_RM "$TMPFILE_ARGS"
-    log_info "$LOGFILE" "-------------------------------------"
-
-    # Return the log entries that have been logged during the current
-    # execution of the script
-    ! main && get_log_entries_ts "$LOGFILE" "$START_TIMESTAMP" | sendMail "Sleep management issue"
+    exit 1
 fi
 
-exit 0
+$BIN_RM "$TMPFILE_ARGS"
+log_info "$LOGFILE" "-------------------------------------"
+main  # Endless loop that should never return

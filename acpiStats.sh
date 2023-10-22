@@ -45,6 +45,7 @@ I_COMPUTE_CONSUMPTION="0"
 I_W_S0="0"  # Power consumed by the NAS in S0 (in mW)
 I_W_S3="0"  # Power consumed by the NAS in S3 (in mW)
 I_W_S5="0"  # Power consumed by the NAS in S5 (in mW)
+I_W_UNTRACKED="0"  # Assumed Power consumed by the NAS when the ACPI state was not tracked (in mW)
 
 
 ##################################
@@ -179,22 +180,25 @@ log_stats() {
     S0p=`compute_stat "$file" "S0"`
     S3p=`compute_stat "$file" "S3"`
     S5p=`compute_stat "$file" "S5"`
+    UNTRACKEDp=`compute_stat "$file" "UNTRACKED"`
 
     if [ "$I_COMPUTE_CONSUMPTION" -eq "1" ]; then
         log_info "$LOGFILE" "S0 ($(($I_W_S0/1000)) W) (Working)       : $S0p percent"
         log_info "$LOGFILE" "S3 ($(($I_W_S3/1000)) W) (Suspend to RAM): $S3p percent"
         log_info "$LOGFILE" "S5 ($(($I_W_S5/1000)) W) (Soft off)      : $S5p percent"
-        W_average=$((($I_W_S0*$S0p+$I_W_S3*$S3p+$I_W_S5*$S5p)/100/1000))
+        log_info "$LOGFILE" "UNKNOWN ($(($I_W_UNTRACKED/1000)) W)            : $UNTRACKEDp percent"
+        W_average=$((($I_W_S0*$S0p+$I_W_S3*$S3p+$I_W_S5*$S5p+$I_W_UNTRACKED*$UNTRACKEDp)/100/1000))
         log_info "$LOGFILE" "Average power comsumption: $W_average W"
     else
         log_info "$LOGFILE" "S0 (Working)       : $S0p percent"
         log_info "$LOGFILE" "S3 (Suspend to RAM): $S3p percent"
         log_info "$LOGFILE" "S5 (Soft off)      : $S5p percent"
+        log_info "$LOGFILE" "UNKNOWN            : $UNTRACKEDp percent"
     fi
 
     # consistency check
-    percentage_tot=$(($S0p+$S3p+$S5p))
-    if [ $percentage_tot -lt "98" ] || [ $percentage_tot -gt "102" ]; then
+    percentage_tot=$(($S0p+$S3p+$S5p+$UNTRACKEDp))
+    if [ $percentage_tot -lt "97" ] || [ $percentage_tot -gt "103" ]; then
         log_warning "$LOGFILE" "The sum of the percentages is not equal to 100, but equals $percentage_tot"
         return 1
     fi

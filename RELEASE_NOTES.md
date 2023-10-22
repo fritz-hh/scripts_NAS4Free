@@ -12,7 +12,8 @@ vx.x.x (yyyy-mm-dd):
 New features
 ------------
 
-- None
+- manageAcpi.sh: Record the timeslots where the ACPI state of the NAS was not tracked by manageAcpi.sh.
+  (e.g. because the script was terminated or manually shutdown by the administrator) (#33)
 
 Changes
 -------
