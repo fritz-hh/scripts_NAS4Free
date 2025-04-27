@@ -6,7 +6,7 @@ Please always read this file before installing the package
 Download software here: https://github.com/fritz-hh/scripts_NAS4Free/tags
 
 
-vx.x.x (2025-04-27):
+v2.5.4 (2025-04-27):
 ====
 
 New features
