@@ -6,6 +6,30 @@ Please always read this file before installing the package
 Download software here: https://github.com/fritz-hh/scripts_NAS4Free/tags
 
 
+vx.x.x (2025-04-27):
+====
+
+New features
+------------
+
+- None
+
+Changes
+-------
+
+- None
+
+Fixes
+-----
+
+- backupData.sh: Improve code quality by reducing nesting in `backupData.sh` (Rationale: Improve maintainability)
+
+Tested with
+-----------
+
+- Xigmanas (formerly NAS4Free) 13.2.0.5 - Heighliner (revision 9876)
+
+
 v2.5.3 (2023-10-22):
 ====
 

@@ -277,21 +277,21 @@ ensureRemoteFSExists() {
         fi
 
         return 1
-    else
-        log_info "$LOGFILE" "Filesystem created successfully"
-
-        # Set the destination filesystem to readonly
-        if ! $RUN_CMD_SSH $BIN_ZFS set readonly=on $fs >/dev/null; then
-            log_error "$LOGFILE" "The destination filesystem could not be set to \"readonly=on\""
-        fi
-
-        # Set the destination pool to readonly
-        [ "$readonly_mode" = "on" ] && if ! $RUN_CMD_SSH $BIN_ZFS set readonly=on $pool >/dev/null; then
-            log_warning "$LOGFILE" "The destination pool could not be set to \"readonly=on\""
-        fi
-
-        return 0
     fi
+
+    log_info "$LOGFILE" "Filesystem created successfully"
+
+    # Set the destination filesystem to readonly
+    if ! $RUN_CMD_SSH $BIN_ZFS set readonly=on $fs >/dev/null; then
+        log_error "$LOGFILE" "The destination filesystem could not be set to \"readonly=on\""
+    fi
+
+    # Set the destination pool to readonly
+    [ "$readonly_mode" = "on" ] && if ! $RUN_CMD_SSH $BIN_ZFS set readonly=on $pool >/dev/null; then
+        log_warning "$LOGFILE" "The destination pool could not be set to \"readonly=on\""
+    fi
+
+    return 0
 }
 
 
@@ -327,24 +327,25 @@ backup() {
         log_info "$LOGFILE" "$logPrefix: No snapfound found in destination filesystem"
 
         if [ -z "$oldestSnapSrcFs" ]; then
-            log_info "$LOGFILE" "$logPrefix: No snapshot to be backed up found in source filesystem"
+            log_info "$LOGFILE" "$logPrefix: No snapshot to backup found in source filesystem"
             return 0
-        else
-            log_info "$LOGFILE" "$logPrefix: Backup up oldest snapshot \"$oldestSnapSrcFs\""
-            if ! $BIN_ZFS send $oldestSnapSrcFs | $RUN_CMD_SSH $BIN_ZFS receive -F $dest_fs >/dev/null; then
-                log_error "$LOGFILE" "$logPrefix: Backup failed"
-                return 1
-            else
-                log_info "$LOGFILE" "$logPrefix: Backup performed"
-            fi
         fi
+        
+        log_info "$LOGFILE" "$logPrefix: Backup up oldest snapshot \"$oldestSnapSrcFs\""
+        if ! $BIN_ZFS send $oldestSnapSrcFs | $RUN_CMD_SSH $BIN_ZFS receive -F $dest_fs >/dev/null; then
+            log_error "$LOGFILE" "$logPrefix: Backup failed"
+            return 1
+        fi
+
+        log_info "$LOGFILE" "$logPrefix: Backup performed"
+
     else
         log_info "$LOGFILE" "$logPrefix: Last snapshot available in destination filesystem was \"$newestSnapDestFs\" before backup"
     fi
 
     # Get the newest snapshot on the dest fs
     # (It may have changed, if a backup was performed above)
-    newestSnapDestFs=`$RUN_FCT_SSH sortSnapshots $dest_fs "" | head -n 1`
+    newestSnapDestFs=`$RUN_FCT_SSH sortSnapshots "$dest_fs" "" | head -n 1`
 
     # find the newest snapshot on the dest fs that is still
     # available in the src fs and then perform an incremental
@@ -360,36 +361,39 @@ backup() {
             return 0
         fi
 
-        # If the snapshot exists on the src fs
-        if $BIN_ZFS list -o name -t snapshot "$snapSrcFs" 2>/dev/null 1>/dev/null; then
-
-            # Compute the required rollback duration
-            snapSrcFsTimestamp1970=`getSnapTimestamp1970 "$snapSrcFs"`
-            newestSnapDestFsCreation1970=`$RUN_FCT_SSH getSnapTimestamp1970 "$newestSnapDestFs"`
-            snapsAgeDiff=$(($newestSnapDestFsCreation1970-$snapSrcFsTimestamp1970))
-            if [ $snapsAgeDiff -gt $I_MAX_ROLLBACK_S ]; then
-                log_warning "$LOGFILE" "$logPrefix: A rollback of \"$(($snapsAgeDiff/$S_IN_DAY))\" days would be required to perform the incremental backup !"
-                log_warning "$LOGFILE" "$logPrefix: Current maximum allowed rollback value equals \"$(($I_MAX_ROLLBACK_S/$S_IN_DAY))\" days."
-                log_warning "$LOGFILE" "$logPrefix: Please increase the maximum allowed rollback duration to make the backup possible"
-                log_warning "$LOGFILE" "$logPrefix: Skipping backup of this filesystem"
-                return 1
-            fi
-
-            log_info "$LOGFILE" "$logPrefix: Rolling back to last snapshot available on both source & destination fs: \"$snapDestFs\"..."
-            if ! $RUN_CMD_SSH $BIN_ZFS rollback -r $snapDestFs >/dev/null; then
-                log_error "$LOGFILE" "$logPrefix: Rollback failed"
-                return 1
-            fi
-
-            log_info "$LOGFILE" "$logPrefix: Backing up incrementally from snapshot \"$snapSrcFs\" to \"$newestSnapSrcFs\" ..."
-            if ! $BIN_ZFS send -I "$snapSrcFs" "$newestSnapSrcFs" | $RUN_CMD_SSH $BIN_ZFS receive "$dest_fs" >/dev/null; then
-                log_error "$LOGFILE" "$logPrefix: Backup failed"
-                return 1
-            else
-                log_info "$LOGFILE" "$logPrefix: Backup performed"
-                return 0
-            fi
+        # If the current destination snapshot does not exist on the src fs
+        if ! $BIN_ZFS list -o name -t snapshot "$snapSrcFs" 2>/dev/null 1>/dev/null; then
+            continue
         fi
+
+        # there is something to backup, but we may have to rollback the dest fs first...
+
+        # Compute the required rollback duration
+        snapSrcFsTimestamp1970=`getSnapTimestamp1970 "$snapSrcFs"`
+        newestSnapDestFsCreation1970=`$RUN_FCT_SSH getSnapTimestamp1970 "$newestSnapDestFs"`
+        snapsAgeDiff=$(($newestSnapDestFsCreation1970-$snapSrcFsTimestamp1970))
+        if [ $snapsAgeDiff -gt $I_MAX_ROLLBACK_S ]; then
+            log_warning "$LOGFILE" "$logPrefix: A rollback of \"$(($snapsAgeDiff/$S_IN_DAY))\" days would be required to perform the incremental backup !"
+            log_warning "$LOGFILE" "$logPrefix: Current maximum allowed rollback value equals \"$(($I_MAX_ROLLBACK_S/$S_IN_DAY))\" days."
+            log_warning "$LOGFILE" "$logPrefix: Please increase the maximum allowed rollback duration to make the backup possible"
+            log_warning "$LOGFILE" "$logPrefix: Skipping backup of this filesystem"
+            return 1
+        fi
+
+        log_info "$LOGFILE" "$logPrefix: Rolling back to last snapshot available on both source & destination fs: \"$snapDestFs\"..."
+        if ! $RUN_CMD_SSH $BIN_ZFS rollback -r $snapDestFs >/dev/null; then
+            log_error "$LOGFILE" "$logPrefix: Rollback failed"
+            return 1
+        fi
+
+        log_info "$LOGFILE" "$logPrefix: Backing up incrementally from snapshot \"$snapSrcFs\" to \"$newestSnapSrcFs\" ..."
+        if ! $BIN_ZFS send -I "$snapSrcFs" "$newestSnapSrcFs" | $RUN_CMD_SSH $BIN_ZFS receive "$dest_fs" >/dev/null; then
+            log_error "$LOGFILE" "$logPrefix: Backup failed"
+            return 1
+        fi
+
+        log_info "$LOGFILE" "$logPrefix: Backup performed"
+        return 0
     done
 }
 
@@ -414,28 +418,29 @@ main() {
 
             currentSubDstFs="$I_DEST_FS/$currentSubSrcFs"
 
-            # create the dest filesystems (recursively)
-            # if they do not yet exist and exit if it fails
+            # create the dest filesystems (recursively) if it does not exist yet
+            # and do not perform a backup if it fails
             if ! ensureRemoteFSExists "$currentSubDstFs"; then
                 returnCode=1
-            else
-                # if a compression algorithm was specified by the user
-                # set compression algorithm for the current destination fs
-                if [ -n "$I_COMPRESSION" ]; then
-                    # compute compress algorithm for the current fs, or unique algorithm if only one was defined
-                    algo=`echo "$I_COMPRESSION" | cut -f$cpt -d,`
-                    if $RUN_CMD_SSH $BIN_ZFS set compression="$algo" "$currentSubDstFs" 2>/dev/null 1>/dev/null; then
-                        log_info "$LOGFILE" "Compression algorithm set to \"$algo\" for \"$currentSubDstFs\""
-                    else
-                        log_error "$LOGFILE" "Could not set compression algorithm to \"$algo\" for \"$currentSubDstFs\""
-                        returnCode=1
-                    fi
-                fi
+                continue
+            fi
 
-                # Perform the backup
-                if ! backup "$currentSubSrcFs" "$currentSubDstFs"; then
+            # if a compression algorithm was specified by the user
+            # set compression algorithm for the current destination fs
+            if [ -n "$I_COMPRESSION" ]; then
+                # compute compress algorithm for the current fs, or unique algorithm if only one was defined
+                algo=`echo "$I_COMPRESSION" | cut -f$cpt -d,`
+                if $RUN_CMD_SSH $BIN_ZFS set compression="$algo" "$currentSubDstFs" 2>/dev/null 1>/dev/null; then
+                    log_info "$LOGFILE" "Compression algorithm set to \"$algo\" for \"$currentSubDstFs\""
+                else
+                    log_error "$LOGFILE" "Could not set compression algorithm to \"$algo\" for \"$currentSubDstFs\""
                     returnCode=1
                 fi
+            fi
+
+            # Perform the backup
+            if ! backup "$currentSubSrcFs" "$currentSubDstFs"; then
+                returnCode=1
             fi
         done
     done
