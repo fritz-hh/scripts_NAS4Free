@@ -6,7 +6,7 @@
 #
 # Author: fritz from NAS4Free forum
 #
-# Usage: backupData.sh [-s user@host[,path2privatekey]] [-b maxRollbck] [-c compression[,...]] fsSource[,...] fsDest
+# Usage: backupData.sh [-s user@host[,path2privatekey]] [-b maxRollbck] [-c compression] fsSource fsDest
 #
 #    -s user@host[,path2privatekey]: Specify a remote host on which the destination filesystem
 #            is located
@@ -22,17 +22,9 @@
 #            A rollback is necessary if the snapshots available on the
 #            destination fs are not available anymore on the source fs
 #            Default value: 10 days
-#    -c compression[,...] : compression algorithm to be used for the respective
-#            destination filesystem.
-#            If only one compression algorithm is provided, this algorithm applies to each
-#            destination filesystem.
-#            If more then one compression algorithm is provided (exactly the same number
-#            of algorithm shall be provided as the number of source filesystems),
-#            compressionN is the algorithm that will be set for the destination filesystem
-#            corresponding to fsSourceN.
-#    fsSource[,...] : zfs filesystems to be backed-up (source).
-#            Several file systems can be provided (They shall be separated by a comma ",")
-#            Note: These fs (as well as the sub-fs) shall have a default mountpoint
+#    -c compression : compression algorithm to be used for the destination filesystem.
+#    fsSource : zfs filesystem to be backed-up (source).
+#            Note: This fs shall have a default mountpoint
 #    fsDest : zfs filesystem in which the data should be backed-up (destination)
 #            Note: This filesystem must already exist before to launch the backup.
 #            Note: The ZPOOL in which this filesystem is located should be different
@@ -120,9 +112,9 @@ run_fct_ssh() {
 # return : 1 if an error occured, 0 otherwise
 ##################################
 parseInputParams() {
-    local opt current_fs current_src_pool dest_pool regex_rollback host regex_comp comp_num fs_num
+    local opt dest_pool regex_rollback host regex_comp
 
-    regex_comp="^($SUPPORTED_COMPRESSION)([,]($SUPPORTED_COMPRESSION)){0,}$"
+    regex_comp="^($SUPPORTED_COMPRESSION)$"
 
     # parse the optional parameters
     # (there should be none)
@@ -165,7 +157,7 @@ parseInputParams() {
                 ;;
             c)
                 if ! echo "$OPTARG" | grep -E "$regex_comp" >/dev/null; then
-                    echo "Bad compression definition, should be a set of compression algorithms (supported by ZFS) separated by comma \",\" characters"
+                    echo "Bad compression definition, should be a compression algorithm supported by ZFS"
                     return 1            
                 fi
 
@@ -190,15 +182,12 @@ parseInputParams() {
         return 1
     fi
 
-    # Itterate through all source filesystems for which a backup should be done
-    # and check if the current fs exists
-    I_SRC_FSS=`echo "$1" | sed 's/,/ /g'` # replace commas by space as for loops on new line and space
-    for current_fs in $I_SRC_FSS ; do
-        if ! $BIN_ZFS list $current_fs 2>/dev/null 1>/dev/null; then
-            echo "source filesystem \"$current_fs\" does not exist."
-            return 1
-        fi
-    done
+    # Check if the source fs exists
+    I_SRC_FS="$1"
+    if ! $BIN_ZFS list $I_SRC_FS 2>/dev/null 1>/dev/null; then
+        echo "source filesystem \"$I_SRC_FS\" does not exist."
+        return 1
+    fi
 
     # Check if the destination filesystem exists
     I_DEST_FS="$2"
@@ -208,31 +197,12 @@ parseInputParams() {
     fi
 
     # ensure that the ZPOOL of the destination filesystem is different from the
-    # ZPOOL(s) of the source filesystems
+    # ZPOOL of the source filesystem
     if [ "$I_REMOTE_ACTIVE" -eq "0" ]; then
         dest_pool=`echo "$I_DEST_FS" | cut -f1 -d/`
-        for current_fs in $I_SRC_FSS ; do
-            current_src_pool=`echo "$current_fs" | cut -f1 -d/`
-            if [ "$dest_pool" = "$current_src_pool" ]; then
-                echo "The source filesystem \"$current_fs\" is in the same pool than the destination filesystem \"$I_DEST_FS\""
-                return 1
-            fi
-        done
-    fi
-
-    # Ensure that the number of compression algorithm provided is compatible with
-    # the number of source filesystems
-    if [ -n "$I_COMPRESSION" ]; then
-
-        # number of compression algorithm defined
-        comp_num=`echo "$I_COMPRESSION" | tr "," "\n" | wc -l`
-        # number of source fs defined
-        fs_num=`echo "$I_SRC_FSS" | tr " " "\n" | wc -l`
-
-        # if the number of compression algorithm defined is neither 1
-        # nor equal to the number number of source fs that were defined
-        if [ $comp_num -ne 1 ] && [ $comp_num -ne $fs_num ]; then
-            echo "Bad compression definition, the number of compression algorithm should either equal 1 or should be equal to the number of source filesystems"
+        src_pool=`echo "$I_SRC_FS" | cut -f1 -d/`
+        if [ "$dest_pool" = "$src_pool" ]; then
+            echo "The source filesystem \"$I_SRC_FS\" is in the same pool than the destination filesystem \"$I_DEST_FS\""
             return 1
         fi
     fi
@@ -401,48 +371,39 @@ backup() {
 # Main
 ##################################
 main() {
-    local returnCode current_fs currentSubSrcFs currentSubDstFs algo cpt
+    local returnCode currentSubSrcFs currentSubDstFs
 
     returnCode=0
 
-    log_info "$LOGFILE" "Starting backup of \"$I_SRC_FSS\""
+    log_info "$LOGFILE" "Starting backup of \"$I_SRC_FS\""
 
-    # Itterate through all source filesystems for which a backup should be done
-    cpt=0
-    for current_fs in $I_SRC_FSS ; do
+    # for the source fs and all its sub-filesystems
+    for currentSubSrcFs in `$BIN_ZFS list -t filesystem,volume -r -H -o name $I_SRC_FS`; do
 
-        cpt=$(($cpt+1))
+        currentSubDstFs="$I_DEST_FS/$currentSubSrcFs"
 
-        # for the current fs and all its sub-filesystems
-        for currentSubSrcFs in `$BIN_ZFS list -t filesystem,volume -r -H -o name $current_fs`; do
+        # create the dest filesystems (recursively) if it does not exist yet
+        # and do not perform a backup if it fails
+        if ! ensureRemoteFSExists "$currentSubDstFs"; then
+            returnCode=1
+            continue
+        fi
 
-            currentSubDstFs="$I_DEST_FS/$currentSubSrcFs"
-
-            # create the dest filesystems (recursively) if it does not exist yet
-            # and do not perform a backup if it fails
-            if ! ensureRemoteFSExists "$currentSubDstFs"; then
-                returnCode=1
-                continue
-            fi
-
-            # if a compression algorithm was specified by the user
-            # set compression algorithm for the current destination fs
-            if [ -n "$I_COMPRESSION" ]; then
-                # compute compress algorithm for the current fs, or unique algorithm if only one was defined
-                algo=`echo "$I_COMPRESSION" | cut -f$cpt -d,`
-                if $RUN_CMD_SSH $BIN_ZFS set compression="$algo" "$currentSubDstFs" 2>/dev/null 1>/dev/null; then
-                    log_info "$LOGFILE" "Compression algorithm set to \"$algo\" for \"$currentSubDstFs\""
-                else
-                    log_error "$LOGFILE" "Could not set compression algorithm to \"$algo\" for \"$currentSubDstFs\""
-                    returnCode=1
-                fi
-            fi
-
-            # Perform the backup
-            if ! backup "$currentSubSrcFs" "$currentSubDstFs"; then
+        # if a compression algorithm was specified by the user
+        # set compression algorithm for the current destination fs
+        if [ -n "$I_COMPRESSION" ]; then
+            if $RUN_CMD_SSH $BIN_ZFS set compression="$I_COMPRESSION" "$currentSubDstFs" 2>/dev/null 1>/dev/null; then
+                log_info "$LOGFILE" "Compression algorithm set to \"$I_COMPRESSION\" for \"$currentSubDstFs\""
+            else
+                log_error "$LOGFILE" "Could not set compression algorithm to \"$I_COMPRESSION\" for \"$currentSubDstFs\""
                 returnCode=1
             fi
-        done
+        fi
+
+        # Perform the backup
+        if ! backup "$currentSubSrcFs" "$currentSubDstFs"; then
+            returnCode=1
+        fi
     done
 
     return $returnCode
