@@ -53,7 +53,7 @@ I_MAX_NB_DAILY=15  # Default number of daily snapshots to be kept
 I_MAX_NB_WEEKLY=8  # Default number of weekly snapshots to be kept
 I_MAX_NB_MONTHLY=12  # Default number of monthly snapshots to be kept
 
-I_DEPTH="-1"  # Default recursion depth
+I_DEPTH="-1"  # Default recursion depth (<0: As deep as possible)
 
 readonly S_IN_HOUR=36000  # Number of seconds in an hour
 readonly S_IN_DAY=86400  # Number of seconds in a day
