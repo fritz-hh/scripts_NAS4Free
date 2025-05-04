@@ -6,6 +6,34 @@ Please always read this file before installing the package
 Download software here: https://github.com/fritz-hh/scripts_NAS4Free/tags
 
 
+vx.x.x (yyyy-mm-dd):
+====
+
+New features
+------------
+
+- None
+
+Changes
+-------
+
+- Remove support for several source ZFS file systems.
+  This (breaking change) is required in order to implement #34.
+  Impact on the command line interface: 
+  - `fsSource` identifies one single source file system
+  - `-c ` must contains 1 compression algorithm only
+
+Fixes
+-----
+
+- None
+
+Tested with
+-----------
+
+- Xigmanas (formerly NAS4Free) 13.2.0.5 - Heighliner (revision 9876)
+
+
 v2.5.4 (2025-04-27):
 ====
 
