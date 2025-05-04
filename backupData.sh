@@ -26,14 +26,15 @@
 #    fsSource : zfs filesystem to be backed-up (source).
 #            Note: This fs shall have a default mountpoint
 #    fsDest : zfs filesystem in which the data should be backed-up (destination)
-#            Note: This filesystem must already exist before to launch the backup.
-#            Note: The ZPOOL in which this filesystem is located should be different
+#            Note: The ZPOOL in which this filesystem is located 
+#                  must already exist before to launch the backup.
+#            Note: The ZPOOL in which this filesystem is located must be different
 #                  from the ZPOOL(s) of the source filesystems
 #
 # Example:
 #    "backupData.sh tank/nas_scripts tank_backup" will create a backup of the ZFS fs
 #    "tank/nas_scripts" (and of all its sub-filesystems) in the ZFS fs "tank_backup".
-#    I.e. After the backup (at least) an fs "tank_backup/tank/nas_scripts" will exist.
+#    I.e. After the backup (at least) an fs "tank_backup/nas_scripts" will exist.
 #
 #############################################################################
 
@@ -189,20 +190,20 @@ parseInputParams() {
         return 1
     fi
 
-    # Check if the destination filesystem exists
+    # Check if the destination pool exists
     I_DEST_FS="$2"
-    if ! $RUN_CMD_SSH $BIN_ZFS list $I_DEST_FS 2>/dev/null 1>/dev/null; then
-        echo "destination filesystem \"$I_DEST_FS\" does not exist."
+    dest_pool=`echo "$I_DEST_FS" | cut -f1 -d/`
+    if ! $RUN_CMD_SSH $BIN_ZFS list $dest_pool 2>/dev/null 1>/dev/null; then
+        echo "The ZPOOL \"$dest_pool\" of the destination filesystem \"$I_DEST_FS\" does not exist."
         return 1
     fi
 
     # ensure that the ZPOOL of the destination filesystem is different from the
     # ZPOOL of the source filesystem
     if [ "$I_REMOTE_ACTIVE" -eq "0" ]; then
-        dest_pool=`echo "$I_DEST_FS" | cut -f1 -d/`
         src_pool=`echo "$I_SRC_FS" | cut -f1 -d/`
         if [ "$dest_pool" = "$src_pool" ]; then
-            echo "The source filesystem \"$I_SRC_FS\" is in the same pool than the destination filesystem \"$I_DEST_FS\""
+            echo "The source filesystem \"$I_SRC_FS\" is in the same pool as the destination filesystem \"$I_DEST_FS\""
             return 1
         fi
     fi
@@ -277,7 +278,7 @@ ensureRemoteFSExists() {
 ##################################
 backup() {
     local src_fs dest_fs logPrefix newestSnapDestFs oldestSnapSrcFs newestSnapSrcFs snapDestFs \
-        removeDestFSInName snapSrcFs snapSrcFsTimestamp1970 newestSnapDestFsCreation1970 \
+        replaceDestBySrcInFSName snapSrcFs snapSrcFsTimestamp1970 newestSnapDestFsCreation1970 \
         snapsAgeDiff
 
     src_fs="$1"
@@ -323,11 +324,11 @@ backup() {
     for snapDestFs in `$RUN_FCT_SSH sortSnapshots "$dest_fs" ""`; do
 
         # Compute the src fs snapshot name corresponding to the current dest fs snapshot
-        removeDestFSInName="s!$I_DEST_FS/!!g"
-        snapSrcFs=`echo "$snapDestFs" | sed -e "$removeDestFSInName"`
+        replaceDestBySrcInFSName="s!^$I_DEST_FS!$I_SRC_FS!g"
+        snapSrcFs=`echo "$snapDestFs" | sed -e "$replaceDestBySrcInFSName"`
 
         if [ $snapSrcFs = $newestSnapSrcFs ]; then
-            log_info "$LOGFILE" "$logPrefix: No newer snapshot exist in source filesystem. Nothing to backup"
+            log_info "$LOGFILE" "$logPrefix: No newer snapshot exists in source filesystem. Nothing to backup"
             return 0
         fi
 
@@ -371,7 +372,7 @@ backup() {
 # Main
 ##################################
 main() {
-    local returnCode currentSubSrcFs currentSubDstFs
+    local returnCode currentSubSrcFs currentSubDstFs replaceSrcByDestInFSName
 
     returnCode=0
 
@@ -380,7 +381,8 @@ main() {
     # for the source fs and all its sub-filesystems
     for currentSubSrcFs in `$BIN_ZFS list -t filesystem,volume -r -H -o name $I_SRC_FS`; do
 
-        currentSubDstFs="$I_DEST_FS/$currentSubSrcFs"
+        replaceSrcByDestInFSName="s!^$I_SRC_FS!$I_DEST_FS!g"
+        currentSubDstFs=`echo "$currentSubSrcFs" | sed -e "$replaceSrcByDestInFSName"`
 
         # create the dest filesystems (recursively) if it does not exist yet
         # and do not perform a backup if it fails
