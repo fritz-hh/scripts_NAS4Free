@@ -21,10 +21,10 @@ ATTENTION: Thes changes BREAK the compatibility with the previous version of the
 
 - backupData.sh: Change the meaning of the command line argument `fsDest` (#34)
   Before the change the backup was done in `tank_backup/tank` if `fsSource=tank` and `fsDest=tank_backup`.
-  After he change the backup is done in `tank_backup` directly.
+  After the change, the backup is done in `tank_backup` directly.
 
   Rationale: This changes gives more control over the destination filesystem. 
-  This is required to support restoring a backup using `backupData.sh` 
+  This is required to support (using `backupData.sh`) restoring a backup into the original source filesystem 
   (only source and destination filesystems must be slipped in the call)
   
 - backupData.sh: Remove support for several source ZFS file systems.
